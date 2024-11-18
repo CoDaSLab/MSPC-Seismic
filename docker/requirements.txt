@@ -1,0 +1,10 @@
+obspy
+matplotlib
+pandas
+streamlit
+librosa
+antropy
+tqdm
+mpld3
+folium
+streamlit-folium
