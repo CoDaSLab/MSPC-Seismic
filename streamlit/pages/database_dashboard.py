@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_utils.interface import header, logo
 from streamlit_utils.utils import init_session_state
+from streamlit_utils.widgets import *
 
 # --- Application start ---
 st.set_page_config(
@@ -113,7 +114,7 @@ def show_table(name):
 
 st.title('Digivolcan database dashboard')
 
-names.append('Check availability')
+names.append('Check data availability')
 tabs = st.tabs(names)
 
 for id, tab in enumerate(tabs[:-1]):
@@ -121,24 +122,14 @@ for id, tab in enumerate(tabs[:-1]):
         show_table(names[id])
 
 
-
+# Check data availability
 with tabs[-1 ]:
 
     COL = st.columns(2)
-    COL[0].subheader("start")
-    col = COL[0].columns(2)
-    fecha = col[0].date_input("Select a date", key='start_date', value=datetime(2021, 11, 26))
-    hora = col[1].time_input("Select a time", key='start_time')
-    start = datetime.combine(fecha, hora)
+    with COL[0]:
+        start, end = select_time('check_availability')
 
-    tol = col[0].number_input('Tolerance (s)', min_value = 0.0, value=0.0)
-
-    COL[1].subheader("end")
-    col = COL[1].columns(2)
-    fecha = col[0].date_input("Select a date", key='end_date', value = datetime(2021, 11, 27))
-    hora = col[1].time_input("Select a time", key='end_time')
-    end = datetime.combine(fecha, hora)
-
+    tol = COL[1].number_input('Tolerance (s)', min_value = 0.0, value=0.0)
 
     result = check_sensors(start, end, tol = tol, pathfile=csv_files["Available Time"],
                            filenames_path=csv_files["Available Files"])

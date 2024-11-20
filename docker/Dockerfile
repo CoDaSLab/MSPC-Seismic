@@ -21,3 +21,6 @@ USER vulcano
 WORKDIR /home/vulcano
 
 CMD ["bash"]
+#ENTRYPOINT ["cd", "streamlit"]
+#ENTRYPOINT ["streamlit", "run", "app_digivolcan.py", "--server.port=8501", "--server.address=0.0.0.0"]
+#CMD ["bash"]

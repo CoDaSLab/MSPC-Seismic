@@ -216,8 +216,8 @@ def plot_availability(ax, limits, missing_data, axis = 'X', alpha = 0.3):
 
 if __name__=='__main__':
     start, end = (
-        datetime(2021, 9, 11, 0, 0),
-        datetime(2021, 9, 27, 0, 0)
+        datetime(2021, 9, 12, 0, 0),
+        datetime(2021, 9, 30, 0, 0)
     )
 
     # Function health check

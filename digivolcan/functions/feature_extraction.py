@@ -377,12 +377,14 @@ if __name__ == '__main__':
 
     time0 = datetime.now()
     print(f"\nScript start at {time0}")
-    starttime = datetime(2021, 9, 20, 0, 0)
-    endtime    = datetime(2021, 9, 20, 0, 10)
+    starttime = datetime(2021, 9, 19, 9, 30)
+    endtime    = datetime(2021, 9, 19, 11, 30)
 
 
-    window = 1.0*60*60 # 1 hour
-    window = 10 #s
+    # window = 1.0*60*60 # 1 hour
+    # window = 10 #s
+    window = 1*60
+    # window = 60*60/2
     overlap = 0 #window//2
     shift = window - overlap
     windowing = False # scipy.signal.windows.hamming
@@ -413,7 +415,7 @@ if __name__ == '__main__':
 
                 S = SISMO(sensor, channel, starttime, endtime,
                         detrend, windowing, cpus=10)
-                S.resampling_factor = 100
+                S.resampling_factor = 50
                 S.check()
                 
                 # S.set_windows(window, shift)

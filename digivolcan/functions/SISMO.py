@@ -29,6 +29,8 @@ class SISMO(HDAS):
         "Get the filenames to read according to the starttime and endtime"
         start_day = starttime.replace(hour=0, minute=0, second=0)
         filenames, _,_ = get_filenames(start_day, endtime, sensor, channel)
+
+        assert len(filenames) > 0, "No data files in the selected time period"
         
         self.existing_files = filenames
 

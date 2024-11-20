@@ -3,9 +3,9 @@ from streamlit_utils.interface import header, logo
 from streamlit_utils.utils import init_session_state
 from streamlit_utils.widgets import *
 from digivolcan.functions.feature_extraction import *
+# from digivolcan.functions.data_check import check_sensors
 
 import pandas as pd
-import scipy.io
 
 # --- Application start ---
 st.set_page_config(
