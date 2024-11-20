@@ -4,7 +4,7 @@ close all
 clc
 %% Cargamos los datos
 
-log = readtimetable('feature_log.csv', 'VariableNamesLine', 1);
+log = readtimetable('digivolcan/database/feature_log.csv', 'VariableNamesLine', 1);
 filtered_log = log;
 
 filtered_log = filtered_log(strcmp(filtered_log.sensor, 'PLPI'),:);
