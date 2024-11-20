@@ -3,4 +3,5 @@ data/
 digivolcan/database/features/
 digivolcan/figures  
 .*/
-.* !.gitignore
+.*
+!.gitignore
