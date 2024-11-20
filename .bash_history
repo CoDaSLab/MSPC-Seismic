@@ -23,3 +23,6 @@ pip freeze
 python
 pip install beepy
 pip install beepy
+pip install beepy
+pip install beepy
+pip install beepy
