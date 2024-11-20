@@ -2,6 +2,7 @@ Analysis/
 data/
 digivolcan/database/features/
 digivolcan/figures  
+exploratory_analysis/data/
 .*/
 .*
 !.gitignore
