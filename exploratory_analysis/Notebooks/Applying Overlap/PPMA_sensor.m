@@ -35,6 +35,7 @@ Load_multiple(filtered_log, unfolding, obs_subset);
 % El 15 de septiembre se lanzó un pulso de calibración desde las 6:51 a las
 % 6:56. Las medidas de este periodo no son reales. Por tanto, debemos
 % descartar esta ventana de nuestro análisis
+disp('Discarding calibration pulses...')
 pulse_id(1) = find(obs_label == "15-Sep-2021 07:00:00");
 pulse_id(2) = find(obs_label == "16-Sep-2021 17:00:00");
 pulse_id(3) = find(obs_label == "15-Sep-2021 07:30:00");
@@ -85,7 +86,8 @@ x_var = varPca(X, 'Pcs', pcs, 'Preprocessing', 0); % new version
 
 % PCA analysis
 pcs = 1:2;
-pcaEig(X, 'Pcs', pcs); % new version    
+pcaEig(X, 'Pcs', pcs); % new version   
+title('PPMA') 
 
 model.lvs = pcs;
 model.var = trace(Xcs'*Xcs);
@@ -100,24 +102,25 @@ for i = 1:length(ids)
     var_l = replace(var_l, " - " + string(id), '');
     var_classes = replace(var_classes, "1 - " + string(id), channel);
 end
-loadings(model, 'VarsLabel', var_l, 'ObsClass', var_classes, ...
+loadings(model, 'VarsLabel', var_l, 'VarsClass', var_classes, ...
     'BlurIndex', 0.1);
+title('PPMA')
 legend()
 
 %% Scores - Maximum magnitude
 scores(model, 'ObsLabel',obs_label, 'ObsClass', max_magnitudes, 'opt', '00100','BlurIndex', 0.01);
 colorbar()
-title("Magnitud máxima de eventos")
+title("PPMA - Maximum magnitude of events")
 
 %% Scores - Time
 scores(model, 'ObsLabel',obs_label, 'ObsClass', 1:size(X, 1), 'opt', '00100','BlurIndex', 0.01);
 colorbar()
-title("Tiempo")
+title("PPMA - Time")
 %% Scores - Before vs. after the eruption
 % The eruption started at 14:10 the 19 of september.
 % However, the strongest previous EQ was at 11:00
 
-eruption_start = "19-Sep-2021 11:00:00";
+% eruption_start = "19-Sep-2021 11:00:00";
 eruption_start = "19-Sep-2021 15:00:00";
 
 eruption_id = find(obs_label == eruption_start);
@@ -125,13 +128,39 @@ before_ids = find(obs_label < eruption_start);
 after_ids = find(obs_label > eruption_start);
 
 time = string(zeros(size(X,1), 1));
-time(eruption_id) = "Comienzo erupción"; 
-time(before_ids) = "Antes de la erupción";
-time(after_ids) = "Después de la erupción";
+time(eruption_id) = "Eruption start";
+time(before_ids) = "Before the eruption";
+time(after_ids) = "After the eruption";
 
 scores(model, 'ObsLabel',obs_label, 'ObsClass', time, 'BlurIndex', 0.01);
 legend()
-title("Antes y Después de la 1º erupción")
+title("PPMA - Before and after the first eruption")
+
+%% save
+
+folder_path = "exploratory_analysis/Notebooks/Deliverable D1.3.1/PCA/overlap/"
+
+%% Adapt labels
+f = gcf;
+f.Position = [100 100 640 500];
+textHandles = findobj(f, 'Type', 'Text');
+
+index = find(strcmp({textHandles.String}, '24-Sep-2021 14:00:00'));
+set(textHandles(index), 'Position', [2.4e9, -.7e9]);
+index = find(strcmp({textHandles.String}, '24-Sep-2021 14:30:00'));
+set(textHandles(index), 'Position', [2.4e9, -9.7e9]);
+% 
+index = find(strcmp({textHandles.String}, '19-Sep-2021 11:00:00'));
+set(textHandles(index), 'Position', [2e9,5.5e9]);
+index = find(strcmp({textHandles.String}, '19-Sep-2021 10:30:00'));
+set(textHandles(index), 'Position', [2.5e9,5.1e9]);
+
+index = find(strcmp({textHandles.String}, '20-Sep-2021 21:00:00'));
+set(textHandles(index), 'Position', [0.5e9,2.7e9]);
+
+%%
+saveas(gcf, folder_path + 'PPMA_scores_before_after_overlap', 'epsc');
+saveas(gcf, folder_path + 'PPMA_scores_before_after_overlap', 'png');
 %% Scores - Average Magnitude
 
 avg_mag = zeros(size(eq_count));  % Inicializar el resultado con ceros
@@ -146,8 +175,8 @@ title("Magnitud media de eventos")
 %% oMEDA. Antes vs Después de la 1º Erupción
 test = X(:, :);
 dummy = zeros(size(X,1), 1);
-dummy(before_ids) = +1;
-dummy(after_ids) = -1;
+dummy(before_ids) = -1;
+dummy(after_ids) = +1;
 %%
 
 om = omedaPca(X, 1:2, test, dummy, 'Preprocessing', 0);
@@ -173,17 +202,21 @@ for i = 1:3
 
     fig_h = plotVec(om(start_idx:end_idx));
     fig_axes = get(fig_h, 'Children'); 
-    copyobj(get(fig_axes, 'Children'), ax);
+    % copyobj(get(fig_axes, 'Children'), ax);
+    children = get(fig_axes, 'Children');
+    children = vertcat(children{:}); % Convierte el contenido de la celda a un arreglo de gráficos
+    copyobj(children, ax);
+
     close(fig_h);
 
     % ylim([0, 6e16]);
-    ylim([-3e20, 0]);
+    ylim([0, 9e19]);
     title(channels(i));
 
     xticks(1:step:n_freq);               
     xticklabels(x_labels(1:step:n_freq));  
     ylabel("d^2_A")
     if i ==3
-        xlabel('Frecuencia (Hz)');   
+        xlabel('Frecuency (Hz)');   
     end
 end

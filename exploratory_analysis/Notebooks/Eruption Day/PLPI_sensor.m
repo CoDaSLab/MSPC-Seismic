@@ -4,14 +4,14 @@ close all
 clc
 %% Cargamos los datos
 
-log = readtimetable('feature_log_hours.csv', 'VariableNamesLine', 1);
+log = readtimetable('digivolcan/database/feature_log.csv', 'VariableNamesLine', 1);
 filtered_log = log;
 
 filtered_log = filtered_log(strcmp(filtered_log.sensor, 'PPMA'),:);
 filtered_log = filtered_log(strcmp(filtered_log.type, 'FFT'),:);
-filtered_log = filtered_log(filtered_log.window == 60, :);
+filtered_log = filtered_log(filtered_log.window == 10, :);
 filtered_log = filtered_log(filtered_log.overlap == 0, :);
-filtered_log = filtered_log(filtered_log.starttime >= datetime('19-Sep-2021'), :);
+filtered_log = filtered_log(filtered_log.starttime == datetime('19-Sep-2021'), :);
 % filtered_log = filtered_log(filtered_log.endtime == datetime('26-Sep-2021'), :);
 filtered_log = filtered_log(strcmp(filtered_log.trend_removed, 'False'), :);
 filtered_log = filtered_log(strcmp(filtered_log.windowing, 'False'), :);
@@ -75,7 +75,7 @@ pcaEig(X, 'Pcs', pcs); % new version
 
 model.lvs = pcs;
 model.var = trace(Xcs'*Xcs);
-[model.loads,model.scores] = pcaEig(Xcs,'Pcs',model.lvs);
+model = pcaEig(Xcs,'Pcs',model.lvs);
 
 %% Loadings
 
@@ -86,7 +86,7 @@ for i = 1:length(ids)
     var_l = replace(var_l, " - " + string(id), '');
     var_classes = replace(var_classes, "1 - " + string(id), channel);
 end
-loadings(model, 'VarsLabel', var_l, 'ObsClass', var_classes, ...
+loadings(model, 'VarsLabel', var_l, 'VarsClass', var_classes, ...
     'BlurIndex', 0.1);
 legend()
 

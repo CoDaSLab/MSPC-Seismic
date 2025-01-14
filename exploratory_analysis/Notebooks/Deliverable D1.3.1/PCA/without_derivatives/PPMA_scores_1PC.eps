@@ -1,0 +1,3348 @@
+%!PS-Adobe-3.0 EPSF-3.0
+%%Creator: (MATLAB, The Mathworks, Inc. Version 23.2.0.2485118 \(R2023b\) Update 6. Operating System: Windows 10)
+%%Title: (exploratory_analysis/Notebooks/Deliverable D1.3.1/PCA/without_derivatives/PPMA_scores_1PC.eps)
+%%CreationDate: 2025-01-06T00:33:22
+%%Pages: (atend)
+%%BoundingBox:    23     3   440   363
+%%LanguageLevel: 3
+%%EndComments
+%%BeginProlog
+%%BeginResource: procset (Apache XML Graphics Std ProcSet) 1.2 0
+%%Version: 1.2 0
+%%Copyright: (Copyright 2001-2003,2010 The Apache Software Foundation. License terms: http://www.apache.org/licenses/LICENSE-2.0)
+/bd{bind def}bind def
+/ld{load def}bd
+/GR/grestore ld
+/GS/gsave ld
+/RM/rmoveto ld
+/C/curveto ld
+/t/show ld
+/L/lineto ld
+/ML/setmiterlimit ld
+/CT/concat ld
+/f/fill ld
+/N/newpath ld
+/S/stroke ld
+/CC/setcmykcolor ld
+/A/ashow ld
+/cp/closepath ld
+/RC/setrgbcolor ld
+/LJ/setlinejoin ld
+/GC/setgray ld
+/LW/setlinewidth ld
+/M/moveto ld
+/re {4 2 roll M
+1 index 0 rlineto
+0 exch rlineto
+neg 0 rlineto
+cp } bd
+/_ctm matrix def
+/_tm matrix def
+/BT { _ctm currentmatrix pop matrix _tm copy pop 0 0 moveto } bd
+/ET { _ctm setmatrix } bd
+/iTm { _ctm setmatrix _tm concat } bd
+/Tm { _tm astore pop iTm 0 0 moveto } bd
+/ux 0.0 def
+/uy 0.0 def
+/F {
+  /Tp exch def
+  /Tf exch def
+  Tf findfont Tp scalefont setfont
+  /cf Tf def  /cs Tp def
+} bd
+/ULS {currentpoint /uy exch def /ux exch def} bd
+/ULE {
+  /Tcx currentpoint pop def
+  gsave
+  newpath
+  cf findfont cs scalefont dup
+  /FontMatrix get 0 get /Ts exch def /FontInfo get dup
+  /UnderlinePosition get Ts mul /To exch def
+  /UnderlineThickness get Ts mul /Tt exch def
+  ux uy To add moveto  Tcx uy To add lineto
+  Tt setlinewidth stroke
+  grestore
+} bd
+/OLE {
+  /Tcx currentpoint pop def
+  gsave
+  newpath
+  cf findfont cs scalefont dup
+  /FontMatrix get 0 get /Ts exch def /FontInfo get dup
+  /UnderlinePosition get Ts mul /To exch def
+  /UnderlineThickness get Ts mul /Tt exch def
+  ux uy To add cs add moveto Tcx uy To add cs add lineto
+  Tt setlinewidth stroke
+  grestore
+} bd
+/SOE {
+  /Tcx currentpoint pop def
+  gsave
+  newpath
+  cf findfont cs scalefont dup
+  /FontMatrix get 0 get /Ts exch def /FontInfo get dup
+  /UnderlinePosition get Ts mul /To exch def
+  /UnderlineThickness get Ts mul /Tt exch def
+  ux uy To add cs 10 mul 26 idiv add moveto Tcx uy To add cs 10 mul 26 idiv add lineto
+  Tt setlinewidth stroke
+  grestore
+} bd
+/QT {
+/Y22 exch store
+/X22 exch store
+/Y21 exch store
+/X21 exch store
+currentpoint
+/Y21 load 2 mul add 3 div exch
+/X21 load 2 mul add 3 div exch
+/X21 load 2 mul /X22 load add 3 div
+/Y21 load 2 mul /Y22 load add 3 div
+/X22 load /Y22 load curveto
+} bd
+/SSPD {
+dup length /d exch dict def
+{
+/v exch def
+/k exch def
+currentpagedevice k known {
+/cpdv currentpagedevice k get def
+v cpdv ne {
+/upd false def
+/nullv v type /nulltype eq def
+/nullcpdv cpdv type /nulltype eq def
+nullv nullcpdv or
+{
+/upd true def
+} {
+/sametype v type cpdv type eq def
+sametype {
+v type /arraytype eq {
+/vlen v length def
+/cpdvlen cpdv length def
+vlen cpdvlen eq {
+0 1 vlen 1 sub {
+/i exch def
+/obj v i get def
+/cpdobj cpdv i get def
+obj cpdobj ne {
+/upd true def
+exit
+} if
+} for
+} {
+/upd true def
+} ifelse
+} {
+v type /dicttype eq {
+v {
+/dv exch def
+/dk exch def
+/cpddv cpdv dk get def
+dv cpddv ne {
+/upd true def
+exit
+} if
+} forall
+} {
+/upd true def
+} ifelse
+} ifelse
+} if
+} ifelse
+upd true eq {
+d k v put
+} if
+} if
+} if
+} forall
+d length 0 gt {
+d setpagedevice
+} if
+} bd
+/RE { % /NewFontName [NewEncodingArray] /FontName RE -
+  findfont dup length dict begin
+  {
+    1 index /FID ne
+    {def} {pop pop} ifelse
+  } forall
+  /Encoding exch def
+  /FontName 1 index def
+  currentdict definefont pop
+  end
+} bind def
+%%EndResource
+%%BeginResource: procset (Apache XML Graphics EPS ProcSet) 1.0 0
+%%Version: 1.0 0
+%%Copyright: (Copyright 2002-2003 The Apache Software Foundation. License terms: http://www.apache.org/licenses/LICENSE-2.0)
+/BeginEPSF { %def
+/b4_Inc_state save def         % Save state for cleanup
+/dict_count countdictstack def % Count objects on dict stack
+/op_count count 1 sub def      % Count objects on operand stack
+userdict begin                 % Push userdict on dict stack
+/showpage { } def              % Redefine showpage, { } = null proc
+0 setgray 0 setlinecap         % Prepare graphics state
+1 setlinewidth 0 setlinejoin
+10 setmiterlimit [ ] 0 setdash newpath
+/languagelevel where           % If level not equal to 1 then
+{pop languagelevel             % set strokeadjust and
+1 ne                           % overprint to their defaults.
+{false setstrokeadjust false setoverprint
+} if
+} if
+} bd
+/EndEPSF { %def
+count op_count sub {pop} repeat            % Clean up stacks
+countdictstack dict_count sub {end} repeat
+b4_Inc_state restore
+} bd
+%%EndResource
+%FOPBeginFontDict
+%%IncludeResource: font Courier-Oblique
+%%IncludeResource: font Courier-BoldOblique
+%%IncludeResource: font Courier-Bold
+%%IncludeResource: font ZapfDingbats
+%%IncludeResource: font Symbol
+%%IncludeResource: font Helvetica
+%%IncludeResource: font Helvetica-Oblique
+%%IncludeResource: font Helvetica-Bold
+%%IncludeResource: font Helvetica-BoldOblique
+%%IncludeResource: font Times-Roman
+%%IncludeResource: font Times-Italic
+%%IncludeResource: font Times-Bold
+%%IncludeResource: font Times-BoldItalic
+%%IncludeResource: font Courier
+%FOPEndFontDict
+%%BeginResource: encoding WinAnsiEncoding
+/WinAnsiEncoding [
+/.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /.notdef /.notdef /.notdef
+/.notdef /.notdef /space /exclam /quotedbl
+/numbersign /dollar /percent /ampersand /quotesingle
+/parenleft /parenright /asterisk /plus /comma
+/hyphen /period /slash /zero /one
+/two /three /four /five /six
+/seven /eight /nine /colon /semicolon
+/less /equal /greater /question /at
+/A /B /C /D /E
+/F /G /H /I /J
+/K /L /M /N /O
+/P /Q /R /S /T
+/U /V /W /X /Y
+/Z /bracketleft /backslash /bracketright /asciicircum
+/underscore /quoteleft /a /b /c
+/d /e /f /g /h
+/i /j /k /l /m
+/n /o /p /q /r
+/s /t /u /v /w
+/x /y /z /braceleft /bar
+/braceright /asciitilde /bullet /Euro /bullet
+/quotesinglbase /florin /quotedblbase /ellipsis /dagger
+/daggerdbl /circumflex /perthousand /Scaron /guilsinglleft
+/OE /bullet /Zcaron /bullet /bullet
+/quoteleft /quoteright /quotedblleft /quotedblright /bullet
+/endash /emdash /asciitilde /trademark /scaron
+/guilsinglright /oe /bullet /zcaron /Ydieresis
+/space /exclamdown /cent /sterling /currency
+/yen /brokenbar /section /dieresis /copyright
+/ordfeminine /guillemotleft /logicalnot /sfthyphen /registered
+/macron /degree /plusminus /twosuperior /threesuperior
+/acute /mu /paragraph /middot /cedilla
+/onesuperior /ordmasculine /guillemotright /onequarter /onehalf
+/threequarters /questiondown /Agrave /Aacute /Acircumflex
+/Atilde /Adieresis /Aring /AE /Ccedilla
+/Egrave /Eacute /Ecircumflex /Edieresis /Igrave
+/Iacute /Icircumflex /Idieresis /Eth /Ntilde
+/Ograve /Oacute /Ocircumflex /Otilde /Odieresis
+/multiply /Oslash /Ugrave /Uacute /Ucircumflex
+/Udieresis /Yacute /Thorn /germandbls /agrave
+/aacute /acircumflex /atilde /adieresis /aring
+/ae /ccedilla /egrave /eacute /ecircumflex
+/edieresis /igrave /iacute /icircumflex /idieresis
+/eth /ntilde /ograve /oacute /ocircumflex
+/otilde /odieresis /divide /oslash /ugrave
+/uacute /ucircumflex /udieresis /yacute /thorn
+/ydieresis
+] def
+%%EndResource
+%FOPBeginFontReencode
+/Courier-Oblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Courier-Oblique exch definefont pop
+/Courier-BoldOblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Courier-BoldOblique exch definefont pop
+/Courier-Bold findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Courier-Bold exch definefont pop
+/Helvetica findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Helvetica exch definefont pop
+/Helvetica-Oblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Helvetica-Oblique exch definefont pop
+/Helvetica-Bold findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Helvetica-Bold exch definefont pop
+/Helvetica-BoldOblique findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Helvetica-BoldOblique exch definefont pop
+/Times-Roman findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Times-Roman exch definefont pop
+/Times-Italic findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Times-Italic exch definefont pop
+/Times-Bold findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Times-Bold exch definefont pop
+/Times-BoldItalic findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Times-BoldItalic exch definefont pop
+/Courier findfont
+dup length dict begin
+  {1 index /FID ne {def} {pop pop} ifelse} forall
+  /Encoding WinAnsiEncoding def
+  currentdict
+end
+/Courier exch definefont pop
+%FOPEndFontReencode
+%%EndProlog
+%%Page: 1 1
+%%PageBoundingBox: 0 0 480 375
+%%BeginPageSetup
+N
+   23     3 M
+  463     3 L
+  463   366 L
+   23   366 L
+cp
+clip
+[1 0 0 -1 0 375] CT
+%%EndPageSetup
+GS
+[0.6 0 0 0.6 0 0] CT
+1 GC
+N
+0 0 800 625 re
+f
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+1 GC
+N
+0 0 800 625 re
+f
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+1 GC
+N
+94 483 M
+658 483 L
+658 47 L
+94 47 L
+cp
+f
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+178.415 483 M
+178.415 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+304.533 483 M
+304.533 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+430.651 483 M
+430.651 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+556.769 483 M
+556.769 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 483 M
+94 483 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 420.714 M
+94 420.714 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 358.429 M
+94 358.429 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 296.143 M
+94 296.143 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 233.857 M
+94 233.857 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 171.571 M
+94 171.571 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 109.286 M
+94 109.286 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.873 GC
+1 LJ
+0.833 LW
+N
+658 47 M
+94 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 225.60022 26.09516] CT
+/Helvetica-Bold 23.333 F
+GS
+[1 0 0 1 0 0] CT
+-214.5 -6 moveto 
+1 -1 scale
+(PPMA - Maximum magnitude of events) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+1 LJ
+0.833 LW
+N
+94 358.429 M
+658 358.429 L
+S
+GR
+GS
+[0.2999 0 0 0.29973 57.20716 43.34128] CT
+[1 0 0 1 0 0] CT
+N
+0 572.906 M
+0 744 L
+2.691 744 L
+2.691 572.906 L
+cp
+3.364 572.906 M
+3.364 743.993 L
+6.056 743.993 L
+6.056 572.906 L
+cp
+6.729 572.906 M
+6.729 743.802 L
+9.42 743.802 L
+9.42 572.906 L
+cp
+10.093 572.906 M
+10.093 743.824 L
+12.784 743.824 L
+12.784 572.906 L
+cp
+13.457 572.906 M
+13.457 743.681 L
+16.149 743.681 L
+16.149 572.906 L
+cp
+16.821 572.906 M
+16.821 743.486 L
+19.513 743.486 L
+19.513 572.906 L
+cp
+20.186 572.906 M
+20.186 743.356 L
+22.877 743.356 L
+22.877 572.906 L
+cp
+23.55 572.906 M
+23.55 743.213 L
+26.241 743.213 L
+26.241 572.906 L
+cp
+26.914 572.906 M
+26.914 742.749 L
+29.606 742.749 L
+29.606 572.906 L
+cp
+30.279 572.906 M
+30.279 743.243 L
+32.97 743.243 L
+32.97 572.906 L
+cp
+33.643 572.906 M
+33.643 743.079 L
+36.334 743.079 L
+36.334 572.906 L
+cp
+37.007 572.906 M
+37.007 742.945 L
+39.699 742.945 L
+39.699 572.906 L
+cp
+40.371 572.906 M
+40.371 742.751 L
+43.063 742.751 L
+43.063 572.906 L
+cp
+43.736 572.906 M
+43.736 742.01 L
+46.427 742.01 L
+46.427 572.906 L
+cp
+47.1 572.906 M
+47.1 741.107 L
+49.791 741.107 L
+49.791 572.906 L
+cp
+50.464 572.906 M
+50.464 738.073 L
+53.156 738.073 L
+53.156 572.906 L
+cp
+53.829 572.906 M
+53.829 741.511 L
+56.52 741.511 L
+56.52 572.906 L
+cp
+57.193 572.906 M
+57.193 740.901 L
+59.884 740.901 L
+59.884 572.906 L
+cp
+60.557 572.906 M
+60.557 740.982 L
+63.249 740.982 L
+63.249 572.906 L
+cp
+63.922 572.906 M
+63.922 738.944 L
+66.613 738.944 L
+66.613 572.906 L
+cp
+67.286 572.906 M
+67.286 741.823 L
+69.977 741.823 L
+69.977 572.906 L
+cp
+70.65 572.906 M
+70.65 741.776 L
+73.342 741.776 L
+73.342 572.906 L
+cp
+74.014 572.906 M
+74.014 738.164 L
+76.706 738.164 L
+76.706 572.906 L
+cp
+77.379 572.906 M
+77.379 720.734 L
+80.07 720.734 L
+80.07 572.906 L
+cp
+80.743 572.906 M
+80.743 728.146 L
+83.434 728.146 L
+83.434 572.906 L
+cp
+84.107 572.906 M
+84.107 739.289 L
+86.799 739.289 L
+86.799 572.906 L
+cp
+87.472 572.906 M
+87.472 731.117 L
+90.163 731.117 L
+90.163 572.906 L
+cp
+90.836 572.906 M
+90.836 719.032 L
+93.527 719.032 L
+93.527 572.906 L
+cp
+94.2 572.906 M
+94.2 735.516 L
+96.892 735.516 L
+96.892 572.906 L
+cp
+97.564 572.906 M
+97.564 736.809 L
+100.256 736.809 L
+100.256 572.906 L
+cp
+100.929 572.906 M
+100.929 736.404 L
+103.62 736.404 L
+103.62 572.906 L
+cp
+104.293 572.906 M
+104.293 740.097 L
+106.984 740.097 L
+106.984 572.906 L
+cp
+107.657 572.906 M
+107.657 739.885 L
+110.349 739.885 L
+110.349 572.906 L
+cp
+111.022 572.906 M
+111.022 741.067 L
+113.713 741.067 L
+113.713 572.906 L
+cp
+114.386 572.906 M
+114.386 740.714 L
+117.077 740.714 L
+117.077 572.906 L
+cp
+117.75 572.906 M
+117.75 741.099 L
+120.442 741.099 L
+120.442 572.906 L
+cp
+121.114 572.906 M
+121.114 740.945 L
+123.806 740.945 L
+123.806 572.906 L
+cp
+124.479 572.906 M
+124.479 741.841 L
+127.17 741.841 L
+127.17 572.906 L
+cp
+127.843 572.906 M
+127.843 741.559 L
+130.534 741.559 L
+130.534 572.906 L
+cp
+131.207 572.906 M
+131.207 740.931 L
+133.899 740.931 L
+133.899 572.906 L
+cp
+134.572 572.906 M
+134.572 740.687 L
+137.263 740.687 L
+137.263 572.906 L
+cp
+137.936 572.906 M
+137.936 741.824 L
+140.627 741.824 L
+140.627 572.906 L
+cp
+141.3 572.906 M
+141.3 740.904 L
+143.992 740.904 L
+143.992 572.906 L
+cp
+144.664 572.906 M
+144.664 742.377 L
+147.356 742.377 L
+147.356 572.906 L
+cp
+148.029 572.906 M
+148.029 743.002 L
+150.72 743.002 L
+150.72 572.906 L
+cp
+151.393 572.906 M
+151.393 743.088 L
+154.084 743.088 L
+154.084 572.906 L
+cp
+154.757 572.906 M
+154.757 740.547 L
+157.449 740.547 L
+157.449 572.906 L
+cp
+158.122 572.906 M
+158.122 723.013 L
+160.813 723.013 L
+160.813 572.906 L
+cp
+161.486 572.906 M
+161.486 729.559 L
+164.177 729.559 L
+164.177 572.906 L
+cp
+164.85 572.906 M
+164.85 731.346 L
+167.542 731.346 L
+167.542 572.906 L
+cp
+168.215 572.906 M
+168.215 732.489 L
+170.906 732.489 L
+170.906 572.906 L
+cp
+171.579 572.906 M
+171.579 732.239 L
+174.27 732.239 L
+174.27 572.906 L
+cp
+174.943 572.906 M
+174.943 726.754 L
+177.635 726.754 L
+177.635 572.906 L
+cp
+178.307 572.906 M
+178.307 736.431 L
+180.999 736.431 L
+180.999 572.906 L
+cp
+181.672 572.906 M
+181.672 668.901 L
+184.363 668.901 L
+184.363 572.906 L
+cp
+185.036 572.906 M
+185.036 737.664 L
+187.727 737.664 L
+187.727 572.906 L
+cp
+188.4 572.906 M
+188.4 739.363 L
+191.092 739.363 L
+191.092 572.906 L
+cp
+191.765 572.906 M
+191.765 740.34 L
+194.456 740.34 L
+194.456 572.906 L
+cp
+195.129 572.906 M
+195.129 740.901 L
+197.82 740.901 L
+197.82 572.906 L
+cp
+198.493 572.906 M
+198.493 741.315 L
+201.185 741.315 L
+201.185 572.906 L
+cp
+201.857 572.906 M
+201.857 740.35 L
+204.549 740.35 L
+204.549 572.906 L
+cp
+205.222 572.906 M
+205.222 741.547 L
+207.913 741.547 L
+207.913 572.906 L
+cp
+208.586 572.906 M
+208.586 740.548 L
+211.277 740.548 L
+211.277 572.906 L
+cp
+211.95 572.906 M
+211.95 740.596 L
+214.642 740.596 L
+214.642 572.906 L
+cp
+215.315 572.906 M
+215.315 741.182 L
+218.006 741.182 L
+218.006 572.906 L
+cp
+218.679 572.906 M
+218.679 738.163 L
+221.37 738.163 L
+221.37 572.906 L
+cp
+222.043 572.906 M
+222.043 740.871 L
+224.735 740.871 L
+224.735 572.906 L
+cp
+225.407 572.906 M
+225.407 741.503 L
+228.099 741.503 L
+228.099 572.906 L
+cp
+228.772 572.906 M
+228.772 735.037 L
+231.463 735.037 L
+231.463 572.906 L
+cp
+232.136 572.906 M
+232.136 735.113 L
+234.827 735.113 L
+234.827 572.906 L
+cp
+235.5 572.906 M
+235.5 734.632 L
+238.192 734.632 L
+238.192 572.906 L
+cp
+238.865 572.906 M
+238.865 740.424 L
+241.556 740.424 L
+241.556 572.906 L
+cp
+242.229 572.906 M
+242.229 738.308 L
+244.92 738.308 L
+244.92 572.906 L
+cp
+245.593 572.906 M
+245.593 740.67 L
+248.285 740.67 L
+248.285 572.906 L
+cp
+248.957 572.906 M
+248.957 738.302 L
+251.649 738.302 L
+251.649 572.906 L
+cp
+252.322 572.906 M
+252.322 742.811 L
+255.013 742.811 L
+255.013 572.906 L
+cp
+255.686 572.906 M
+255.686 740.635 L
+258.377 740.635 L
+258.377 572.906 L
+cp
+259.05 572.906 M
+259.05 722.011 L
+261.742 722.011 L
+261.742 572.906 L
+cp
+262.415 572.906 M
+262.415 711.048 L
+265.106 711.048 L
+265.106 572.906 L
+cp
+265.779 572.906 M
+265.779 740.288 L
+268.47 740.288 L
+268.47 572.906 L
+cp
+269.143 572.906 M
+269.143 729.979 L
+271.835 729.979 L
+271.835 572.906 L
+cp
+272.508 572.906 M
+272.508 741.114 L
+275.199 741.114 L
+275.199 572.906 L
+cp
+275.872 572.906 M
+275.872 741.007 L
+278.563 741.007 L
+278.563 572.906 L
+cp
+279.236 572.906 M
+279.236 720.007 L
+281.927 720.007 L
+281.927 572.906 L
+cp
+282.6 572.906 M
+282.6 741.246 L
+285.292 741.246 L
+285.292 572.906 L
+cp
+285.965 572.906 M
+285.965 737.495 L
+288.656 737.495 L
+288.656 572.906 L
+cp
+289.329 572.906 M
+289.329 741.432 L
+292.02 741.432 L
+292.02 572.906 L
+cp
+292.693 572.906 M
+292.693 739.75 L
+295.385 739.75 L
+295.385 572.906 L
+cp
+296.058 572.906 M
+296.058 742.331 L
+298.749 742.331 L
+298.749 572.906 L
+cp
+299.422 572.906 M
+299.422 742.964 L
+302.113 742.964 L
+302.113 572.906 L
+cp
+302.786 572.906 M
+302.786 742.5 L
+305.478 742.5 L
+305.478 572.906 L
+cp
+306.15 572.906 M
+306.15 742.915 L
+308.842 742.915 L
+308.842 572.906 L
+cp
+309.515 572.906 M
+309.515 742.738 L
+312.206 742.738 L
+312.206 572.906 L
+cp
+312.879 572.906 M
+312.879 743.601 L
+315.57 743.601 L
+315.57 572.906 L
+cp
+316.243 572.906 M
+316.243 743.363 L
+318.935 743.363 L
+318.935 572.906 L
+cp
+319.608 572.906 M
+319.608 743.567 L
+322.299 743.567 L
+322.299 572.906 L
+cp
+322.972 572.906 M
+322.972 743.148 L
+325.663 743.148 L
+325.663 572.906 L
+cp
+326.336 572.906 M
+326.336 743.608 L
+329.028 743.608 L
+329.028 572.906 L
+cp
+329.7 572.906 M
+329.7 743.967 L
+332.392 743.967 L
+332.392 572.906 L
+cp
+333.065 572.906 M
+333.065 743.586 L
+335.756 743.586 L
+335.756 572.906 L
+cp
+336.429 572.906 M
+336.429 742.809 L
+339.12 742.809 L
+339.12 572.906 L
+cp
+339.793 572.906 M
+339.793 742.146 L
+342.485 742.146 L
+342.485 572.906 L
+cp
+343.158 572.906 M
+343.158 741.39 L
+345.849 741.39 L
+345.849 572.906 L
+cp
+346.522 572.906 M
+346.522 741.019 L
+349.213 741.019 L
+349.213 572.906 L
+cp
+349.886 572.906 M
+349.886 740.731 L
+352.578 740.731 L
+352.578 572.906 L
+cp
+353.25 572.906 M
+353.25 741.087 L
+355.942 741.087 L
+355.942 572.906 L
+cp
+356.615 572.906 M
+356.615 733.187 L
+359.306 733.187 L
+359.306 572.906 L
+cp
+359.979 572.906 M
+359.979 737.556 L
+362.67 737.556 L
+362.67 572.906 L
+cp
+363.343 572.906 M
+363.343 739.701 L
+366.035 739.701 L
+366.035 572.906 L
+cp
+366.708 572.906 M
+366.708 732.58 L
+369.399 732.58 L
+369.399 572.906 L
+cp
+370.072 572.906 M
+370.072 740.913 L
+372.763 740.913 L
+372.763 572.906 L
+cp
+373.436 572.906 M
+373.436 742.216 L
+376.128 742.216 L
+376.128 572.906 L
+cp
+376.801 572.906 M
+376.801 742.463 L
+379.492 742.463 L
+379.492 572.906 L
+cp
+380.165 572.906 M
+380.165 742.581 L
+382.856 742.581 L
+382.856 572.906 L
+cp
+383.529 572.906 M
+383.529 743.047 L
+386.221 743.047 L
+386.221 572.906 L
+cp
+386.893 572.906 M
+386.893 742.99 L
+389.585 742.99 L
+389.585 572.906 L
+cp
+390.258 572.906 M
+390.258 743.443 L
+392.949 743.443 L
+392.949 572.906 L
+cp
+393.622 572.906 M
+393.622 743.514 L
+396.313 743.514 L
+396.313 572.906 L
+cp
+396.986 572.906 M
+396.986 743.397 L
+399.678 743.397 L
+399.678 572.906 L
+cp
+400.351 572.906 M
+400.351 743.554 L
+403.042 743.554 L
+403.042 572.906 L
+cp
+403.715 572.906 M
+403.715 743.678 L
+406.406 743.678 L
+406.406 572.906 L
+cp
+407.079 572.906 M
+407.079 743.946 L
+409.77 743.946 L
+409.77 572.906 L
+cp
+410.443 572.906 M
+410.443 743.126 L
+413.135 743.126 L
+413.135 572.906 L
+cp
+413.808 572.906 M
+413.808 742.714 L
+416.499 742.714 L
+416.499 572.906 L
+cp
+417.172 572.906 M
+417.172 742.128 L
+419.863 742.128 L
+419.863 572.906 L
+cp
+420.536 572.906 M
+420.536 741.444 L
+423.228 741.444 L
+423.228 572.906 L
+cp
+423.901 572.906 M
+423.901 740.077 L
+426.592 740.077 L
+426.592 572.906 L
+cp
+427.265 572.906 M
+427.265 740.519 L
+429.956 740.519 L
+429.956 572.906 L
+cp
+430.629 572.906 M
+430.629 739.48 L
+433.321 739.48 L
+433.321 572.906 L
+cp
+433.993 572.906 M
+433.993 740.611 L
+436.685 740.611 L
+436.685 572.906 L
+cp
+437.358 572.906 M
+437.358 741.235 L
+440.049 741.235 L
+440.049 572.906 L
+cp
+440.722 572.906 M
+440.722 741.611 L
+443.413 741.611 L
+443.413 572.906 L
+cp
+444.086 572.906 M
+444.086 742.003 L
+446.778 742.003 L
+446.778 572.906 L
+cp
+447.451 572.906 M
+447.451 742.531 L
+450.142 742.531 L
+450.142 572.906 L
+cp
+450.815 572.906 M
+450.815 742.759 L
+453.506 742.759 L
+453.506 572.906 L
+cp
+454.179 572.906 M
+454.179 742.504 L
+456.871 742.504 L
+456.871 572.906 L
+cp
+457.543 572.906 M
+457.543 741.52 L
+460.235 741.52 L
+460.235 572.906 L
+cp
+460.908 572.906 M
+460.908 742.697 L
+463.599 742.697 L
+463.599 572.906 L
+cp
+464.272 572.906 M
+464.272 742.655 L
+466.963 742.655 L
+466.963 572.906 L
+cp
+467.636 572.906 M
+467.636 742.918 L
+470.328 742.918 L
+470.328 572.906 L
+cp
+471.001 572.906 M
+471.001 741.274 L
+473.692 741.274 L
+473.692 572.906 L
+cp
+474.365 572.906 M
+474.365 743.334 L
+477.056 743.334 L
+477.056 572.906 L
+cp
+477.729 572.906 M
+477.729 743.37 L
+480.421 743.37 L
+480.421 572.906 L
+cp
+481.094 572.906 M
+481.094 743.415 L
+483.785 743.415 L
+483.785 572.906 L
+cp
+484.458 572.906 M
+484.458 742.041 L
+487.149 742.041 L
+487.149 572.906 L
+cp
+487.822 572.906 M
+487.822 683.806 L
+490.513 683.806 L
+490.513 572.906 L
+cp
+491.186 572.906 M
+491.186 742.512 L
+493.878 742.512 L
+493.878 572.906 L
+cp
+494.551 572.906 M
+494.551 743.227 L
+497.242 743.227 L
+497.242 572.906 L
+cp
+497.915 572.906 M
+497.915 742.441 L
+500.606 742.441 L
+500.606 572.906 L
+cp
+501.279 572.906 M
+501.279 741.842 L
+503.971 741.842 L
+503.971 572.906 L
+cp
+504.644 572.906 M
+504.644 741.797 L
+507.335 741.797 L
+507.335 572.906 L
+cp
+508.008 572.906 M
+508.008 741.544 L
+510.699 741.544 L
+510.699 572.906 L
+cp
+511.372 572.906 M
+511.372 741.21 L
+514.064 741.21 L
+514.064 572.906 L
+cp
+514.736 572.906 M
+514.736 739.976 L
+517.428 739.976 L
+517.428 572.906 L
+cp
+518.101 572.906 M
+518.101 739.487 L
+520.792 739.487 L
+520.792 572.906 L
+cp
+521.465 572.906 M
+521.465 738.43 L
+524.156 738.43 L
+524.156 572.906 L
+cp
+524.829 572.906 M
+524.829 740.685 L
+527.521 740.685 L
+527.521 572.906 L
+cp
+528.194 572.906 M
+528.194 739.402 L
+530.885 739.402 L
+530.885 572.906 L
+cp
+531.558 572.906 M
+531.558 737.644 L
+534.249 737.644 L
+534.249 572.906 L
+cp
+534.922 572.906 M
+534.922 739.022 L
+537.614 739.022 L
+537.614 572.906 L
+cp
+538.286 572.906 M
+538.286 726.934 L
+540.978 726.934 L
+540.978 572.906 L
+cp
+541.651 572.906 M
+541.651 737.33 L
+544.342 737.33 L
+544.342 572.906 L
+cp
+545.015 572.906 M
+545.015 740.922 L
+547.706 740.922 L
+547.706 572.906 L
+cp
+548.379 572.906 M
+548.379 731.682 L
+551.071 731.682 L
+551.071 572.906 L
+cp
+551.744 572.906 M
+551.744 721.132 L
+554.435 721.132 L
+554.435 572.906 L
+cp
+555.108 572.906 M
+555.108 721.292 L
+557.799 721.292 L
+557.799 572.906 L
+cp
+558.472 572.906 M
+558.472 740.239 L
+561.164 740.239 L
+561.164 572.906 L
+cp
+561.836 572.906 M
+561.836 741.662 L
+564.528 741.662 L
+564.528 572.906 L
+cp
+565.201 572.906 M
+565.201 737.778 L
+567.892 737.778 L
+567.892 572.906 L
+cp
+568.565 572.906 M
+568.565 732.883 L
+571.256 732.883 L
+571.256 572.906 L
+cp
+571.929 572.906 M
+571.929 727.136 L
+574.621 727.136 L
+574.621 572.906 L
+cp
+575.294 572.906 M
+575.294 648.911 L
+577.985 648.911 L
+577.985 572.906 L
+cp
+581.349 555.425 M
+578.658 555.425 L
+578.658 572.906 L
+581.349 572.906 L
+cp
+584.714 569.043 M
+582.022 569.043 L
+582.022 572.906 L
+584.714 572.906 L
+cp
+585.386 572.906 M
+585.386 664.34 L
+588.078 664.34 L
+588.078 572.906 L
+cp
+591.442 522.712 M
+588.751 522.712 L
+588.751 572.906 L
+591.442 572.906 L
+cp
+594.806 0 M
+592.115 0 L
+592.115 572.906 L
+594.806 572.906 L
+cp
+598.171 494.012 M
+595.479 494.012 L
+595.479 572.906 L
+598.171 572.906 L
+cp
+598.844 572.906 M
+598.844 604.883 L
+601.535 604.883 L
+601.535 572.906 L
+cp
+602.208 572.906 M
+602.208 589.964 L
+604.899 589.964 L
+604.899 572.906 L
+cp
+608.264 411 M
+605.572 411 L
+605.572 572.906 L
+608.264 572.906 L
+cp
+611.628 437.945 M
+608.936 437.945 L
+608.936 572.906 L
+611.628 572.906 L
+cp
+614.992 464.071 M
+612.301 464.071 L
+612.301 572.906 L
+614.992 572.906 L
+cp
+618.357 459.119 M
+615.665 459.119 L
+615.665 572.906 L
+618.357 572.906 L
+cp
+621.721 386.54 M
+619.029 386.54 L
+619.029 572.906 L
+621.721 572.906 L
+cp
+625.085 392.895 M
+622.394 392.895 L
+622.394 572.906 L
+625.085 572.906 L
+cp
+628.449 424.489 M
+625.758 424.489 L
+625.758 572.906 L
+628.449 572.906 L
+cp
+631.814 423.406 M
+629.122 423.406 L
+629.122 572.906 L
+631.814 572.906 L
+cp
+635.178 431.559 M
+632.487 431.559 L
+632.487 572.906 L
+635.178 572.906 L
+cp
+638.542 433.355 M
+635.851 433.355 L
+635.851 572.906 L
+638.542 572.906 L
+cp
+641.907 430.169 M
+639.215 430.169 L
+639.215 572.906 L
+641.907 572.906 L
+cp
+645.271 435.611 M
+642.579 435.611 L
+642.579 572.906 L
+645.271 572.906 L
+cp
+648.635 439.494 M
+645.944 439.494 L
+645.944 572.906 L
+648.635 572.906 L
+cp
+651.999 431.211 M
+649.308 431.211 L
+649.308 572.906 L
+651.999 572.906 L
+cp
+655.364 428.615 M
+652.672 428.615 L
+652.672 572.906 L
+655.364 572.906 L
+cp
+658.728 436.438 M
+656.037 436.438 L
+656.037 572.906 L
+658.728 572.906 L
+cp
+662.092 427.825 M
+659.401 427.825 L
+659.401 572.906 L
+662.092 572.906 L
+cp
+665.457 442.592 M
+662.765 442.592 L
+662.765 572.906 L
+665.457 572.906 L
+cp
+668.821 448.803 M
+666.129 448.803 L
+666.129 572.906 L
+668.821 572.906 L
+cp
+672.185 475.619 M
+669.494 475.619 L
+669.494 572.906 L
+672.185 572.906 L
+cp
+675.549 489.154 M
+672.858 489.154 L
+672.858 572.906 L
+675.549 572.906 L
+cp
+678.914 499.311 M
+676.222 499.311 L
+676.222 572.906 L
+678.914 572.906 L
+cp
+682.278 500.655 M
+679.587 500.655 L
+679.587 572.906 L
+682.278 572.906 L
+cp
+685.642 492.411 M
+682.951 492.411 L
+682.951 572.906 L
+685.642 572.906 L
+cp
+689.007 504.201 M
+686.315 504.201 L
+686.315 572.906 L
+689.007 572.906 L
+cp
+692.371 510.39 M
+689.68 510.39 L
+689.68 572.906 L
+692.371 572.906 L
+cp
+695.735 505.01 M
+693.044 505.01 L
+693.044 572.906 L
+695.735 572.906 L
+cp
+699.1 506.52 M
+696.408 506.52 L
+696.408 572.906 L
+699.1 572.906 L
+cp
+702.464 508.105 M
+699.772 508.105 L
+699.772 572.906 L
+702.464 572.906 L
+cp
+705.828 501 M
+703.137 501 L
+703.137 572.906 L
+705.828 572.906 L
+cp
+709.192 172.164 M
+706.501 172.164 L
+706.501 572.906 L
+709.192 572.906 L
+cp
+712.557 487.441 M
+709.865 487.441 L
+709.865 572.906 L
+712.557 572.906 L
+cp
+715.921 477.071 M
+713.23 477.071 L
+713.23 572.906 L
+715.921 572.906 L
+cp
+719.285 492.85 M
+716.594 492.85 L
+716.594 572.906 L
+719.285 572.906 L
+cp
+722.65 493.067 M
+719.958 493.067 L
+719.958 572.906 L
+722.65 572.906 L
+cp
+726.014 486.693 M
+723.322 486.693 L
+723.322 572.906 L
+726.014 572.906 L
+cp
+729.378 495.819 M
+726.687 495.819 L
+726.687 572.906 L
+729.378 572.906 L
+cp
+732.742 505.532 M
+730.051 505.532 L
+730.051 572.906 L
+732.742 572.906 L
+cp
+736.107 504.25 M
+733.415 504.25 L
+733.415 572.906 L
+736.107 572.906 L
+cp
+739.471 497.453 M
+736.78 497.453 L
+736.78 572.906 L
+739.471 572.906 L
+cp
+742.835 500.269 M
+740.144 500.269 L
+740.144 572.906 L
+742.835 572.906 L
+cp
+746.2 511.309 M
+743.508 511.309 L
+743.508 572.906 L
+746.2 572.906 L
+cp
+749.564 504.813 M
+746.872 504.813 L
+746.872 572.906 L
+749.564 572.906 L
+cp
+752.928 485.821 M
+750.237 485.821 L
+750.237 572.906 L
+752.928 572.906 L
+cp
+756.292 463.25 M
+753.601 463.25 L
+753.601 572.906 L
+756.292 572.906 L
+cp
+759.657 458.644 M
+756.965 458.644 L
+756.965 572.906 L
+759.657 572.906 L
+cp
+763.021 447.777 M
+760.33 447.777 L
+760.33 572.906 L
+763.021 572.906 L
+cp
+766.385 424.638 M
+763.694 424.638 L
+763.694 572.906 L
+766.385 572.906 L
+cp
+769.75 413.652 M
+767.058 413.652 L
+767.058 572.906 L
+769.75 572.906 L
+cp
+773.114 404.347 M
+770.422 404.347 L
+770.422 572.906 L
+773.114 572.906 L
+cp
+776.478 406.003 M
+773.787 406.003 L
+773.787 572.906 L
+776.478 572.906 L
+cp
+779.842 376.454 M
+777.151 376.454 L
+777.151 572.906 L
+779.842 572.906 L
+cp
+783.207 359.499 M
+780.515 359.499 L
+780.515 572.906 L
+783.207 572.906 L
+cp
+786.571 363.605 M
+783.88 363.605 L
+783.88 572.906 L
+786.571 572.906 L
+cp
+789.935 354.227 M
+787.244 354.227 L
+787.244 572.906 L
+789.935 572.906 L
+cp
+793.3 371.13 M
+790.608 371.13 L
+790.608 572.906 L
+793.3 572.906 L
+cp
+796.664 393.606 M
+793.972 393.606 L
+793.972 572.906 L
+796.664 572.906 L
+cp
+800.028 389.641 M
+797.337 389.641 L
+797.337 572.906 L
+800.028 572.906 L
+cp
+803.392 403.244 M
+800.701 403.244 L
+800.701 572.906 L
+803.392 572.906 L
+cp
+806.757 483.306 M
+804.065 483.306 L
+804.065 572.906 L
+806.757 572.906 L
+cp
+810.121 500.314 M
+807.43 500.314 L
+807.43 572.906 L
+810.121 572.906 L
+cp
+813.485 517.239 M
+810.794 517.239 L
+810.794 572.906 L
+813.485 572.906 L
+cp
+816.85 503.841 M
+814.158 503.841 L
+814.158 572.906 L
+816.85 572.906 L
+cp
+820.214 476.55 M
+817.523 476.55 L
+817.523 572.906 L
+820.214 572.906 L
+cp
+823.578 455.937 M
+820.887 455.937 L
+820.887 572.906 L
+823.578 572.906 L
+cp
+826.943 442.719 M
+824.251 442.719 L
+824.251 572.906 L
+826.943 572.906 L
+cp
+830.307 446.675 M
+827.615 446.675 L
+827.615 572.906 L
+830.307 572.906 L
+cp
+833.671 464.628 M
+830.98 464.628 L
+830.98 572.906 L
+833.671 572.906 L
+cp
+837.035 477.832 M
+834.344 477.832 L
+834.344 572.906 L
+837.035 572.906 L
+cp
+840.4 472.053 M
+837.708 472.053 L
+837.708 572.906 L
+840.4 572.906 L
+cp
+843.764 471.636 M
+841.073 471.636 L
+841.073 572.906 L
+843.764 572.906 L
+cp
+847.128 491.495 M
+844.437 491.495 L
+844.437 572.906 L
+847.128 572.906 L
+cp
+850.493 498.387 M
+847.801 498.387 L
+847.801 572.906 L
+850.493 572.906 L
+cp
+853.857 476.543 M
+851.165 476.543 L
+851.165 572.906 L
+853.857 572.906 L
+cp
+857.221 453.284 M
+854.53 453.284 L
+854.53 572.906 L
+857.221 572.906 L
+cp
+860.585 478.459 M
+857.894 478.459 L
+857.894 572.906 L
+860.585 572.906 L
+cp
+863.95 492.255 M
+861.258 492.255 L
+861.258 572.906 L
+863.95 572.906 L
+cp
+867.314 481.832 M
+864.623 481.832 L
+864.623 572.906 L
+867.314 572.906 L
+cp
+870.678 423.241 M
+867.987 423.241 L
+867.987 572.906 L
+870.678 572.906 L
+cp
+874.043 420.331 M
+871.351 420.331 L
+871.351 572.906 L
+874.043 572.906 L
+cp
+877.407 396.531 M
+874.715 396.531 L
+874.715 572.906 L
+877.407 572.906 L
+cp
+880.771 373.696 M
+878.08 373.696 L
+878.08 572.906 L
+880.771 572.906 L
+cp
+884.135 361.694 M
+881.444 361.694 L
+881.444 572.906 L
+884.135 572.906 L
+cp
+887.5 428.416 M
+884.808 428.416 L
+884.808 572.906 L
+887.5 572.906 L
+cp
+890.864 456.193 M
+888.173 456.193 L
+888.173 572.906 L
+890.864 572.906 L
+cp
+894.228 418.475 M
+891.537 418.475 L
+891.537 572.906 L
+894.228 572.906 L
+cp
+897.593 458.536 M
+894.901 458.536 L
+894.901 572.906 L
+897.593 572.906 L
+cp
+900.957 426.665 M
+898.266 426.665 L
+898.266 572.906 L
+900.957 572.906 L
+cp
+904.321 456.079 M
+901.63 456.079 L
+901.63 572.906 L
+904.321 572.906 L
+cp
+907.686 442.96 M
+904.994 442.96 L
+904.994 572.906 L
+907.686 572.906 L
+cp
+911.05 477.822 M
+908.358 477.822 L
+908.358 572.906 L
+911.05 572.906 L
+cp
+914.414 475.855 M
+911.723 475.855 L
+911.723 572.906 L
+914.414 572.906 L
+cp
+917.778 471.614 M
+915.087 471.614 L
+915.087 572.906 L
+917.778 572.906 L
+cp
+921.143 437.057 M
+918.451 437.057 L
+918.451 572.906 L
+921.143 572.906 L
+cp
+924.507 436.471 M
+921.816 436.471 L
+921.816 572.906 L
+924.507 572.906 L
+cp
+927.871 485.169 M
+925.18 485.169 L
+925.18 572.906 L
+927.871 572.906 L
+cp
+931.235 484.372 M
+928.544 484.372 L
+928.544 572.906 L
+931.235 572.906 L
+cp
+934.6 460.753 M
+931.908 460.753 L
+931.908 572.906 L
+934.6 572.906 L
+cp
+937.964 482.677 M
+935.273 482.677 L
+935.273 572.906 L
+937.964 572.906 L
+cp
+941.328 477.938 M
+938.637 477.938 L
+938.637 572.906 L
+941.328 572.906 L
+cp
+944.693 480.794 M
+942.001 480.794 L
+942.001 572.906 L
+944.693 572.906 L
+cp
+948.057 427.809 M
+945.366 427.809 L
+945.366 572.906 L
+948.057 572.906 L
+cp
+951.421 434.206 M
+948.73 434.206 L
+948.73 572.906 L
+951.421 572.906 L
+cp
+954.786 403.211 M
+952.094 403.211 L
+952.094 572.906 L
+954.786 572.906 L
+cp
+958.15 409.758 M
+955.458 409.758 L
+955.458 572.906 L
+958.15 572.906 L
+cp
+961.514 437.774 M
+958.823 437.774 L
+958.823 572.906 L
+961.514 572.906 L
+cp
+964.878 429.962 M
+962.187 429.962 L
+962.187 572.906 L
+964.878 572.906 L
+cp
+968.243 300.02 M
+965.551 300.02 L
+965.551 572.906 L
+968.243 572.906 L
+cp
+971.607 273.618 M
+968.916 273.618 L
+968.916 572.906 L
+971.607 572.906 L
+cp
+974.971 303.23 M
+972.28 303.23 L
+972.28 572.906 L
+974.971 572.906 L
+cp
+978.336 364.197 M
+975.644 364.197 L
+975.644 572.906 L
+978.336 572.906 L
+cp
+981.7 351.104 M
+979.008 351.104 L
+979.008 572.906 L
+981.7 572.906 L
+cp
+985.064 339.108 M
+982.373 339.108 L
+982.373 572.906 L
+985.064 572.906 L
+cp
+988.428 392.332 M
+985.737 392.332 L
+985.737 572.906 L
+988.428 572.906 L
+cp
+991.793 364.597 M
+989.101 364.597 L
+989.101 572.906 L
+991.793 572.906 L
+cp
+995.157 349.754 M
+992.466 349.754 L
+992.466 572.906 L
+995.157 572.906 L
+cp
+998.521 276.763 M
+995.83 276.763 L
+995.83 572.906 L
+998.521 572.906 L
+cp
+1001.886 236.23 M
+999.194 236.23 L
+999.194 572.906 L
+1001.886 572.906 L
+cp
+1005.25 207.795 M
+1002.559 207.795 L
+1002.559 572.906 L
+1005.25 572.906 L
+cp
+1008.614 174.735 M
+1005.923 174.735 L
+1005.923 572.906 L
+1008.614 572.906 L
+cp
+1011.978 218.171 M
+1009.287 218.171 L
+1009.287 572.906 L
+1011.978 572.906 L
+cp
+1015.343 395.173 M
+1012.651 395.173 L
+1012.651 572.906 L
+1015.343 572.906 L
+cp
+1018.707 350.482 M
+1016.016 350.482 L
+1016.016 572.906 L
+1018.707 572.906 L
+cp
+1022.071 304.575 M
+1019.38 304.575 L
+1019.38 572.906 L
+1022.071 572.906 L
+cp
+1025.436 278.681 M
+1022.744 278.681 L
+1022.744 572.906 L
+1025.436 572.906 L
+cp
+1028.8 279.842 M
+1026.109 279.842 L
+1026.109 572.906 L
+1028.8 572.906 L
+cp
+1032.164 272.637 M
+1029.473 272.637 L
+1029.473 572.906 L
+1032.164 572.906 L
+cp
+1035.528 263.284 M
+1032.837 263.284 L
+1032.837 572.906 L
+1035.528 572.906 L
+cp
+1038.893 237.834 M
+1036.201 237.834 L
+1036.201 572.906 L
+1038.893 572.906 L
+cp
+1042.257 231.011 M
+1039.566 231.011 L
+1039.566 572.906 L
+1042.257 572.906 L
+cp
+1045.621 223.128 M
+1042.93 223.128 L
+1042.93 572.906 L
+1045.621 572.906 L
+cp
+1048.986 210.28 M
+1046.294 210.28 L
+1046.294 572.906 L
+1048.986 572.906 L
+cp
+1052.35 213.78 M
+1049.659 213.78 L
+1049.659 572.906 L
+1052.35 572.906 L
+cp
+1055.714 250.629 M
+1053.023 250.629 L
+1053.023 572.906 L
+1055.714 572.906 L
+cp
+1059.079 260.615 M
+1056.387 260.615 L
+1056.387 572.906 L
+1059.079 572.906 L
+cp
+1062.443 241.151 M
+1059.751 241.151 L
+1059.751 572.906 L
+1062.443 572.906 L
+cp
+1065.807 246.435 M
+1063.116 246.435 L
+1063.116 572.906 L
+1065.807 572.906 L
+cp
+1069.171 235.419 M
+1066.48 235.419 L
+1066.48 572.906 L
+1069.171 572.906 L
+cp
+1072.536 222.243 M
+1069.844 222.243 L
+1069.844 572.906 L
+1072.536 572.906 L
+cp
+1075.9 210.714 M
+1073.209 210.714 L
+1073.209 572.906 L
+1075.9 572.906 L
+cp
+1079.264 221.621 M
+1076.573 221.621 L
+1076.573 572.906 L
+1079.264 572.906 L
+cp
+1082.629 204.476 M
+1079.937 204.476 L
+1079.937 572.906 L
+1082.629 572.906 L
+cp
+1085.993 234.643 M
+1083.301 234.643 L
+1083.301 572.906 L
+1085.993 572.906 L
+cp
+1089.357 231.232 M
+1086.666 231.232 L
+1086.666 572.906 L
+1089.357 572.906 L
+cp
+1092.721 224.08 M
+1090.03 224.08 L
+1090.03 572.906 L
+1092.721 572.906 L
+cp
+1096.086 218.257 M
+1093.394 218.257 L
+1093.394 572.906 L
+1096.086 572.906 L
+cp
+1099.45 220.475 M
+1096.759 220.475 L
+1096.759 572.906 L
+1099.45 572.906 L
+cp
+1102.814 222.771 M
+1100.123 222.771 L
+1100.123 572.906 L
+1102.814 572.906 L
+cp
+1106.179 215.243 M
+1103.487 215.243 L
+1103.487 572.906 L
+1106.179 572.906 L
+cp
+1109.543 224.841 M
+1106.851 224.841 L
+1106.851 572.906 L
+1109.543 572.906 L
+cp
+1112.907 226.891 M
+1110.216 226.891 L
+1110.216 572.906 L
+1112.907 572.906 L
+cp
+1116.272 219.248 M
+1113.58 219.248 L
+1113.58 572.906 L
+1116.272 572.906 L
+cp
+1119.636 240.159 M
+1116.944 240.159 L
+1116.944 572.906 L
+1119.636 572.906 L
+cp
+1123 237.488 M
+1120.309 237.488 L
+1120.309 572.906 L
+1123 572.906 L
+cp
+clip
+GS
+0 0 translate
+1123 744 scale
+%AXGBeginBitmap: java.awt.image.BufferedImage
+{{
+/RawData currentfile /ASCII85Decode filter def
+/Data RawData /FlateDecode filter def
+/DeviceRGB setcolorspace
+<<
+  /ImageType 1
+  /Decode [0 1 0 1 0 1]
+  /DataSource Data
+  /Height 744
+  /ImageMatrix [1123 0 0 744 0 0]
+  /Width 1123
+  /BitsPerComponent 8
+>> image
+} stopped {handleerror} if
+  RawData flushfile
+} exec
+Gb"0VCT''oHI22>"AqS/#;m>R.`Rlb&nf30.#)+A"=5/nJcS^l&.".A$:,A;6Au,.$lUcBR!9Vt3lX.6
+N0B3AcXa3A]I0F%7.D%P3XR?/2!4AFF_71gbrSXCp[5`,T;l4'^E:dWmbYX(=''NgXoI)O][Hu`GNbrR
+k*MSo>Akhg!5No6&c_ns+Huj+!!8hs!!!Q9,ldpq5UZX5!!GUp!!",Q8cShkJPZCJ!!n5j!!#8,PQ1[`
+!hf_s!"]D^!!%O7-ij;J"@<Cp!$DhF!!!"M:]^Us#_Wfj!'hZk!!!!#T`b>q&-sQ^!.[<_!<<*&64!Vl
++:q-F!!%RH!WW3+KG"7b5Tl9k!!!(o"98E5#UKHNJ3YL`!!!-g#ljrJ&4up&!.drJ!!!:X&c_ns+Huj+
+!!8hs!!!Q9,ldpq5UZX5!!GUp!!",Q8cShkJPZCJ!!n5j!!#8,PQ1[`!hf_s!"]D^!!%O7-ij;J"@<Cp
+!$DhF!!!"M:]^Us#_Wfj!'hZk!!!!#T`b>q&-sQ^!.[<_!<<*&64!Vl+:q-F!!%RH!WW3+KG"7b5Tl9k
+!!!(o"98E5#UKHNJ3YL`!!!-g#ljrJ&4up&!.drJ!!!:X&c_ns+Huj+!!8hs!!!Q9,ldpq5UZX5!!GUp
+!!",Q8cShkJPZCJ!!n5j!!#8,PQ1[`!hf_s!"]D^!!%O7-ij;J"@<Cp!$DhF!!!"M:]^Us#_Wfj!'hZk
+!!!!#T`b>q&-sQ^!.[<_!<<*&64!Vl+:q-F!!%RH!WW3+KG"7b5Tl9k!!!(o"98E5#UKHNJ3YL`!!!-g
+#ljrJ&4up&!.drJ!!!:X&c_ns+Huj+!!8hs!!!Q9,ldpq5UZX5!!GUp!!",Q8cShkJPZCJ!!n5j!!#8,
+PQ1[`!hf_s!"]D^!!%O7-ij;J"@<Cp!$DhF!!!"M:]^Us#_Wfj!'hZk!!!!#T`b>q&-sQ^!.[<_!<<*&
+64!Vl+:q-F!!%RH!WW3+KG"7b5Tl9k!!!(o"98E5#UKHNJ3YL`!!!-g#ljrJ&4up&!.drJ!!!:X&c_ns
++Huj+!!8hs!!!Q9,ldpq5UZX5!!GUp!!",Q8cShkJPZCJ!!n5j!!#8,PQ1[`!hf_s!"]D^!!%O7-ij;J
+"@<Cp!$DhF!!!"M:]^Us#_Wfj!'hZk!!!!#T`b>q&-sQ^!.[<_!<<*&64!Vl+:q-F!!%RH!WW3+KG"7b
+5Tl9k!!!(o"98E5#UKHNJ3YL`!!!-g#ljrJ&4up&!.drJ!!!:X&c_ns+Huj+!!8hs!!!Q9,ldpq5UZX5
+!!GUp!!",Q8f<*K-U.RSfm69l!.Y0);?ift!!#A"8f<9pChS:RgWuCl[hJhP>s]um:kB,_,llkD67IO`
+Jdi#4!8qla.>(HK%1+<\i,V.5K2@./#pfT0E^D4-:kB,_,llkD67IO`Jdi#4!8qla.>(HK%1+<\i,V.5
+K2@./#pfT0E^D4-:kB,_,llkD67IO`Jdi#4!8qla.>(HK%1+<\i,V.5K2@./#pfT0E^D4-:kB,_,llkD
+67IO`Jdi#4!8qla.>(HK%1+<\i,V.5K2@./#pfT0E^D4-:kB,_,llkD67IO`Jdi#4!8qla.>(HK%1+<\
+i,V.5K2@./#pfT0E^D4-:kB,_,llkD67IO`Jdi#4!8qla.>(HK%1+<\i,V.5K2@./#pfT0E^D4-:kB,_
+,llkD67IO`Jdi#4!8qla.>(HK%1+<\i,V.5K2@./#pfT0E^D4-:kB,_,llkD67IO`JdpO[."0oEhf.^o
+]qk]_2PH@$.)CXkP#)41b6b!R64#OqP_9YL>YZ\Y&5'1@oD;',!<<WC8f<9pXA:5N,lkG!Tp.hk_>8hJ
+:]c.t&kX$p'!1O;6KtPCIFC2tacd?0!3cs,PX-_6qLk#.!e;d68f<9pXA:5N,lkG!Tp.hk_>8%!PchD'
+64!Y#,*Xhg-!6d9&kW.C77&GU:kJAr?mqSp9oj^#f*\>`pC[H75q$:U9!H%#K[T\,oX%+(8cVZoV$oZs
+egH]8&cc1!:s'oF@!tfVV5q)@9nh$!s29,Q(nh'4V[91.64)3jP`e@)7KK_h67IO`K([s:CB$1Zkupe,
+PQ9>NTp.hk_>8%X[4daEi,/gs$pk9OG71JMX+\ofIf-CW&P<&-'qpjX.)Gbg>4)'FF3C8Ae4l:r3WQ[$
+67IO`K(TGH3ph9J&cc0'-tNr^YWea+PQ9X!KMi#J"R?^n<sb_\n;6T^,Er0n-tNr^YeE1/V.DTN+?EOs
+64!Xp67?CV9!H%a$)M.f,a8::+@7N0:kJ?HV1YI`XIFkU!1YC#1'f1.T2<+".'9rD!8s.LV$oZsf!fZJ
+*K6Y.6Rgen-iq+0KMi#J"R?^n<tD/(B6^?'l/L_-!&mLuAIqJ<5+s6d!8r`f;?iftle?&#orTL(!8r`f
+;?iftlPi!O^@K6-<C\G<^b$*i)2&X(k)qp>DCD&sbA*_M0+0'+GVYtW5q'Qa<XtrrA^MPc8Ljg\YCodX
+T`hD.8jWga1'j]b64$[;P_9YLA.V?NKG(BK?:1\tI;C=^q[4\M\<'P0+I$7k,DOWbHJu!L&P<%B;hS$Q
+T`hD.8jWga1'j]b64$]!D(,&f,*W)cSd;/$64$[;P_9YLA.V?NKG(@U-j_1"a<6^&#UNTtkb6M`,*W)c
+FpOoQ64$[;P_9YLA.V?NKG(@U-j_1"a<6^&#UNT4:_HA#O?k:+&5'0q+[YF/?i!._Q?&[X:]c1%-^6@l
+-!8E_Ki7eST`bAM&kX$p'!+PN#pfSm+I"Ve-!6.'&kW.c5q$:U9!B5-,a89OK2B]5P[H@88LOU)#,.8I
+.)BXf%&H.SKG":?-D?Yi.)BYOP#)41$plCq:kI4'-(tGA)2(llT`hD.8jWga1'j]b64$[K<[dXC,a8;e
+Q3jAr64$[;P_9YLA.V?NKG(@U-j_1"a<6^&#UNTt$DDS2>D//9!oUd!V$oZs<[3i^&ccGR8f<9pX@=TE
+,ll"/PVNLj=O"@Le:4Yu!e=K"PVNLj=H-,i8cXr=-tNr^YaV[\ku]tQ,lkFc67IO`K%1,QT`b?5KMi#J
+"KN,,64!WI#c.qr$!&:8KG"8q&5!gn'!*E5PTK]E64!Y[M,;>;Pb<5/Y[$M1Kp#76JFa)D$pk8H6:iR+
+^i4s)#,)/_Td5j&?oUJ%K2@0VeO/RNE?pd%&ceFEPVNLjkQrQ/"9?=O8f<9poPQmXXti<M!:G\?arlqA
+2c_=Y]0dtQ,li*Z-tNr^ckB#<#lo])PVNLjkQrQ/"9?=O8f<9poRrB(!eB58V$oZsH9t1O!PiZ-;?ift
+]b*Wr$/[.q!8sFSV$oZsH:*J9q7g;M8cWg+KMi#J"?iG(PQ5)N67IO`Jt>dO8cUObTp.hk5u/m8,ledB
+:s'oFTI5tW&c`>1-tNr^ckB#<#lo])PVNLjkQrQ/"9?=O8f<9poRrB(!eB58V$oZsH9t1O!PiZ-;?ift
+4eX-c!+7cQ.>(HKSkp%l!&,CdPX-]`:FHMq!#U_marlqA-^98s!";@GAIqJ\'1tRt!/;__1'f2i#pl8J
+!5fC@)2&V:?hNcTlNef1"9?=O8f<9p9L;<!!Pld0;?iftP>Dla!&-1%PX-_6oV>;EF6tQDKG"8q'1s-q
+&kjO'd[,CQgZo+kT`b@H:s'oF?oeuokBGD>7i"]`#lq7;V$oZs-D;]L!+9>(.>(HK8LOlk!#V,#arlpV
+&kYIs!(J<"1'f1nKT].5J<:/7$pk8t!CNhl'hUe!!/+5ST`gQU&kW-X180pu.)@0nKG"9D9IOH`8h^Pt
+T`b??'1s-q&kkV`-iq-)KMi#J"HuXp8cUP#Tp.hk_'G7u&cdka-tNr^0F9&!"99Y[8f<9p9L;<!!Pld0
+;?iftP>Dla!&-1%PX-_6,a<rp!/sT"AIqHf#pl8J!$`.L)2&Vr6:iR+^rV1,#,)0`:_HA#0J]>d5q'Pp
+P_9YLN(bX2&5"V_-(tGA,83ZeKG$sF8LOVTaFmFqT`gQU&kW-X180pu.)@0nKG"9D9IOH`8h^PtT`b??
+'1s-q&kkV`-iq-)KMi#J"HuXp8cUP#Tp.hk_'G7u&cdka-tNr^0F9&!"99Y[8f<9p9L;<!!Pld0;?ift
+P>Dla!&-1%PX-_6,a<rp!/sT"AIqHf#pl8J!$`.L)2&Vr6:iR+^rV1,#,)1KAYHKV#UQ/I!65AA$pk7I
+Td5j&?t;SQK2@.k-j_1"(n"4C+I$7H8jWga7OF?T#UPjkP#)41OU7im64#!4,a8::A3q_t:kD7e#pfQg
+R8D$KP[G+r64!W]-Bp7k-('@K:]c00$)J%s#pu>kPQ5*%67IO`Jk7?s,ledM:s'oF@(P`%qQ2E"9,XEK
+PQ9VYTp.hk_'G7u&cdka-tNr^0F9&!"99Y[8f<9p9L;<!!Pld0;MH3HdPni2p#jQMS&q[`P#)41E=&HM
+6:iR[N>"qWEo0SX8LOUi:s'oFKG'JF&kW-X180pu-j_1HTd5j&?t;SQK2<1Q9L;<!!Pld0;MP&YV;M$q
+mp1rM@S%sS,ledK:s'oFKG'JF&kW-X180pu-jc`I/X7EJXgds!KT].5J8kml$pmN62*sk_#pfQgO\j3)
+P>H#[]eVq=(ni4>KG"9D818'%>:?'B9;Sc"I02f--j_1"(m.Y;+I%OW,F!kE:]c.Z$)J%s8LQG_8LOlk
+!#Uhparlq%;BqEZP#)41&IG9B6:iR_6:iR3,ledE:s-#s:jVUQ_:s:j2^"?<P#)41&IG9B6:iR_6:iR3
+,ledE:s'oF=rDb?-\'=Eg%ouq6mr?fT`b??&kX$pP#,nHP#)c`!&,UjPX-](V<(TX-j_2n"98N98f<;F
+:_HBa:_HA#0J]>d5q!$cTem'%T`b??'1s/116gLe81:#r-r!$"-iq-)KMi#J,a<u1,a<rp!/sT"AIqI#
+8LR;"8LOVTaFmFqTd5l>;Yci#g3Ssd:FHMq!#V&!arlq%P#.U#P#)41OU7imHO-HseL-TIK[M-1KG"9D
+9IOH`8jZ)t9gVE"!Pld0;?ig?P_@I1P_9YLN(bX2&5#8\-r!$"-iq-)KMi#J,a<u1,a<rp!0$:0U%CjI
+II0%YpPa!@:_HAeBbF$)#lmFAPVNLjTd5jLTd5j&?t;SQK2<1Q6>7')64!W]-Bp7kV.D'G\U<60=^Fg)
+.PFlK6>>0d9#jCL!C.rq1'f2"'UHnbQ*X<@G(e;K&P<%"$)J%s8LT:hnoEhCPdVU+FDQUC!*"6;oZb^2
+8"">hi8d&5XU$5H'UHnbQ*X<@G(e;K&P<%"$)J%sWJ+5cV)+IA><g<3#tsCAb#p-04$r2a#UKJLKMi#J
+,a?/DH+@r29&#A&3]9;2!%O\,5q!&9YZ+r3S;#D",F"4J:]c/>-tNr^q[B=0?L=)\6:iR3,ledE:s'oF
+KMko%03?FcC"j4la$qHX5UDXM#UQ/YQHIC9ZV]A!K[R+;8cVZoV$o]T?mrEemWHJpPQIO(PQ5)r67IO`
+&kZT3]NdH)V/<,@d@3>jh.;7;(nh'4Pu,UGP_;q:.PFlK6>>0d9#jCL!C.rq1'f2"e?<86;LA7,Bbj;@
+0F4A:5q"lVP_NLjm3e.DN"Ma/PQ5)r67Kh9TlbTX,a=<$8n!C9:]c/e$)J%s8LX6^=J6FHH#h_GEJ2cF
+&P<%"$)J&S'2!]AZl=_I0g[=J:_HA#0J9&`5q!&9IK_6d_C\h<SI7q9*?1[T!0pC'+I%OW^Od1miKgO/
+c@mL-Nf?j:J4_5$\?f!=M^"j:bRR#)2nneEbClp5KT].5J8q+t8gdY`@>*&SP_>2r&kYIs!!Xg81>Hjt
+eQ[^T5se-k#pfS])aZ!+:_HD!$<AR_3s_Zc-iq++KMmOj6YX*d&k\3/P_>2r!e@m+PVNLjU"$8RKi5O8
+:n!(N!";1BAIqI#WF*IKV03*;1^bT0(kb`.+I%OW^Od1mm1)Hs(.nQ\#bdJK-jc`!"Y5hk*JDilPQ5)&
+67IO`&k`*0p-^=:P^%/UIWDX?SrQY47jnDR4V::(mN[r+Xq-67#sq33#pfS])aZ!+:tent/_@$i8LT9s
+KG"7n7jqp[8j]Ml74>Q*#c1ZP!Pfh2;?ig?PknU;;S.QXRY;@S$tB03qSWoXiPF2nY?X[Jh0g^E:N3jN
+'hUeAg`hs_?oUJ%_a'pfje)I/D1p@5K[ME9K[M"3<WI@_Tp.hkm5^F-B-ELmP#)415ma@r6:iTu[lbgu
+Ie/JIk/#a?l*mQ8Pkkta!,ta%-C!e1r1(=o5$S^m6E._2kYO<gR"S@%64!Y[abZY_gRnGLjTq]\&P>j*
+%&JU&mR/JJ>rW+dog^DN)kdB7eL%!^[SM9>)5/=?`a*lsV>4XM^&Gq,>=L"I,lee69ncJLY+-Q,F@FAL
+WgAdK%u!n-P\-U7PQlEB!l39$(eVR7fcOpb<%aLth+-k+K[LSAV5FntZVV9,K=kChi+[jB#,*<,qA$).
+C3L4]ZVU^R6/5!Z[AAdX>+&35RVRW*I&*$\;YCBm@j@3<TXpUh3kpq\fW.>1..o)mTbO*bUP^C4K[R+;
+8cV]DAgiAJ`2csn;?iie1dYpEas^L(Ti<\3R>$f#!e>9L)bTL43U[?P-PK*JF8MYQm/MN<cKWA0I@,[c
+5=,YVm`As+kt=562sQ'sD(bY)**O<gV:>jJVn(JW3kp`/P#+2!64!Xl)[rQl,pSY[$)OO39!_>,8qXc\
+!T7[H#c5*:&5!gndaJJu2F?ZH_%fQB0J9&`5q!&9IK_6dKT].5JDlG"9)W,SSHu(#&eIZJ&kYqEPhHD>
+'*hSe!Pl555*We]A&%HajR#s@PT<A56%4.Np=gpfFO#=K8nX/\3]9;2!%O\,5q!&9IKd@0:hhor-(tGA
+,8r2!g6+]L?%l+$)PPYM.%N?-64!Y3-'U.j-)&hl@"jb?&kW-X*2/T_.'47Wk:_dt]AJ9>)khB5i!Lb1
+(me(AE;Q>.pK/<,oJAn6NDMZUE.no)N9fn!WB<r#U,C9f6>>OX3iAIM]*!ab)khB5i!Lb1(me(A36M[U
+U"$8RKp#7F8cUObTp0P_(J7#n?bm'qTd5j&?oUJ%j")jJKMoR:'hUea-iq,&KMofm?76,VIK_6dKT].5
+JDgd1N3iG$U"$4PV;LmmmltH<;B)<Oint.i!#V&!auIQP-)&hl@"jb?&kW-X*2/U:Q5<.2U""Ql-lj8#
+FQNk*@j@3<TFsj7B6g0rPkl-]P=)>+5q$<':c^L$#llHKP]<!*8j]La_$VK^,a8::3'o(S/:X._oSq1G
+<u[iTbZ:DOXpV#l&PC)5-ilSU`DEQB,b[%$-)'tr's(4E8jWgaL*Mp<cLO:n..o+C)[rPY0+Z?\5>`i"
+34M9]!6-=L1=#GWBq8'-=2tcHr`b'(3[9lLNDK\,8gn8@jb8jol;t2V8LOlk!#U_mauIT%<%,/&/!S=&
+P_>2rl7WMk!-[\F:b%BqK:u6t$`+dQV.DUAE@@B'\8NaZg+>W?@t`:8&P<%"$)NTe]MK55r<cRR#pl8J
+!5fC@)/"5g,aA-?XABO%64!XH,Est/nj5nroda.<,a<rp!";@GAXqk#4I#,2TlcAm&kYKi^FYTLfW?ZY
+;HjV;-(uTKqA$).&kYIs!/;__1=#GW8LX6^=J7")KG"7n7jqr=jb;,7LXPE!8jZ)top:@F!4sPA1=#GW
+8LX6^=J7")KG"7n7jqr=jb8jol;t2V8LOlk!#U_mauIQP-)&hl@"jb?&kW-XSGe,hf>$q_gEW'.a6"ju
+<@A0MIKc2Z8q6m$?WJM$]23fmK[R+;8cVZo-)#G@Tl_u?Xr^3mp>T0(&P>A]..rp\&cfNiPh$8>\%_Xf
+&'e05TI5uLRB]*C&%qPHgZ=']'WsVLPTII&K[P^0/!L$A>XD"1$)RGo.(.)(=6g-gIci?pKMW#b#UKHf
+N_g?\6>73-6:iRg+/&f;Pu&)c6>73-Mbn.AM$J6q:c`T8Kb=BE9.1)mTerA^8mss>=t%qE6Kt!P9#jCL
+!C.rqK[Oh5FNuJ!SIeE\l5i9khGYg/V)gpL!%OZfPVrrH[K(+/Z/sb?.(,[f4/#V+f9m:=l'u$,PYN3'
+T`bAU&kYJ^.*Xg]V7DL#Td5l>#UKJLK[RPg;XL#16Kt#NqbRWdKp#7n2F7]M.\Ur/U!si6&'gTt+I!p)
+6KrS?SbQQXK[P^0/!L$A>XBksPhJnI9(SU.;V3cl8LOlk!4WP+8LOnA=XYjgC&W2oop:B\K9%IG!8sFS
+V2Sjr8j]La_;92\[<i6,Ti=N1!C.rqKT]0#pD6GEKT]/8N_fe-8gs'PPhK-2FDunr:_HBCKG"8a6E-UN
+i"+,t]m:leg+=n=l37Wm)\8e7;hS&`o9T\K."tlY&c`>1-uC"tFmfV_U"$4PV%lHJ*?1[T!*)[cJ,?r=
+PR1FG#UQ0D7jn\?0LG$B_%fQB0J9&@CS=_ZkMb^B3P>kgktr[iKT]03,Er2$&kYJ^.+Jo%6:iTM64!X`
+'1ubgd^QscgWge4o[nFg.(-`#p5Df\8jWgamXn?IKhuOan6Oe:6:iT5>D,no#c2#UPQ7B1GppB#,B*!'
+$RMJlPhI]UWBZ2*l,9ZE[K:uE$)Mh@CS&4NXAEZ"F)],+V=O"j8QHq8NDL6[)'bB+NDK\,8gmt"PhP.*
+-)&hl@"jb?&kW-X*2,38-ln3mU%HtL8jZ)tbsD^:SeF^_kr(o./Qp[6V7NWmWK'g?&#)l]0e8m)!+6g6
+WP;]9?ZM[C7VY#kh3&@Bot*tSdN<r3F_uf[@n.pR-)!.',li0b-s[ldbIM(1^%nFQqts:UF(t8CC98bG
+KMoeqV.1a7!2'rs#=I`kT"UuEUXi!7KM%\eP#+3RQ53)^N)2Pn64!WATd5kU;B;GVP_@I9PQ9W%Tla]k
+[6<!BNeEQll;t2V8LOlk!#U_m)DRK1KBstMg'W!=8j_b\,F"4J:]c/>-sbq1mqt%JQN%5^:c^L$8LOnA
+=XX<dF$aT6:b%gtZj1<=<#2)m8LOnAo1(2L)kdB7Pu&C_+*.uc6E,uA\pT1ZYn9S.:^Nu!LJlqa6:iTM
+6>>u26>73-!&+\P,a<s[*MFaCK[ME9!8ol2,a<s[*MFaCK[ME9!8ol2FI/\#Q_Qn3;'V<YP#.U$&cb$A
+P_>2rW[!a]P#.U$&cb$AP_>2rW[!a]P#.U$&cb$AP_>2rW[!a]P#.U$&cb$AP_>2rW[!a]P#.U$&cb$A
+P_>2rW[!a]P#.U$&chh&WV=-+NDL6[[iA"_@t^"A](u]/@j@3<fJB3HP_@J*KT].E9!_=q@,HX#:_HCD
+&P>A].*Y'bJ:/)'6:iRW7jnZiTem-'!;9,8#pl:P*2+XBK[ME9!8'6(,a<u1EeKTP&k]K,!asoOTi<ZQ
+-(uTKKMoEN..mgB.%Qa-cY3Au2*sk_$)Q_h-(uTKAt]@C^'Q*Z,a=T>P_>2rRY;@Sq^.P\P#,>B:_HAe
+Bbj;@m$gfa8j[5P6:iR3V-,2IY\uj"-jca3#UQ/iP\-Tl^qL+$Td5kg,F!kE:n!(N!;e+-KT]/8N_g?\
+6>73-!:61O&kYK)3C6:c$)LcQ!O-K/8LOnAjTm0+,a;o7"Mh_X-(uTKQ6VWIP#.U$&cheUP_>2r>)lDl
+8j[5-8c\4I:_HAeBfSLO-jc_Q-ipPj6:iR3V<%t/Td5k7T`i0F#pl8jPa3PYKT]0#Kb=C_-Bs1H:g/lU
+&kYK)(.nSnRns_i6>8GH8LOnA=XX<TDaI#D$)Q_h-(uTKAt]@C^'Q*Z,a=T>P_>2rRY;@Sq^.P\P#,>B
+:_HAeBbj;@m$gfa8j[5P6:iR3V-,2IY\uj"-jca3#UQ/iP\-Tl^qL+$Td5kg,F!kE:n!(N!;e+-KT]/8
+N_g?\6>73-!:61O&kYK)3C6:c$)LcQ!O-K/8LOnAjTm0+,a;o7"Mh_X-(uTKQ6VWIP#.U$&ch[o7m?SA
+'-i`pP#,>B:_HAeBbj;@gcM2TP_@Ip7jnZiTem-'!:HCS&kYLTYp5KdP#.U$&chZ$-j_2no[jaJ6:iTM
+64&0h-^9:I:jVI6-(uTKAt]@C]b=")8LQ`FKT].E9!_=qi8+bdTd5jD4$lLe$)LcQ!H@L\P#)c`Nuao>
+P_@I9PQ84;6:iR3V8nTm&kYK)(.nS^4/!paK[O@#-j_2n1^bT0m[[/e8j_dI,F!kE:n!(N!;B5:#pl;;
+fF^_B8LVhM$%R@MP_>2rHL(n`Td5k7T`i0E'1tS_-p;a,P#)c`ZVU_]hXt%Dd1:_8RJsKg&kYK)3C6:c
+$)LcQ!H@L\P#)c`Nuao>P_@I9PQ84;6:iR3V8nTm&kYK)ISqSBd9l[@?h0MTD=_PXl"B:oq+pp1SMtu?
+s(g)$/DjIj=+9mnCssHsMnedpgV!&\s)4ISq>Pk@k81l4I;N<^Tm,(%+!&hB5M;o^p#j'TT@E\L&&#$g
+chg64[*E=!pP7J8iJ51G:Aas*a0EkOI,I/1g+D]0A\Rr7Dl_?1H[G^Xq4\s[H_#W_J+3d#rQ9NFO4O-^
+GPnL"YBg#+ebOg3q4HsEHbOq$(VK@3eTotprms'W5Q5nuchlRKe)ja0Sc;OL=8f6CYOf:Hr.-cn9\nRK
+m7gHTI295o[M*>Bs7;g8?VYs:5QC]NYLDt*ci/J;WUorCoC(u:?[^t,qqlOnpO'&;gI5\&d6%ARSc4.g
+k&A*(K6>l[.F[,TmHF0IU>=HsQgOHQk-KO+Kf\T):o9dN^Z1$OXRhmqp[?kDGC"V(oj;QKRJ,2)ngO*&
+s5C_odiY.4rmh$HkDaEYM)t#-:o8Za0E8XK<i<X_b5CP>rh&M`pKdg!GhmRlWm7+6peSA5YE7B8Pu#pj
+rAi5JI[RVRmB+d%2e>2=4WgZP^OFn.Bh,UKC74dG^[*'?lT5!*rkcGB5O,oG:]Fsrp7Y?\D1?o$AU_n5
+rNA9\IV@3E[s]1mS0*.0VS+b>Z0O?G]c$]KB)Cq0#GSo+b-Wa:5N:VU]H*+im3AdiX_h(+[bofZbI]t7
+V/=qhI`&YppGu[N[NBG:5)oFkCes-"++?_Nc[9\[i8*e?[f-/[E;T!=n$W.khVOjkPZO`19RXkfJ$r*6
+9p]QIWckl's5j:3VL@m?2f^uK[cMq*A"cjdeK5MuFWE*!c<l).-)&gX.*Y(M-j_2n,a<tF:_HAe8LS^S
+,G?BIAtcSVA>(gf-(uTKKT].E8j_cC6`FC/It/o2KT]03,F!kE:n!*$:_HAe8LOlkTd5kUP#-Jt#UQ/i
+P\-U7P_>2r&kYJ^-j_2n,a;Uu6:iR3V-,2Q-(uTKKT].E8jZ)t$)L^a:_HAeBmrr.^$/>l<1S2U/sTD2
+WN=I4h:/?$];;$alh?\M>]s%KZ.*G:.ue+!Q%`@(s-CujAN,mtbAJeBr-Ic`Mk"?;Q$#r0X-X@CAN0:I
+[-XZ1`a<mfH2Z?i:_j8YDCR/r=/)Z>^nR=@!i\XfWMF)aQ-4"t[BGlgW_9b*>$,rH=]a,'?s.A!];_<t
+la"0p`'ZJK&#*VoPnRj0C+5oh2jNQ+09f'icqPgN5/""(Y,"KFPpP=nS'!poh,MtRbAO<bpZ:H4^(2j.
+WP&47agQC]?V/FY.^/ku-7[3XAN,kfBRKoG8m6C:H(3D#BmER`2h&GDVOV+]h,I\korBBaQJGLiW?.U.
+8]u!$GGm0F&es_;b+#FY7Tl67];`FOlMI`k_m5cSl_-dH=i6lb9kA7p$fr`g];[?"l<C#_d^#@bI]+ok
+Q]L1$S'&4l9eDX[*jGR8g.eE,g,?<U.\@?]S'';7];\b-I@B7H0>"4=ZX,'KrV!oN!U?RKGo\NLWVkt+
+m)iP9D+s8mnjuhgR:Wi\];]VmZCB"Gf,o#%D-fEQl4GI(0"\+LW)qh/+*dOcS'$asG#PB9g.g\8GM,]%
+b?rr8&&2W-9eDpYeh4S6I*sXZWVn3>npXhe;u'7iB>@D:bAJd_TmG9B2_M_AI*+%QWNC*^np]7d[>`h[
+Gg2t+23^s"\Wj(On8Pd/.&6JJ>%Uo,22g`Nb:"oIlEmbg);$"@XkCiJbG]#MSbC/'J$iCE;;4tHO#qEn
+ec1uUG%8dkcq:F!g,A^*JYdcA[nk1&b;*gfTM55VD@>D%5A[b`C-/cX^Fu@*[m%CXO6_.jh:Q$Em:3ma
+UNRaiIW&>LKehpPVO`VU7aP/XW,6:;[a/_)Q0DZ+bO7UhljgaYQ7n;JQLQ^P.\hGr):^:<Z[BQ;Q4MFD
+=71]*j[9tLGTb]bT@e\eVe/esAJt184S(qui/p0Ij0FVY(=d+X[PDTi#(7@@2t,B75.6FH3O=\(^(j7,
+8LOnAqB?VG6:iR3V*jPmTd5kU;L!/S<(A>C-(uTKKT].E8jZ)teIbD?C&&)r\.(c=[1Q$oN)1-Z6:iR3
+-(uTKKT].E8jZ)t$)K=B8LOlkTd5kUP#)c`6:iR3-(uTK_?_H],a<tF:_HBI$`,o_P5`Ci'1u[[!;9#5
+#pl8jP_>2r&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h#pl8j
+P_>2r&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h#pl8jP_>2r
+&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h#pl8jP_>2r&kYIs
+J3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h#pl8jP_>2rg0lD#Sukf6
+!,PFZ#pl8jP_>2r&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h
+#pl8jP_>2r&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h#pl8j
+P_>2r&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#)c`64&0--j_2n,a<tF:_HAe$%P8h#pl8jP_>2r
+&kYIsJ3YLh-(uTKKT].E8jWi75UZpbTd5kUP#0k(.$`K^X:)ftKT].E8jZ)t#pl8J!.drZ8jZ)t#pl8j
+PQ2g;8jZ)t#pl8jP_9YL"@>[.#pl8jP_>2r!e<Na#pl8jP_>2r&kW-8#UQ/iP_>2r&kYIs!!8i>P_>2r
+&kYJ^-ilRUP_>2r&kYJ^-j_1"#_\@;&kYJ^-j_2n"9=!L&kYJ^-j_2n,a89O&5#8\-j_2n,a<rp!!GV[
+-j_2n,a<tF:]c/4-j_2n,a<tF:_HA#&-sSU,a<tF:_HAe#lk%#,a<tF:_HAe8LOU)+I%PB:_HAe8LOlk
+!!n7@:_HAe8LOlkT`b@H:_HAe8LOlkTd5j&+:q.38LOlkTd5kU&c`&$8LOlkTd5kUP#)415UZpbTd5kU
+P#)c`!"]D^Td5kUP#)c`64!VnTd5kUP#)c`6:iR+5Tl;EP#)c`6:iR3,le4(P#)c`6:iR3-(tGAJPZtO
+6:iR3-(uTK!$DhF6:iR3-(uTKKG"7f6:iR3-(uTKKT].5J3YLh-(uTKKT].E8cTD.-(uTKKT].E8jWga
+!hgm(KT].E8jZ)t!C.clKT].E8jZ)t#pfQWKT].E8jZ)t#pl8J!.drZ8jZ)t#pl8jPQ2g;8jZ)t#pl8j
+P_9YL"@>[.#pl8jP_>2r!e<Na#pl8jP_>2r&kW-8#UQ/iP_>2r&kYIs!!8i>P_>2r&kYJ^-ilRUP_>2r
+&kYJ^-j_1"#_\@;&kYJ^-j_2n"9=!L&kYJ^-j_2n,a89O&5#8\-j_2n,a<rp!!GV[-j_2n,a<u1&>@T'
+BfSKdJ?'>U6:iR3-(uTKKG"7f6:iR3-(uTKKT].5J3YLh-(uTKKT].E8cTD.-(uTKKT].E8jWga!hgm(
+KT].E8jZ)t!C.clKT].E8jZ)t#pfQWKT].E8jZ)t#pl8J!.drZ8jZ)t#pl8jPQ2g;8jZ)t#pl8jP_9YL
+"@>[.#pl8jP_>2r!e<Na#pl8jP_>2r&kW-8#UQ/iP_>2r&kYIs!!8i>P_>2r&kYJ^-ilRUP_>2r&kYJ^
+-j_1"#_\@;3ZUhpN.d?j&kYJ^-ipOo6:iR3-(uTKK[T(X[.UsDJ3,$@KT].E8jZ)t#pfQWKT].E8jZ)t
+#pl8J!.drZ8jZ)t#pl8jPQ2g;8jZ)t#pl8jP_9YL"@>[.#pl8jP_>2r!e<Na#pl8jP_>2r&kW-8#UQ/i
+P_>2r&kYIs!!8i>P_>2r&kYJ^-ilRUP_>2r&kYJ^-j_1"#_\@;&kYJ^-j_2n"9=!L&kYJ^-j_2n,a89O
+&5#8\-j_2n,a<rp!!GV[-j_2n,a<tF:]c/4-j_2n,a<u1=J8]kAs#n&8c[oa8jZ)t#pl8jP_9YL"@>[.
+#pl8jP_>2r!e<Na#pl8jP_>2r&kW-8#UQ/iP_>2r&kYIs!!8i>P_>2r&kYJ^-ilRUP_>2r&kYJ^-j_1"
+#_\@;&kYJ^-j_2n"9=!L&kYJ^-j_2n,a89O&5#8\-j_2n,a<rp!!GV[-j_2n,a<tF:]c/4-j_2n,a<tF
+:_HA#&-sSU,a<tF:_HAe#lk%#,a<tF:_HAe8LOU)+I%PB:_HAe8LOlk!!n7@:_HAe8LOlkT`b@H:_HAe
+8LOlkTd5j&+:q.38LOlkTd5kU&c`&$8LOlkTd5kUP#)415UZpbTd5kUP#)c`!"]D^Td5kUP#)c`64!Vn
+Td5kUP#)c`6:iR+5Tl;EP#)c`6:iR3,le4(P#)c`6:iR3-(tGAJPZtO6:iR3-(uTK!$DhF6:iR3-(uTK
+KG"7f6:iR3-(uTKKT].5J3YLh-)&hD;I+IS/.tQA8LOlk!;8u4#pl8jP_>2r&kW-8#UQ/iP_>2r&kYIs
+!!8i>P_>2r&kYJ^-ilRUP_>2r&kYJ^-j_1"#_\@;&kYJ^-j_2n"9=!L&kYKi<K^/k8jZ)t!C.rqKT].E
+8jZ)t#pfQWKMi)P\dgA<P_>2r&kYJ^-ipPV6:iR3V$fYi>]$YLTd5kUP#)5<53sPZqD&[U6:iR3-)%\S
+..q.NRn+q.E.`h,:_HBK+pfQh,a<rp!),`DIRC).D'GZ!P_>2r&kW/n=@,S-#pl8jP_>2r!e<Na#pl8j
+P_>2r&kW-8gi4aM8eO`_l0=tlhcV?6-(uTK!4Y6[8LUuC>)lDl8jZ)tSJb$WNp;DJM,:2sPQ84A3t.rd
+7RChPU"!BKFbGoS&kYIs!#hPQ:SCb>iBg*a#pl8jPQ9W.6L!o*W@oKioX%H[b=F#f-(uTK!8%CIe?658
+]&QU:dsenSP_>2r&kYIs!0.X`q[B;T#:i@o#pl8jPYR!3H^tNj!:GnE&kYJ^.%M5JXc*aE;C`uc,a>GN
+9(cJ;E4.ra!cZJ/&k[;"P#)c`6:iR3,lfo[:qFhHWcNZ`<+_OeXc0D"8tgljP#)c`64&1U&PC)1WD(L0
+(.ud3_&\;/-mPE2P_>2r&kW/ja$)lTi1((Lr`;VmKi1-%C#r/@;tmq$&kY4oV=R2*!H>A_1R._k&kZ43
+V:.)MF$f-Q1A^X'9b!q"7[Jd+=['5EC8'/"817ab9$7f=G8<f!)''-^jlD+n)us*[kb1tQ0#`OmC8(:B
+e1qY/6KqfCWKkl&6`Ec6Sn0=(?Qk+k&kW/Z)56]0:jOFJ65f/EPb+5h_,)U[Zfm:?eGjl>bJ1H#Iun`R
+:hm27X+XA$UH8j[:e%o98nI:M&k^?^[G)skqD&[U!8NC"$DfNV3BDgk3FB6oI/g[!f*\?4:Cj;jqpCj$
+Fd?T<GK@Ts.Z:Qt7BMO&e[k%Hl\aF*V3bDcqeB>b/jlTkU],crbNSSg)+r*P.I"]G3r%6SdF^4PhuBC/
+DCq+,cL8q),guL^<2OQcXbB[Q/#7@TqYed`W./C0:TD'(HMKq6Mm_)%WBT#rTi@o&f7Xb:qf*";eGnhD
+b><M1jo#$eI3Oo9`R,>cl/7T5@OQpV;d5_C6`Ea`qmB78ATYmf3p;Hp<2T%,Ti@p2rB?Ige:P3":o_tc
+Ve4?!Ti@m8^a5](QVi204;^]XD19H#C:j=1.$\N$;eGhUUsFF-h..os492UC-\PBcG3>/[I2UQdWj=7O
+IXSj+BC:H$q4VoAN%PX;k0?<XfN]%]rB)QolEkJD&^eALl>!t]pU->U$`,U9Mb]&U_8!L,0U2FE4I""\
+5J!+Wc(Zu\6_f?5RJN`)$)R@_m>[_P8th3tO#ZnmDhk"0no*pL<g?he$E9X/8nH`FO8<3,>s4EIs"b/`
+>S9Z,kE6?1!-j+q%o'k9GQ~>
+
+%AXGEndBitmap
+GR
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 483 M
+658 483 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 47 M
+658 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+178.415 483 M
+178.415 477.36 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+304.533 483 M
+304.533 477.36 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+430.651 483 M
+430.651 477.36 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+556.769 483 M
+556.769 477.36 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+178.415 47 M
+178.415 52.64 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+304.533 47 M
+304.533 52.64 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+430.651 47 M
+430.651 52.64 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+556.769 47 M
+556.769 52.64 L
+S
+GR
+GS
+[0.51962 -0.3 0.3 0.51962 107.04901 293.79999] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-166 17 moveto 
+1 -1 scale
+(14-Sep-2021 02:00:00) t 
+GR
+GR
+GS
+[0.51962 -0.3 0.3 0.51962 182.71985 293.79999] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-166 17 moveto 
+1 -1 scale
+(17-Sep-2021 07:00:00) t 
+GR
+GR
+GS
+[0.51962 -0.3 0.3 0.51962 258.39069 293.79999] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-166 17 moveto 
+1 -1 scale
+(20-Sep-2021 10:00:00) t 
+GR
+GR
+GS
+[0.51962 -0.3 0.3 0.51962 334.06154 293.79999] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-166 17 moveto 
+1 -1 scale
+(23-Sep-2021 13:00:00) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 225.60016 354.91194] CT
+0.149 GC
+/Helvetica 26.667 F
+GS
+[1 0 0 1 0 0] CT
+-30 27 moveto 
+1 -1 scale
+(Time) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 483 M
+94 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 483 M
+658 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 483 M
+99.64 483 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 420.714 M
+99.64 420.714 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 358.429 M
+99.64 358.429 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 296.143 M
+99.64 296.143 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 233.857 M
+99.64 233.857 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 171.571 M
+99.64 171.571 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 109.286 M
+99.64 109.286 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+94 47 M
+99.64 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 483 M
+652.36 483 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 420.714 M
+652.36 420.714 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 358.429 M
+652.36 358.429 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 296.143 M
+652.36 296.143 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 233.857 M
+652.36 233.857 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 171.571 M
+652.36 171.571 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 109.286 M
+652.36 109.286 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+658 47 M
+652.36 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 52.4 289.8] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-15 6.5 moveto 
+1 -1 scale
+(-2) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 252.42858] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-15 6.5 moveto 
+1 -1 scale
+(-1) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 215.05714] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-10 6.5 moveto 
+1 -1 scale
+(0) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 177.68571] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-10 6.5 moveto 
+1 -1 scale
+(1) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 140.31428] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-10 6.5 moveto 
+1 -1 scale
+(2) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 102.94286] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-10 6.5 moveto 
+1 -1 scale
+(3) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 65.57143] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-10 6.5 moveto 
+1 -1 scale
+(4) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 52.4 28.2] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+-10 6.5 moveto 
+1 -1 scale
+(5) t 
+GR
+GR
+GS
+[0 -0.6 0.6 0 40.4 158.99987] CT
+0.149 GC
+/Helvetica 26.667 F
+GS
+[1 0 0 1 0 0] CT
+-114.5 -6 moveto 
+1 -1 scale
+(Scores PC 1 \(85%\)) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 56.4 25.8] CT
+0.149 GC
+N
+2.5 -0.484 M
+2.5 -0.625 2.578 -0.734 QT
+6.125 -4.25 L
+2.578 -7.781 L
+2.5 -7.875 2.5 -8.016 QT
+2.5 -8.141 2.602 -8.242 QT
+2.703 -8.344 2.844 -8.344 QT
+2.953 -8.344 3.094 -8.25 QT
+6.609 -4.719 L
+10.125 -8.25 L
+10.266 -8.344 10.375 -8.344 QT
+10.516 -8.344 10.609 -8.25 QT
+10.703 -8.156 10.703 -8.016 QT
+10.703 -7.875 10.625 -7.781 QT
+7.094 -4.25 L
+10.625 -0.734 L
+10.703 -0.625 10.703 -0.484 QT
+10.703 -0.344 10.609 -0.25 QT
+10.516 -0.156 10.375 -0.156 QT
+10.25 -0.156 10.125 -0.281 QT
+6.609 -3.781 L
+3.094 -0.281 L
+2.969 -0.156 2.844 -0.156 QT
+2.703 -0.156 2.602 -0.258 QT
+2.5 -0.359 2.5 -0.484 QT
+cp
+f
+GR
+GS
+[0.6 0 0 0.6 64.2 25.8] CT
+0.149 GC
+/Helvetica 16.667 F
+GS
+[1 0 0 1 0 0] CT
+0 0 moveto 
+1 -1 scale
+(10) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 75.6 21] CT
+0.149 GC
+/Helvetica 13.333 F
+GS
+[1 0 0 1 0 0] CT
+0 0 moveto 
+1 -1 scale
+(9) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 482 M
+698 482 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 47 M
+698 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 482 M
+671 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 482 M
+698 47 L
+S
+GR
+GS
+[0.3 0 0 0.3 402.6 28.2] CT
+[1 0 0 1 0 0] CT
+N
+0 870 M
+54 870 L
+54 0 L
+0 0 L
+cp
+clip
+GS
+0 0 translate
+54 870 scale
+%AXGBeginBitmap: java.awt.image.BufferedImage
+{{
+/RawData currentfile /ASCII85Decode filter def
+/Data RawData /FlateDecode filter def
+/DeviceRGB setcolorspace
+<<
+  /ImageType 1
+  /Decode [0 1 0 1 0 1]
+  /DataSource Data
+  /Height 870
+  /ImageMatrix [54 0 0 870 0 0]
+  /Width 54
+  /BitsPerComponent 8
+>> image
+} stopped {handleerror} if
+  RawData flushfile
+} exec
+Gb"0<NH5U5*67S/kN]W>f89(r]]Wq6c"q!.f'/DY%[Thd<(\IWEL`8W;GeJB8Wni?H.Ho[^HMPhH]X%7
+/8JD+4:HT3fr.-q]DMN_YC$(LT(J6/rEUhd\bR]&IT&2JDeeK2rHEUMjr875UAk#GV#?d2.)4_1?g=i\
+8(t`/TDG`"+RRbjV#HfKe:3m&"07'Q^FGU-hfstYYVLn&RkBGYp<QZeF%$p[hL@/JqThW-rk1+MV"p>*
+%"P7M8Frr2UFH6BM&>OPO_pa=QLZ--j%0'M_:2g-:]2RGV#B:@l?=S;p'ZXRImGj_k7&['kGD()CJH?n
+^*T9Fr=8+2EhnfZ)]ZtaJ&d[>R]go\;#X0Z4QY0T@S-/m*RU*YRiP(hYK;ftr9Be+b-/qo--]NRKM_[D
+ggJQX73;,obmU9De+og<P72sh$:t&c_I1N1'o#P6M)1AQmjngDr4Ja0dX64X']gDiNhQ@q-#oaVK;J+&
+^TTJF1r#q>M=PkV,uadRY#NjI<`^4$D_<,'Rbq5=8bq].=d6\@4bbf.ato@S=*hlKk#ZfI;uSQ@7*8m%
+SP5JZm%$cE$bXqZoCKWD.=[@r#3F2)]h4`cja3QhBDUI1c-Pmm:&37dF!uO,D_>aQMK_8G:\$+`btmg]
+UAT#f-'UXF]9G-:`j:WpZTQE&o,4-\.6lY%P4I)WT9887goDkg\bo+KHrBcDb"m,]Vu.^@%A`gpZ;$Q*
+=14MR+'Z=1nmb;#;LVTe2UZt`nTN%c0A]!`%kH@&q&r2=.6knaQS^qR\W?=Y([`ZqpF/3iq)o)q;1?!+
+,Gb.<q*umKF5CobI&B(3jZf'#6huf(k*"jgk2]HiL[7@MDkHDBc*qa.;uT.E;UYOtA^l4BSFYDTF-Gb@
++7iBZLSH4fo,Wni9)/u>rf-Ij4`lQ<s7i;F.DO?J1Sjgo%\0Bnc9Iqrr%@js8Fp-]rCQf\s)`fKhehgN
+b4!'BP4EtdreiVjo>aMR^T35KheOV4pYPF!jnIG79q(O_NV`O#rsrhXs&K?>mk.Q<J1Y:Nph^K%&,bQs
+df-+Iare!Q!H>pkdX9En=/l5#CS^daF`iojZM$?@LT\0RRLf;T-KU#d^.$a_<DWE&TAQOF:[aD==5KeQ
+:Due$.iKj$ntRPs?f"K1?cE*@Tq=.`ot`fVJ"QS4QaDk:@huOOIdA9,Ib_g;PTRYjqM3:E5akK=8,Z##
+s!,c9^IS7?hPL5$G=_VKB2a<6>7X9r,A'f&qA[pKnhm]^S9^at8%h7Cc^;NKpi7nHB20i/^mA6'Ii<$N
+oS`IBIjtQY'L-;]E\mAaC*N%@V#IG%NRU2,J[GHo?0Zq=%VbsRgXJHrT),(m7G8i)KDM4N:>4$oU\rN-
+f;Lpo$>Fuh/bQ$nOS21LVZ,Q)e=To5Ra4[<7/b5mV#?u'W'@85nhUpY+RLPHU&OgcV"ml?:Ju\4O7Gf\
+\k2cR0'\KM+jHoT3N54uTCPK?jHB5S*L*03G)WdMHC48YLE*,hi;KJIe=aM)5A1kprss#-L<T~>
+
+%AXGEndBitmap
+GR
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 482 M
+698 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 482 M
+693.65 482 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 429.947 M
+693.65 429.947 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 377.893 M
+693.65 377.893 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 325.84 M
+693.65 325.84 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 273.787 M
+693.65 273.787 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 221.734 M
+693.65 221.734 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 169.68 M
+693.65 169.68 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 117.627 M
+693.65 117.627 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 65.574 M
+693.65 65.574 L
+S
+GR
+GS
+[0.6 0 0 0.6 423.19999 289.2] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(0) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 257.96805] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(0.5) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 226.7361] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(1) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 195.50414] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(1.5) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 164.27219] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(2) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 133.04024] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(2.5) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 101.80829] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(3) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 70.57632] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(3.5) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 423.19999 39.34437] CT
+0.149 GC
+/Helvetica 20 F
+GS
+[1 0 0 1 0 0] CT
+0 8 moveto 
+1 -1 scale
+(4) t 
+GR
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 47 M
+698 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 482 M
+698 482 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 482 M
+671 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.149 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 482 M
+698 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.2 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 482 M
+671 482 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.2 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+671 47 M
+671 47 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.2 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 482 M
+698 482 L
+S
+GR
+GS
+[0.6 0 0 0.6 0 0] CT
+0.2 GC
+2 setlinecap
+1 LJ
+0.833 LW
+N
+698 47 M
+698 47 L
+S
+GR
+%%Trailer
+%%Pages: 1
+%%EOF
