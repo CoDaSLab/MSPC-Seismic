@@ -1,5 +1,11 @@
 # /data structure
 
+**ivc.dat** is a handmade registry of the known seismic events in a given time period. It contains information about the date, time magnitude and location of the seismic events.
+
+**stations_lp.dat** is a record of the different seismic sensors available to INVOLCÁN in La Palma.
+
+**update_metadata.py** updates _/data/metadata_ contents based on the contents in the rest of the folders in /data
+
 ## /DAS
 Contains data from the DAS
 
@@ -20,10 +26,6 @@ Contains meta-information of the data.
 **Available_times.csv** is a registry of the time periods that cointain information for each of the sensors.
 
 **feature_log.csv** is a registry of the features extracted from the signals and the parameters used to do so.
-
-**ivc.dat** is a handmade registry of the known seismic events in a given time period. It contains information about the date, time magnitude and location of the seismic events.
-
-**stations_lp.dat** is a record of the different seismic sensors available to INVOLCÁN in La Palma.
 
 ## /features
 Contains the features extracted from the signals. The files inside are codified with a number id, following the syntax:
