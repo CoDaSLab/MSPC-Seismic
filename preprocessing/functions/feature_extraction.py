@@ -245,8 +245,8 @@ def _calculate_FFT_coefficients(H, fft_points = 256, verbose = False):
 
 """
 function: _save_features(H, features_list,
-                  save_folder ="./digivolcan/database/features" ,
-                  log_path = "./digivolcan/database/feature_log.csv",
+                  save_folder ="./data/metadata/features" ,
+                  log_path = "./data/metadata/feature_log.csv",
                   verbose = False)
 
 Save the calculated features of the HDAS object H
@@ -261,8 +261,8 @@ Outputs
 None
 """
 def _save_features(H, features, feature_type,
-                  save_folder ="./digivolcan/database/features" ,
-                  log_path = "./digivolcan/database/feature_log.csv",
+                  save_folder ="./data/metadata/features" ,
+                  log_path = "./data/metadata/feature_log.csv",
                   verbose = False):
     
     # Check log
@@ -339,8 +339,8 @@ None
 """
 def get_features(H, window, shift, fft_points = 256,
                 types = ["FFT", "feature"],
-                save_folder ="./digivolcan/database/features" ,
-                log_path = "./digivolcan/database/feature_log.csv",
+                save_folder ="./data/metadata/features" ,
+                log_path = "./data/metadata/feature_log.csv",
                 verbose = False, timer = False):
 
 
@@ -361,7 +361,7 @@ def get_features(H, window, shift, fft_points = 256,
 
     return
 
-def check_log(query, log_path = "digivolcan/database/feature_log.csv"):
+def check_log(query, log_path = "data/metadata/feature_log.csv"):
     log = pd.read_csv(log_path, parse_dates=["starttime", "endtime", "save_time"],
                       date_format='mixed')
 

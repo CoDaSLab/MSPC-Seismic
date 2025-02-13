@@ -1,7 +1,7 @@
 import streamlit as st
-from streamlit_utils.interface import header, logo
-from streamlit_utils.widgets import select_time
-from streamlit_utils.utils import init_session_state
+from config.init import init_page
+from utils.utils import init_session_state
+from utils.widgets import select_time
 
 import pandas as pd
 import folium
@@ -67,14 +67,8 @@ marker_colors = {
 }
 
 # --- Application start ---
-st.set_page_config(
-    page_title= "Location Map",
-    layout='wide',
-    page_icon='🗺️',
-    )
+init_page("Location Map")
 init_session_state()
-logo()
-header()
 # ------------------------
 
 
@@ -82,15 +76,15 @@ st.title('Data mapping')
 
 # Load sensor location data
 column_names = ["sensor", "latitude", "longitude", "altitude (m)"]
-sensors = pd.read_csv("digivolcan/database/stations_lp.dat", sep="\s+", names=column_names)
+sensors = pd.read_csv("data/stations_lp.dat", sep="\s+", names=column_names)
 sensors['available'] = False
 sensors.loc[sensors['sensor'].isin(['PPMA', 'PLPI']), 'available'] = True
 sensors = sensors.sort_values('available', ignore_index=True, ascending=False)
 
 # Load registered events data
-events = pd.read_csv("digivolcan/database/ivc_available_data.csv",
-    usecols = ['year', 'month', 'day', 'hour', 'minute', 'second', 'magnitude', 'longitude', 'latitude'])
-
+events = pd.read_csv("data/ivc.dat",
+    names = ['year', 'month', 'day', 'hour', 'minute', 'second', 'magnitude', 'longitude', 'latitude','depth (km)','*1','*2'])
+events = events.drop(["*1","*2"], axis = 1)
 # Order by date and time
 events = events.sort_values(by=[events.columns[0], events.columns[1], events.columns[2],
                             events.columns[3], events.columns[4], events.columns[5], 

@@ -8,3 +8,4 @@ tqdm
 mpld3
 folium
 streamlit-folium
+branca

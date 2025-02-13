@@ -1,22 +1,17 @@
 import streamlit as st
-from streamlit_utils.interface import header, logo
-from streamlit_utils.widgets import *
-from streamlit_utils.utils import init_session_state
+from config.init import init_page
+from utils.utils import init_session_state
+from utils.widgets import *
 
-
-from digivolcan.functions.SISMO import SISMO
+import os
+print(os.getcwd())
+from preprocessing.functions.SISMO import SISMO
 
 # -------------------------
 # --- Application start ---
 # -------------------------
-st.set_page_config(
-    page_title= "SISMO Visualization",
-    layout='wide',
-    page_icon='🌋',
-    )
+init_page("SISMO visualization")
 init_session_state()
-header()
-logo()
 # -------------------------
 
 

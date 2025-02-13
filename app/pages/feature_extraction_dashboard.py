@@ -1,27 +1,20 @@
 import streamlit as st
-from streamlit_utils.interface import header, logo
-from streamlit_utils.utils import init_session_state
-from streamlit_utils.widgets import *
-from digivolcan.functions.feature_extraction import *
-# from digivolcan.functions.data_check import check_sensors
+from config.init import init_page
+from utils.utils import init_session_state
+from utils.widgets import *
+from preprocessing.functions.feature_extraction import *
 
 import pandas as pd
 
 # --- Application start ---
-st.set_page_config(
-    page_title= "Feature extraction",
-    layout='wide',
-    page_icon='🌋',
-    )
+init_page("Feature extraction")
 init_session_state()
-logo()
-header()
 # ------------------------
 
 tabs = st.tabs(['Feature Log', 'Extract new features'])
 
 with tabs[0]:
-    log = pd.read_csv("digivolcan/database/feature_log.csv",)
+    log = pd.read_csv("data/metadata/feature_log.csv",)
     st.dataframe(log)
 
 with tabs[1]:
@@ -90,7 +83,7 @@ with tabs[1]:
 
                 # ids = log['file_id']
                 # for id in ids:
-                #     file = scipy.io.loadmat(f"digivolcan/database/features/{id}.mat")
+                #     file = scipy.io.loadmat(f"data/metadata/features/{id}.mat")
                 #     print(file)
                 #     st.download_button(f"Download features [{id}.mat]",
                 #                         file, f"{id}.mat", use_container_width=True)

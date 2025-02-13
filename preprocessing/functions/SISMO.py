@@ -9,7 +9,7 @@ This file contains the SISMO class, used to calculate features the same way the 
 This class is a child class of the HDAS class
 """
 
-from HDAS import HDAS
+from preprocessing.functions.HDAS import HDAS
 import obspy
 import numpy as np
 import scipy
@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import concurrent.futures
 from data_check import get_filenames
 
-import multiprocessing as mp
+import multiprocessing as mpx
 import warnings
 
 class SISMO(HDAS):

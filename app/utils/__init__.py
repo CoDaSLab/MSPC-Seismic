@@ -1,7 +1,3 @@
-import os
-# Change to jgarcia directory
-if os.getcwd() == "/home/vulcano/streamlit":
-        os.chdir("..")
 
 import sys
 if "./streamlit" not in sys.path:

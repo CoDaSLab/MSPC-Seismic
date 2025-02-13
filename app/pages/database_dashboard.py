@@ -1,35 +1,25 @@
 import streamlit as st
-from streamlit_utils.interface import header, logo
-from streamlit_utils.utils import init_session_state
-from streamlit_utils.widgets import *
+from config.init import init_page
+from utils.utils import init_session_state
+from utils.widgets import select_time
 
 # --- Application start ---
-st.set_page_config(
-    page_title= "Digivolcan Database",
-    layout='wide',
-    page_icon='🌋',
-    )
+init_page("Digivolcan Database")
 init_session_state()
-logo()
-header()
 # ------------------------
 
 import pandas as pd
 from datetime import datetime
 
-# Make the directory jgarcia
-import os
-if os.getcwd() == "/home/vulcano/streamlit":
-    os.chdir("..")
 
-from digivolcan.functions.data_check import check_sensors
+from preprocessing.functions.data_check import check_sensors
 
 # Cargar los archivos CSV
 csv_files = {
-    "Available Files":      "digivolcan/database/Available_files.csv",
-    "Available Time":       "digivolcan/database/Available_times.csv",
-    "Available Events":     "digivolcan/database/ivc_available_data.csv",
-    "Feature Log":          "digivolcan/database/feature_log.csv",
+    "Available Files":      "data/metadata/Available_files.csv",
+    "Available Time":       "data/metadata/Available_times.csv",
+    "Available Events":     "data/metadata/ivc_available_data.csv",
+    "Feature Log":          "data/metadata/feature_log.csv",
 }
 names = list(csv_files.keys())
 
