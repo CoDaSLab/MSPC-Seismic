@@ -5,5 +5,4 @@
 /data/metadata/*
 !/data/*/README*
 
-
 !.gitignore
