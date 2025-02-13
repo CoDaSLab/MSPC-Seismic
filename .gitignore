@@ -1,8 +1,9 @@
-Analysis/
-data/
-digivolcan/database/features/
-digivolcan/figures  
-exploratory_analysis/data/
-.*/
-.*
+# Exclude data for capacity. Keep READMEs
+/data/DAS/*
+/data/seismic/*
+/data/features/*
+/data/metadata/*
+!/data/*/README*
+
+
 !.gitignore
