@@ -3,6 +3,10 @@
 /data/seismic/*
 /data/features/*
 /data/metadata/*
+!/data/DAS/
+!/data/seismic/
+!/data/features/
+!/data/metadata/
 !/data/*/README*
 
 !.gitignore
