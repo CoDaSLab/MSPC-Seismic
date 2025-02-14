@@ -1,10 +1,11 @@
-# Exclude data for capacity. Keep READMEs
+# Exclude data for capacity and security
 /data/**
+!/data/**/
 # /data/ivc.dat
 !**/README.md
-!**/*_here
+!/**/*_here
 
 # ignore pycache
-**/__pycache__/
+**/__pycache__
 
 # !.gitignore
