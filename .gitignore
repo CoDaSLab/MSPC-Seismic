@@ -1,6 +1,7 @@
 # Exclude data for capacity. Keep READMEs
 /data/
 !/data/*/README*
+!/data/*/*_here
 
 # ignore pycache
 **/__pycache__/
