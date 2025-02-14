@@ -68,16 +68,7 @@ def show_table(name):
     data = data.loc[:, ~data.columns.str.contains('\*')] # Remove '*' columns
     columns = data.columns.to_list()
 
-
-    # Crear checkboxes para cada columna en una fila
-    selected_columns = []
-    st.subheader("Select columns to show:")
-    cols = st.columns(len(columns))
-
-    for col, column in zip(cols, columns):
-        if col.checkbox(column, value=True, key=f"{name}_{column}"):
-            selected_columns.append(column)
-    # selected_columns = columns
+    selected_columns = st.multiselect('Columns to show:', columns, columns)
 
     # Read 'start' and 'end' as datetime
     for column in selected_columns:

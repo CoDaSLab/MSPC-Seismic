@@ -1,8 +1,5 @@
 # Exclude data for capacity. Keep READMEs
-/data/DAS/*
-/data/seismic/*
-/data/features/*
-/data/metadata/*
+/data/
 !/data/*/README*
 
 # ignore pycache
