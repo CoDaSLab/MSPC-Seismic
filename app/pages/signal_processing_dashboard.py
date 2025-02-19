@@ -1,10 +1,7 @@
-import streamlit as st
-from config.init import init_page
-from utils.utils import init_session_state
-from utils.widgets import *
+from config import *
 
-import os
-print(os.getcwd())
+from widgets.forms import *
+from widgets.plots import *
 from preprocessing.functions.SISMO import SISMO
 
 # -------------------------
@@ -12,11 +9,11 @@ from preprocessing.functions.SISMO import SISMO
 # -------------------------
 init_page("SISMO visualization")
 init_session_state()
+st.title('SISMO Signal Processing')
 # -------------------------
 
 
 
-st.title('SISMO Signal Processing')
 
 tab_names = ["SISMO Trend", "SISMO FFT"]
 tabs = st.tabs(tab_names)

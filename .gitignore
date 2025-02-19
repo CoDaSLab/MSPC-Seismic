@@ -1,7 +1,7 @@
 # Exclude data for capacity and security
 /data/**
+# Exceptions to clarify structure
 !/data/**/
-# /data/ivc.dat
 !**/README.md
 !/**/*_here
 

@@ -1,6 +1,4 @@
-import streamlit as st
-from config.init import init_page
-from utils.utils import init_session_state
+from config import *
 
 # --- Application start ---
 init_page("Digivolcan Home")

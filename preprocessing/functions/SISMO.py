@@ -17,7 +17,7 @@ from datetime import datetime, timedelta
 import concurrent.futures
 from data_check import get_filenames
 
-import multiprocessing as mpx
+import multiprocessing as mp
 import warnings
 
 class SISMO(HDAS):

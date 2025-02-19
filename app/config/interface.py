@@ -13,7 +13,7 @@ def header():
     with col[0]:
         st.page_link("home.py", label="Home", icon="🏠")
     with col[1]:
-        st.page_link("./pages/map.py", label = "Map", icon='🗺️')
+        st.page_link("./pages/mapping.py", label = "Map", icon='🗺️')
     with col[2]:
         st.page_link("./pages/database_dashboard.py", label = "Database", icon='🖥️')
     with col[3]:
