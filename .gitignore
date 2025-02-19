@@ -1,5 +1,7 @@
 # Exclude data for capacity and security
-/data/**
+/data/features/**
+/data/ivc.dat
+/data/stations_lp.dat
 # Exceptions to clarify structure
 !/data/**/
 !**/README.md
