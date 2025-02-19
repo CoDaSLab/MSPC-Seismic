@@ -5,7 +5,7 @@ file name: data_check.py
 
 Description:
 This file contains functions that go through the raw data files in order to register data availability.
-Things like wether or not there is an interruption in the information, see what sensors have or don't have data,
+Things like whether or not there is an interruption in the information, see what sensors have or don't have data,
 as well as get the names of the files that cointain a certain subset of data.
 """
 

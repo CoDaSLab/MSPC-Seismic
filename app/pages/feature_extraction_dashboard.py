@@ -1,6 +1,5 @@
-import streamlit as st
-from config.init import init_page
-from utils.utils import init_session_state
+from config import *
+
 from utils.widgets import *
 from preprocessing.functions.feature_extraction import *
 
