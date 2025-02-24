@@ -9,6 +9,7 @@ Main functionalities:
 - Filter files based on the following conditions:
   - The file name must end with ".{julian_day}".
   - The system of the file must be "C7" (temporary condition).
+  - The sensor of the file must be from "La Palma" (hard-coded).
   - The channel of the file must start with "HH" followed by any character.
 - Write the information of the found files to a CSV file in the `data/metadata/` directory.
 - Operation mode "overwrite" or "append" for the CSV file:
@@ -66,7 +67,13 @@ def process_directory(sftp, root, files, writer, server, existing_files):
             if file_name not in existing_files:
                 system, sensor, channel, year, month, day = parse_filename(file_name)
                 # Temporary condition to only include files with system == "C7"
-                if system == "C7" and re.match(r'^HH.', channel):
+                # Only add stations from La Palma
+                # Only add channels HH*
+                lp_stations = [
+                    "PA00","PA01","PA02","PA03","PA04","PA05","PA06","PA07","PA08","PA09","PAB"
+                    ,"PBB2","PBBA","PCOR","PFUE","PFVI","PGAR","PLPI","PML2","PMLU","PMOZ","PN01",
+                    "PN02","PN03","PN04","PPAS","PPMA","PSAB","PTAB","TC13"]
+                if system == "C7" and (sensor in lp_stations) and re.match(r'^HH.', channel):
                     writer.writerow([sensor, channel, year, month, day, 0, 0, 0, server, root.replace('\\', '/'), file_name])
 
 """

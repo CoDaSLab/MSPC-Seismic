@@ -31,8 +31,10 @@ import getpass
 
 def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
     # Convert starttime and endtime to datetime objects
-    starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
-    endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+    if type(starttime) == str:
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+    if type(endtime) == str:
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
 
     # Read the CSV file and filter the rows based on the provided sensor, channel, and date range
     files_to_download = []
@@ -63,9 +65,10 @@ def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
                 username = input(f"Username for server {server}: ")
                 password = getpass.getpass(f"Password for server {server}: ")
                 credentials[server] = (username, password)
+        
     else:
         print("No files found for this query")
-        return
+        return False
 
     # Connect to the SFTP server and download the files
     for file_info in files_to_download:
@@ -96,6 +99,7 @@ def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
         
         sftp.close()
         client.close()
+    return True
 
 # Example usage
 if __name__ == "__main__":

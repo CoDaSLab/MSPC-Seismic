@@ -21,8 +21,10 @@ with open('data/stations_lp.dat', "r", newline='') as file:
     for line in file:
         lp_sensors.append(line.split()[0])
 file.close()
-print(lp_sensors)
-# download_files(today, now, 'HERE', 'HHZ')
+
+for sensor in lp_sensors:
+    print(f"sensor {sensor}")
+    download_files(today, now, sensor, 'HHZ')
 
 # operamos 
 

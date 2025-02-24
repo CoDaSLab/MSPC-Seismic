@@ -1,6 +1,6 @@
 from config import *
 
-from utils.widgets import *
+from widgets.forms import *
 from preprocessing.functions.feature_extraction import *
 
 import pandas as pd
