@@ -29,7 +29,7 @@ from datetime import datetime
 import os
 import getpass
 
-def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
+def download_files(starttime, endtime, sensors, channels, path='data/seismic/'):
     # Convert starttime and endtime to datetime objects
     if type(starttime) == str:
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
@@ -48,8 +48,8 @@ def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
             file_day = int(row['day'])
             file_date = datetime(file_year, file_month, file_day)
 
-            if (file_sensor == sensor and
-                file_channel == channel and
+            if (file_sensor in sensors and
+                file_channel in channels and
                 starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
                 files_to_download.append(row)
 
@@ -57,6 +57,7 @@ def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
         servers = set(file_info['server'] for file_info in files_to_download)
         credentials = {}
         for server in servers:
+            print(server)
             env_username = os.getenv(f"{server.replace('.', '_').upper()}_user")
             env_password = os.getenv(f"{server.replace('.', '_').upper()}_pasw")
             if env_username and env_password:
@@ -91,7 +92,7 @@ def download_files(starttime, endtime, sensor, channel, path='data/seismic/'):
         sftp = client.open_sftp()
         
         # Create local directory structure
-        local_dir = os.path.join(path, sensor, f"{file_info['year']}_{channel}")
+        local_dir = os.path.join(path, file_info['sensor'], f"{file_info['year']}_{file_info['channel']}")
         os.makedirs(local_dir, exist_ok=True)
         
         local_filepath = os.path.join(local_dir, file_info['filename'])

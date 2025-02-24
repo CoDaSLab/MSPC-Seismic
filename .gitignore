@@ -2,6 +2,8 @@
 /data/features/**
 /data/ivc.dat
 /data/stations_lp.dat
+/data/seismic/**
+/data/DAS/**
 # Exceptions to clarify structure
 !/data/**/
 !**/README.md

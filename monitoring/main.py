@@ -11,7 +11,6 @@ today = now.replace(hour=0, minute=0, second=0, microsecond=0)
 
 # Si no se ha hecho ningun fetch hoy lo hacemos, para ubicar el nombre del archivo
 
-
 # obtenemos el nombre de todos los sensores operativos buscando en la tabla de avaialble files por la fecha y
 # quedándonos con el nombre de los sensores (y sus canales)
 
@@ -22,9 +21,7 @@ with open('data/stations_lp.dat', "r", newline='') as file:
         lp_sensors.append(line.split()[0])
 file.close()
 
-for sensor in lp_sensors:
-    print(f"sensor {sensor}")
-    download_files(today, now, sensor, 'HHZ')
+download_files(today, now, lp_sensors, ['HHZ','HHE','HHN'])
 
 # operamos 
 
