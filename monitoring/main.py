@@ -4,6 +4,7 @@ sys.path.insert(1, os.getcwd())
 
 from datetime import datetime, timedelta, timezone
 from data.pull import download_files
+from data.clear import delete_files
 from data import fetch
 
 now = datetime.now(timezone.utc).replace(tzinfo=None)
@@ -20,13 +21,14 @@ with open('data/stations_lp.dat', "r", newline='') as file:
     for line in file:
         lp_sensors.append(line.split()[0])
 file.close()
+channels = ['HHZ','HHE','HHN']
 
-download_files(today, now, lp_sensors, ['HHZ','HHE','HHN'])
+download_files(today, now, lp_sensors, channels)
 
 # operamos 
 
-
 # borramos los datos que ya no nos sirvan.
+delete_files(today, now, lp_sensors, channels)
 
 
 """

@@ -26,27 +26,31 @@ Example:
 import os
 from datetime import datetime, timedelta
 
-def clear_files(starttime, endtime, sensor, channel, path='data/seismic/'):
+def delete_files(starttime, endtime, sensors, channels, path='data/seismic/'):
     # Convert starttime and endtime to datetime objects
-    starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
-    endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+    if type(starttime) == str:
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+    if type(endtime) == str:
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
 
     # Iterate through the date range and delete corresponding files
     current_time = starttime
     while current_time <= endtime:
-        dir_to_check = os.path.join(path, sensor, f"{current_time.year}_{channel}").replace('\\', '/')
-        if os.path.exists(dir_to_check):
-            for filename in os.listdir(dir_to_check):
-                file_path = os.path.join(dir_to_check, filename)
-                try:
-                    if os.path.isfile(file_path):
-                        print(f"Deleting file: {file_path}")
-                        os.remove(file_path)
-                except Exception as e:
-                    print(f"Failed to delete {file_path}. Reason: {e}")
-        else:
-            print(f"Directory not found: {dir_to_check}")
-        current_time += timedelta(days=1)
+        for sensor in sensors:
+            for channel in channels:
+                dir_to_check = os.path.join(path, sensor, f"{current_time.year}_{channel}").replace('\\', '/')
+                if os.path.exists(dir_to_check):
+                    for filename in os.listdir(dir_to_check):
+                        file_path = os.path.join(dir_to_check, filename)
+                        try:
+                            if os.path.isfile(file_path):
+                                print(f"Deleting file: {file_path}")
+                                os.remove(file_path)
+                        except Exception as e:
+                            print(f"Failed to delete {file_path}. Reason: {e}")
+                else:
+                    print(f"Directory not found: {dir_to_check}")
+                current_time += timedelta(days=1)
 
     # Check for and delete empty directories
     for root, dirs, files in os.walk(path, topdown=False):
@@ -71,4 +75,4 @@ if __name__ == "__main__":
     parser.add_argument("--path", default='data/seismic/', help="Local directory path where the files are saved")
 
     args = parser.parse_args()
-    clear_files(args.starttime, args.endtime, args.sensor, args.channel, args.path)
+    delete_files(args.starttime, args.endtime, args.sensor, args.channel, args.path)
