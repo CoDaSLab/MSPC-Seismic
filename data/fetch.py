@@ -29,7 +29,7 @@ Arguments:
     --mode  - Operation mode for the CSV file: "overwrite" or "append" (default: "append").
 
 Example:
-    python fetch.py 192.168.1.1 22 user password /path/to/directory --mode append
+    python fetch.py 193.147.109.7 22 user password /path/to/directory --mode append
 """
 import paramiko
 import stat
