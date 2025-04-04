@@ -238,7 +238,7 @@ if __name__=='__main__':
 
     S = SISMO(sensor, channel, starttime, endtime,
               verbose=False,
-              detrend=None, windowing = None)
+              detrend=None, windowing = False)
 
     S.set_windows(3600)
     FFT_points = int(S.points_per_window * 1.0)
@@ -251,7 +251,7 @@ if __name__=='__main__':
 
     S = SISMO(sensor, channel, starttime, endtime,
               verbose=False,
-              detrend=None, windowing = None)
+              detrend=None, windowing = False)
 
     S.set_windows(3600)
     FFT_points = int(S.points_per_window * 1.0)
