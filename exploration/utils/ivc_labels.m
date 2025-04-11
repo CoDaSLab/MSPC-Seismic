@@ -1,7 +1,7 @@
-function [maximum_magnitudes, total_magnitudes, eq_count] = ivc_labels(filtered_log, i)
+function [maximum_magnitudes, total_magnitudes, maximum_depths, total_depths, eq_count] = ivc_labels(filtered_log, i)
     % Leer el archivo ivc_available_data.csv
-    ivc = readtable('digivolcan/database/ivc_available_data.csv', 'VariableNamesLine', 1, 'VariableNamingRule', 'preserve');
-    ivc = ivc(:, 1:7);
+    ivc = readtable('data/metadata/ivc_available_data.csv', 'VariableNamesLine', 1, 'VariableNamingRule', 'preserve');
+    ivc = ivc(:, [1:7 10]);
     
     % Convertir las columnas de fecha y hora en una sola columna Datetime
     ivc.Datetime = datetime(ivc.year, ivc.month, ivc.day, ivc.hour, ivc.minute, ivc.second);
@@ -10,6 +10,8 @@ function [maximum_magnitudes, total_magnitudes, eq_count] = ivc_labels(filtered_
     % Inicializar variables
     total_magnitudes = [];
     maximum_magnitudes = [];
+    maximum_depths = [];
+    total_depths = [];
     eq_count = [];
     
     % Obtener los tiempos inicial y final del intervalo
@@ -34,6 +36,19 @@ function [maximum_magnitudes, total_magnitudes, eq_count] = ivc_labels(filtered_
         % Sumar las magnitudes omitiendo NaN
         total_magnitude = sum(filtered_ivc.magnitude, 'omitnan');
         total_magnitudes = [total_magnitudes; total_magnitude];
+
+        
+        % Máximo de las profundidades omitiendo NaN
+        maximum_depth = max(filtered_ivc.depth);
+        if isempty(maximum_depth) 
+            maximum_depth = 0;
+        end
+        maximum_depths = [maximum_depths; maximum_depths];
+
+        % Sumar las profundidades omitiendo NaN
+        total_depth = sum(filtered_ivc.depth, 'omitnan');
+        total_depths = [total_depths; total_depth];
+
         
         % Contar el número de eventos en el intervalo actual
         event_count = size(filtered_ivc, 1);  % Número de filas (eventos)

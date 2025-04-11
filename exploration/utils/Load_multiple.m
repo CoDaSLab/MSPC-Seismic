@@ -1,7 +1,7 @@
-function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, total_magnitudes, eq_count] ...
+function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, total_magnitudes, max_depths, total_depths, eq_count] ...
     = Load_multiple(log, unfolding, obs_subset)
     
-if nargin < 3 || isempty(obs_subset)
+    if nargin < 3 || isempty(obs_subset)
         obs_subset = false;
     end
 
@@ -15,25 +15,29 @@ if nargin < 3 || isempty(obs_subset)
     var_unfolding = [];
     obs_label = [];
     total_magnitudes = [];
+    max_magnitudes = [];
+    total_depths = [];
+    max_depths = [];
     eq_count = [];
 
 
-     % I need to preallocate before running wiht parallelization
+     % I need to preallocate before running with parallelization
      % For that, I need to know the initial dimension
      % For that, I need to save not only the number of windows in
      % feature_log, but also the number of variables
 
     for i = 1:length(ids)
         id = ids(i);
-        filepath = sprintf('digivolcan/database/features/%d.mat', id);
+        filepath = sprintf('data/metadata/features/%d.mat', id);
         
         [data_single, var_l_single, var_classes_single] = Load(filepath);
 
         starttime = log(i, :).starttime;
+        starttime.Format = 'dd-MMM-yyyy HH:mm:ss';
         num_rows = size(data_single, 1);
         obs_label_single = string(starttime +seconds(log(i,:).window)...
             + seconds((0:num_rows-1) * (log(i, :).window - log(i, :).overlap)))';
-        [max_mag, magnitudes, EQs] = ivc_labels(log, i);
+        [max_mag, magnitudes, max_dep, depths, EQs] = ivc_labels(log, i);
 
         % Aplicar subconjunto de observaciones si se ha especificado
         if obs_subset
@@ -41,6 +45,8 @@ if nargin < 3 || isempty(obs_subset)
             obs_label_single = obs_label_single(obs_subset, :);
             magnitudes = magnitudes(obs_subset, :);
             max_mag = max_mag(obs_subset, :);
+            depths = depths(obs_subset, :);
+            max_dep = max_dep(obs_subset, :);
             EQs = EQs(obs_subset, :);
         end
 
@@ -52,6 +58,8 @@ if nargin < 3 || isempty(obs_subset)
             obs_label = [obs_label, obs_label_single'];
             total_magnitudes = [total_magnitudes; magnitudes];
             max_magnitudes = [max_magnitudes; max_mag];
+            total_depths = [total_depths; depths];
+            max_depths = [max_depths; max_dep];
             eq_count = [eq_count; EQs];
 
         elseif unfolding == "var"
@@ -62,6 +70,8 @@ if nargin < 3 || isempty(obs_subset)
             obs_label = obs_label_single;
             total_magnitudes = magnitudes;
             max_magnitudes = max_mag;
+            total_depths = depths;
+            max_depths = max_dep;
             eq_count = EQs;
             obs_unfolding = ones(size(data_single, 1), 1);
         end
