@@ -27,6 +27,10 @@ Contains meta-information of the data.
 
 **feature_log.csv** is a registry of the features extracted from the signals and the parameters used to do so.
 
+**interruptions.csv** is a registry of the interruptions present in the signals from seismic sensors.
+
+**scans.csv** is a registry of all the times seismic data were scanned for interruptions.
+
 ## /features
 Contains the features extracted from the signals. The files inside are codified with a number id, following the syntax:
 

@@ -1,5 +1,5 @@
 """
-Last update: 10/09/2024
+Last update: 11/04/2025
 
 file name: data_check.py
 
@@ -68,7 +68,7 @@ end:        datetime. End of the time period of the data the user wants
 sensor:     string. Name of the sensor whose data the user wants (DAS, PLPI, PPMA)
 channel:    string. Channel of the data the user wants (None, HHE, HHN, HHZ)
 path:       string. Path to Available_files.csv, the table containing the information on availability of file availability
-
+local:      logical. Whether or not the file names the user wants are stored locally.
 
 Outputs
 filepaths:  list of strings containing all of the filepaths (paths+filenames) 
@@ -77,7 +77,7 @@ paths:      list of strings containing all of the file paths
 
 """
 
-def get_filenames(start, end, sensor, channel, path = "data/metadata/Available_files.csv"):
+def get_filenames(start, end, sensor, channel, path = "data/metadata/available_files.csv", local = True):
     data_files = pd.read_csv(path)
     data_files['channel'] = data_files['channel'].fillna('')
     
@@ -85,8 +85,11 @@ def get_filenames(start, end, sensor, channel, path = "data/metadata/Available_f
     data_files = data_files.sort_values(by='datetime')
 
     diff = 0
-    if sensor == "DAS":                     diff = timedelta(minutes = 1)
-    if "PLPI" in sensor or "PPMA" in sensor: diff = timedelta(days = 1)
+    lp_stations = ["PA00","PA01","PA02","PA03","PA04","PA05","PA06","PA07","PA08","PA09","PAB",
+                    "PBB2","PBBA","PCOR","PFUE","PFVI","PGAR","PLPI","PML2","PMLU","PMOZ","PN01",
+                    "PN02","PN03","PN04","PPAS","PPMA","PSAB","PTAB","TC13"]
+    if sensor == "DAS":       diff = timedelta(minutes = 1)
+    if sensor in lp_stations: diff = timedelta(days = 1)
 
     subset = data_files[
         (data_files["sensor"]== sensor) &
@@ -95,8 +98,13 @@ def get_filenames(start, end, sensor, channel, path = "data/metadata/Available_f
         (data_files["datetime"] >= start - diff) &
         (data_files["datetime"] <= end) 
         ]
-
-    filenames, paths = subset.filename.to_list(), subset.path.to_list()
+    
+    filenames = subset.filename.to_list()
+    if local == True:
+        paths = ["data/seismic/" + sensor + "/" + str(year) + "_" + channel for year in subset.year.to_list()]
+    else:    
+        paths = subset.path.to_list()
+    
     filepaths = [item[0] +"/"+ item[1] for item in zip(paths, filenames)]
 
     return filepaths, filenames, paths

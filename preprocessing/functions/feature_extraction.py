@@ -1,5 +1,5 @@
 """
-Last update: 12/09/2024
+Last update: 11/04/2025
 
 file name: feature_extraction
 
@@ -110,7 +110,7 @@ window_shift: float. duration of the window shift
 verbose: bool. Update the log on the status of the function's process.
 
 Outputs
-features_list: list of dictionaries. Each element copntains a dictionary with the features calculated for every SP.
+features_list: list of dictionaries. Each element contains a dictionary with the features calculated for every SP.
 """
 def _calculate_features(H, verbose = False, timer = False):
     if verbose:
@@ -130,12 +130,12 @@ def _calculate_features(H, verbose = False, timer = False):
 
     H.spectral_entropy()
     if timer:
-        print(f"Espectral entropy calculated in {datetime.now() - time0}")
+        print(f"Spectral entropy calculated in {datetime.now() - time0}")
         time0 = datetime.now()
 
     H.scal_log_esp_power()
     if timer:
-        print(f"Log espectral power calculated in {datetime.now() - time0}")
+        print(f"Log spectral power calculated in {datetime.now() - time0}")
         time0 = datetime.now()
 
     H.LFB()
@@ -274,7 +274,7 @@ def _save_features(H, features, feature_type,
 
     #######################################################
     """ Resampling of the FFTs """
-    factor = H.resampling_factor
+    factor = getattr(H, "resampling_factor", 1)
     if factor > 1:
         resampled_features = {}
         for key, array in features.items():
@@ -418,10 +418,11 @@ if __name__ == '__main__':
                 S.resampling_factor = 50
                 S.check()
                 
-                # S.set_windows(window, shift)
+                S.set_windows(window, shift)
                 get_features(S, window, shift, 'Auto',
                              types=['FFT'],
                              verbose = True, timer = True)
+                
     # DAS extraction
     if False:
 

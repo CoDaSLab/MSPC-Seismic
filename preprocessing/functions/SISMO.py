@@ -1,6 +1,6 @@
 
 """
-Last update: 13/11/2024
+Last update: 11/04/2025
 
 file name: SISMO.py
 
@@ -26,15 +26,15 @@ class SISMO(HDAS):
                  detrend = False, windowing = False,
                  cpus = 2, verbose=False):
    
-        "Get the filenames to read according to the starttime and endtime"
+        # Get the filenames to read according to the starttime and endtime
         start_day = starttime.replace(hour=0, minute=0, second=0)
-        filenames, _,_ = get_filenames(start_day, endtime, sensor, channel)
+        filenames = get_filenames(start_day, endtime, sensor, channel)[0]
 
         assert len(filenames) > 0, "No data files in the selected time period"
         
         self.existing_files = filenames
 
-        "Initialize values"
+        # Initialize values
         self.windowing = windowing
         self.detrend = detrend # This detrend method is independent from the window by window demeaning when calculating FFTs
         self.Coherent_noise_removed = False
@@ -50,7 +50,7 @@ class SISMO(HDAS):
         assert type(cpus) == int and cpus > 0, "Select a valid number of cpus"
         assert cpus <= mp.cpu_count(), "Specified number of CPUs is larger than available."
 
-        "Determine initial starttime and endtime based on found files to read"
+        # Determine initial starttime and endtime based on found files to read
         day = int(filenames[0][-3:])
         year = int(filenames[0][-8:-4])
         self.stime = datetime(year, 1, 1) + timedelta(days=day - 1)
@@ -58,7 +58,7 @@ class SISMO(HDAS):
         year = int(filenames[-1][-8:-4])
         self.etime = datetime(year, 1, 1) + timedelta(days=day)
 
-        "Read files in parallel"
+        # Read files in parallel
         self.read_files_in_parallel(filenames)
 
         # Get the metadata of the trace
@@ -86,7 +86,7 @@ class SISMO(HDAS):
 
     def process_file(self, filename):
         """
-        Método para procesar un archivo de forma individual.
+        Method for processing a file individually.
         """
         try:
             if self.verbose:
@@ -94,7 +94,7 @@ class SISMO(HDAS):
             st = obspy.read(filename)  # Leer el archivo usando obspy
             return st
         except FileNotFoundError:
-            print(f"El archivo '{filename}' no se encontró. Se omitirá.")
+            print(f"File '{filename}' not found. It will be skipped.")
             return None
 
     def read_files_in_parallel(self, filenames):
@@ -123,7 +123,7 @@ class SISMO(HDAS):
         assert len(ST) == 1, "Number of traces in stream should be 1"
         tr = ST[0]
 
-        "Warn about filled values"
+        # Warn about filled values
         filled_points = tr.stats.npts - total_points
         if filled_points > 0:
             warnings.warn(f"{filled_points} values filled as None.")
@@ -170,7 +170,8 @@ class SISMO(HDAS):
         ax.set_xlim(times_mpl[0], times_mpl[-1])
         ax.set_xlabel("UTC Time")
 
-        locator = ax.xaxis.set_major_locator(mdates.AutoDateLocator())
+        locator = mdates.AutoDateLocator()
+        ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
 
         plt.title(self.sensor)
@@ -210,7 +211,7 @@ class SISMO(HDAS):
 
 
     def energy_check(self):
-        """VErify the conservation of energy"""
+        """Verify the conservation of energy"""
         # Time domain
         centered_signal = []
         for window_id in range(self.n_windows):
@@ -227,6 +228,7 @@ class SISMO(HDAS):
         E_f = np.sum(FFTs**2)/FFT_points
 
         return E_t, E_f
+    
 
 if __name__=='__main__':
 
