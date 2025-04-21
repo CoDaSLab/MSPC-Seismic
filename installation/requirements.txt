@@ -9,3 +9,4 @@ mpld3
 folium
 streamlit-folium
 branca
+paramiko

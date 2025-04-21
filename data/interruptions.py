@@ -83,7 +83,7 @@ def save_interruptions(sensor, channel, starttime, endtime,
 
         if stime < etime:
             if verbose>=1: 
-                print(f"Scanning from {stime.strftime("%Y-%m-%d %H:%M:%S")} to {etime.strftime("%Y-%m-%d %H:%M:%S")}.")
+                print(f'Scanning from {stime.strftime("%Y-%m-%d %H:%M:%S")} to {etime.strftime("%Y-%m-%d %H:%M:%S")}.')
 
             # Obtain file paths
             start_day = stime.replace(hour=0, minute=0, second=0)
@@ -184,7 +184,7 @@ def read_files_in_parallel(filenames):
  
 if __name__ == "__main__":
     starttime = datetime(2021, 9, 16, 1, 20, 0)
-    endtime = datetime(2021, 9, 17, 1, 20, 0)
+    endtime = datetime(2021, 9, 19, 1, 20, 0)
     sensor = "PA00"
     channel = "HHE"
 
