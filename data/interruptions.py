@@ -1,6 +1,6 @@
 from datetime import datetime
 import pandas as pd
-from data_check import get_filenames
+from data.data_check import get_filenames
 import os
 import obspy
 import concurrent.futures

@@ -29,6 +29,7 @@ from datetime import datetime
 import os
 import getpass
 
+
 def download_files(starttime, endtime, sensors, channels, path='data/seismic/'):
     # Convert starttime and endtime to datetime objects
     if type(starttime) == str:

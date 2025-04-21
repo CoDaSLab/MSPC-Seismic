@@ -15,4 +15,7 @@
 # ignore virtual enviroment
 venv
 
+# ignore jobs folder
+jobs
+
 # !.gitignore
