@@ -41,7 +41,7 @@ import time
 import argparse
 
 """
-function: save_interruptions(sensor, channel, starttime, endtime, 
+function: save_interruptions(starttime, endtime, sensor, channel,
                             gaps_path = 'data/metadata/interruptions.csv',
                             scans_path = 'data/metadata/scans.csv', verbose = 1)
 
