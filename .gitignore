@@ -12,10 +12,10 @@
 # ignore pycache
 **/__pycache__
 
-# ignore virtual enviroment
-venv
-
 # ignore jobs folder
 jobs
 
+# ignore conda enviroment
+installation/**/
+!installation/docker_legacy/
 # !.gitignore
