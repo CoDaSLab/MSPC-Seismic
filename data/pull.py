@@ -25,7 +25,7 @@ Arguments:
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     --passphrase - Passphrase for an SSH key (optional, default is None).
     --pasw       - Remote server password (optional, default is None).
-    --cpu_cunts  - Number of CPUs to use for download parallelization (optional, default is 1).
+    --cpu_counts  - Number of CPUs to use for download parallelization (optional, default is 1).
 
 Example:
     python data/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --cpu_counts 4
@@ -98,11 +98,11 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/seismi
         with multiprocessing.Pool(processes=cpu_counts) as pool:
             tasks = [(file_info, credentials, data_path) for file_info in files_to_download]
             results = pool.starmap(_download_single_file, tasks)
-
-            successful_downloads = results.count(True)
-            failed_downloads = len(results) - successful_downloads
     else:
-        successful_downloads = [_download_single_file(files_to_download[0], credentials, data_path)]
+        results = [_download_single_file(file_info, credentials, data_path) for file_info in files_to_download]
+        
+    successful_downloads = results.count(True)
+    failed_downloads = len(results) - successful_downloads
 
     print(f"Process completed. Total time: {datetime.now()-start}")
     print(f"{successful_downloads} successful downloads. {failed_downloads} failed downloads.")
