@@ -7,11 +7,12 @@ Main functionalities:
 - Convert start and end time strings to datetime objects.
 - Read a CSV file containing metadata of available files and filter the rows based on the provided sensor, channel, and date range.
 - Try to connect to the host using an SSH key.
-- If an SSH key is not found, request user credentials for the SFTP servers if they are not available as environment variables.
+- If an SSH key is not found, check is credentials are available as environment variables.
+- If credentials are not available as environment variables, attempt connection with credentials manually entered by the user.
 - Connect to the SFTP servers and download the filtered files to a local directory structure.
 
 Usage:
-    python pull.py <starttime> <endtime> <sensor> <channel> [<user>] [<passphrase>] [<data_path>] [<key_path>]
+    python pull.py <starttime> <endtime> <sensor> <channel> [<user>] [<pasw>] [<passphrase>] [<data_path>] [<key_path>]
 
 Arguments:
     starttime  - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
@@ -19,6 +20,7 @@ Arguments:
     sensor     - Sensor name.
     channel    - Channel name.
     --user       - Remote server username (optional, default is local username).
+    --pasw       - Remote server password (optional, default is None).
     --passphrase - Passphrase for an SSH key (optional, default is None).
     --data_path  - Local directory path where the files will be saved (optional, default is 'data/seismic/').
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
@@ -33,7 +35,7 @@ from datetime import datetime
 import os
 import getpass
 
-def download_files(starttime, endtime, sensors, channels, user=None, passphrase=None, 
+def download_files(starttime, endtime, sensors, channels, user=None, pasw=None, passphrase=None, 
                    data_path='data/seismic/', key_path='~/.ssh/id_rsa'):
     # Convert starttime and endtime to datetime objects
     if type(starttime) == str:
@@ -91,8 +93,9 @@ def download_files(starttime, endtime, sensors, channels, user=None, passphrase=
                 credentials[server] = (env_username, env_password)
             else:
                 # Manual input of credentials if there are no environment variables
+                print(f"Attempting login with username and password.")
                 username = input(f"Username for server {server}: ") if user is None else user
-                password = getpass.getpass(f"Password for server {server}: ")
+                password = getpass.getpass(f"Password for server {server}: ") if pasw is None else pasw
                 credentials[server] = (username, password)
         finally:
             client.close()
@@ -111,7 +114,7 @@ def download_files(starttime, endtime, sensors, channels, user=None, passphrase=
                 client.connect(server, username=user, pkey=credentials[server][1],
                             disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
             except paramiko.AuthenticationException:
-                print(f"Authentication for server {server} failed with SSH key. Please enter credentials manually.")
+                print(f"Authentication for server {server} failed with SSH key.")
         else:
             username, password = credentials[server]
             try:
@@ -144,12 +147,13 @@ if __name__ == "__main__":
     parser.add_argument("endtime", help="endtime")
     parser.add_argument("sensor", help="sensor")
     parser.add_argument("channel", help="channel")
-    parser.add_argument("--user", default=None, help="Remote server username")
-    parser.add_argument("--passphrase", default=None, help="SSH key passphrase")
+    parser.add_argument("--user", type=str, default=None, help="Remote server username")
+    parser.add_argument("--pasw", type=str, default=None, help="Remote server password")
+    parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
     parser.add_argument("--data_path", default='data/seismic/', help="Path to store downloaded files")
     parser.add_argument("--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
     
 
     args = parser.parse_args()
-    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.user, args.passphrase, 
+    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.user, args.pasw, args.passphrase, 
                    args.data_path, args.key_path)
