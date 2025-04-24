@@ -7,13 +7,13 @@ This is a guide for establishing a connection via SSH key from your server to a 
 ### 2. Run `cd ~/.ssh`
 This will change your current directory to the one where SSH keys are stored.
 
-### 3. Run `ssh-keygen -t rsa`
+### 3. Run `ssh-keygen`
 
 This will create a new SSH key.
 
 ### 4. Enter a name of your new key.
 
-If you leave it blank, it will default to *id_rsa*.
+If you leave it blank, it will default to `id_<algorithm>`, like `id_rsa`, `id_ed25519` or similar.
 
 ### 5. Enter a passphrase for your new key.
 
@@ -23,7 +23,7 @@ Your SSH key is now created. If your run `ls`, you should see two files with the
 
 Steps 6-8 explain how to assign your new private key to an SSH agent so you don't need to enter the passphrase every time you use the key. This is optional, and only useful if you entered a passphrase for your SSH key in Step 5.
 
-### 6. *(Optional)* Run ``eval `ssh agent` ``.
+### 6. *(Optional)* Run ``eval `ssh-agent` ``.
 
 ### 7. *(Optional)* Run `ssh-add ~/.ssh/<keyname>`. Replace `<keyname>` with the name you entered in Step 4.
 
