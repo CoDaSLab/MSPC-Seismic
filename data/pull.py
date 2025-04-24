@@ -24,7 +24,7 @@ Arguments:
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
 
 Example:
-    python pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ'
+    python data/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ'
 """
 
 import paramiko
@@ -66,7 +66,7 @@ def download_files(starttime, endtime, sensors, channels, user=None, passphrase=
     credentials = {}
 
     for server in servers:
-        print(server)
+        print(f"Connecting to {server}...")
 
         # Try SSH key-based login first
         client = paramiko.SSHClient()
@@ -75,7 +75,7 @@ def download_files(starttime, endtime, sensors, channels, user=None, passphrase=
         username = os.getlogin() if user is None else user
 
         try:
-            key_path = os.path.expanduser(key_path)  # Or customize as needed
+            key_path = os.path.expanduser(key_path).replace('\\', '/')
             private_key = paramiko.RSAKey.from_private_key_file(key_path, passphrase)
             client.connect(server, username=username, pkey=private_key,
                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
