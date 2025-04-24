@@ -11,7 +11,7 @@ Main functionalities:
 - Connect to the SFTP servers and download the filtered files to a local directory structure.
 
 Usage:
-    python pull.py <starttime> <endtime> <sensor> <channel> [<user>] [<passphrase>] [<path>]
+    python pull.py <starttime> <endtime> <sensor> <channel> [<user>] [<passphrase>] [<data_path>] [<key_path>]
 
 Arguments:
     starttime  - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
@@ -20,7 +20,8 @@ Arguments:
     channel    - Channel name.
     --user       - Remote server username (optional, default is local username).
     --passphrase - Passphrase for an SSH key (optional, default is None).
-    --path       - Local directory path where the files will be saved (optional, default is 'data/seismic/').
+    --data_path  - Local directory path where the files will be saved (optional, default is 'data/seismic/').
+    --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
 
 Example:
     python pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ'
@@ -32,7 +33,8 @@ from datetime import datetime
 import os
 import getpass
 
-def download_files(starttime, endtime, sensors, channels, user=None, passphrase=None, path='data/seismic/'):
+def download_files(starttime, endtime, sensors, channels, user=None, passphrase=None, 
+                   data_path='data/seismic/', key_path='~/.ssh/id_rsa'):
     # Convert starttime and endtime to datetime objects
     if type(starttime) == str:
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
@@ -73,7 +75,7 @@ def download_files(starttime, endtime, sensors, channels, user=None, passphrase=
         username = os.getlogin() if user is None else user
 
         try:
-            key_path = os.path.expanduser("~/.ssh/id_rsa")  # Or customize as needed
+            key_path = os.path.expanduser(key_path)  # Or customize as needed
             private_key = paramiko.RSAKey.from_private_key_file(key_path, passphrase)
             client.connect(server, username=username, pkey=private_key,
                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
@@ -123,7 +125,7 @@ def download_files(starttime, endtime, sensors, channels, user=None, passphrase=
         sftp = client.open_sftp()
 
         # Create local directory structure
-        local_dir = os.path.join(path, file_info['sensor'], f"{file_info['year']}_{file_info['channel']}")
+        local_dir = os.path.join(data_path, file_info['sensor'], f"{file_info['year']}_{file_info['channel']}")
         os.makedirs(local_dir, exist_ok=True)
 
         local_filepath = os.path.join(local_dir, file_info['filename'])
@@ -144,8 +146,10 @@ if __name__ == "__main__":
     parser.add_argument("channel", help="channel")
     parser.add_argument("--user", default=None, help="Remote server username")
     parser.add_argument("--passphrase", default=None, help="SSH key passphrase")
-    parser.add_argument("--path", default='data/seismic/', help="path to store downloaded files")
+    parser.add_argument("--data_path", default='data/seismic/', help="Path to store downloaded files")
+    parser.add_argument("--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
     
 
     args = parser.parse_args()
-    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.user, args.passphrase, args.path)
+    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.user, args.passphrase, 
+                   args.data_path, args.key_path)
