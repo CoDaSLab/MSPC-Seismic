@@ -34,18 +34,20 @@ import csv
 from datetime import datetime
 import os
 import getpass
+import multiprocessing
 
-def download_files(starttime, endtime, sensors, channels, user=None, pasw=None, passphrase=None, 
-                   data_path='data/seismic/', key_path='~/.ssh/id_rsa'):
+def download_files(starttime, endtime, sensors, channels, data_path='data/seismic/', file_log = 'data/metadata/available_files.csv',
+                    user=None, key_path = None, passphrase=None, pasw=None, # Authentication
+                    cpu_counts = 1):
     # Convert starttime and endtime to datetime objects
-    if type(starttime) == str:
+    if isinstance(starttime, str):
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
-    if type(endtime) == str:
+    if isinstance(endtime, str):
         endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
 
     # Read the CSV file and filter the rows based on the provided sensor, channel, and date range
     files_to_download = []
-    with open('data/metadata/available_files.csv', mode='r') as file:
+    with open(file_log, mode='r') as file:
         reader = csv.DictReader(file)
         for row in reader:
             file_sensor = row['sensor']
@@ -56,26 +58,23 @@ def download_files(starttime, endtime, sensors, channels, user=None, pasw=None, 
             file_date = datetime(file_year, file_month, file_day)
 
             if (file_sensor in sensors and
-                file_channel in channels and
-                starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
+                    file_channel in channels and
+                    starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
                 files_to_download.append(row)
 
     if not files_to_download:
-        print("No files found for this query")
-        return False
+        print("No files found for this query.")
+        return 0, 0
 
+    # Stablish the conenction to the server using the credentials
     servers = set(file_info['server'] for file_info in files_to_download)
     credentials = {}
 
     for server in servers:
         print(f"Connecting to {server}...")
-
-        # Try SSH key-based login first
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
         username = os.getlogin() if user is None else user
-
         try:
             key_path = os.path.expanduser(key_path).replace('\\', '/')
             private_key = paramiko.RSAKey.from_private_key_file(key_path, passphrase)
@@ -84,46 +83,47 @@ def download_files(starttime, endtime, sensors, channels, user=None, pasw=None, 
             print(f"Connected to {server} using SSH key.")
             credentials[server] = ('key', private_key)
         except Exception as e:
-            print(f"SSH key authentication failed for server {server}: {e}")
-
-            # Fallback to environment variables
-            env_username = os.getenv(f"{server.replace('.', '_').upper()}_user")
-            env_password = os.getenv(f"{server.replace('.', '_').upper()}_pasw")
-            if env_username and env_password:
-                credentials[server] = (env_username, env_password)
-            else:
-                # Manual input of credentials if there are no environment variables
-                print(f"Attempting login with username and password.")
-                username = input(f"Username for server {server}: ") if user is None else user
-                password = getpass.getpass(f"Password for server {server}: ") if pasw is None else pasw
-                credentials[server] = (username, password)
+            print(f"SSH key authentication failed for {server}: {e}")
+            print(f"Attempting login with username and password.")
+            username = input(f"Username for {server}: ") if user is None else user
+            password = getpass.getpass(f"Password for {server}: ") if pasw is None else pasw
+            credentials[server] = (username, password)
         finally:
             client.close()
 
-    # Connect to the SFTP server and download the files
-    for file_info in files_to_download:
-        print(f"Downloading {file_info['filename']} from {file_info['server']}...")
-        server = file_info['server']
-        filepath = file_info['path'] + '/' + file_info['filename']
+    # Pool download process
+    start = datetime.now()
+    if cpu_counts > 1:
+        with multiprocessing.Pool(processes=cpu_counts) as pool:
+            tasks = [(file_info, credentials, data_path) for file_info in files_to_download]
+            results = pool.starmap(_download_single_file, tasks)
 
-        client = paramiko.SSHClient()
-        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            successful_downloads = results.count(True)
+            failed_downloads = len(results) - successful_downloads
+    else:
+        successful_downloads = [_download_single_file(files_to_download[0], credentials, data_path)]
 
+    print(f"Process completed. Total time: {datetime.now()-start}")
+    print(f"{successful_downloads} successful downloads. {failed_downloads} failed downloads.")
+    return successful_downloads, failed_downloads
+
+def _download_single_file(file_info, credentials, data_path):
+    """Downloads a single file."""
+    print(f"Downloading {file_info['filename']} from {file_info['server']}...")
+    server = file_info['server']
+    filepath = file_info['path'] + '/' + file_info['filename']
+
+    client = paramiko.SSHClient()
+    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+
+    success = False
+    try:
         if credentials[server][0] == 'key':
-            try:
-                client.connect(server, username=user, pkey=credentials[server][1],
-                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
-            except paramiko.AuthenticationException:
-                print(f"Authentication for server {server} failed with SSH key.")
+            client.connect(server, username=os.getlogin(), pkey=credentials[server][1],
+                           disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
         else:
             username, password = credentials[server]
-            try:
-                client.connect(server, username=username, password=password)
-            except paramiko.AuthenticationException:
-                print(f"Authentication for server {server} failed. Please enter credentials manually.")
-                username = input(f"Username for server {server}: ")
-                password = getpass.getpass(f"Password for server {server}: ")
-                client.connect(server, username=username, password=password)
+            client.connect(server, username=username, password=password)
 
         sftp = client.open_sftp()
 
@@ -135,8 +135,16 @@ def download_files(starttime, endtime, sensors, channels, user=None, pasw=None, 
         sftp.get(filepath, local_filepath)
 
         sftp.close()
+        success = True
+
+    except paramiko.AuthenticationException:
+        print(f"Authentication error for {server}.")
+    except Exception as e:
+        print(f"Error downloading {file_info['filename']} from {server}: {e}")
+    finally:
         client.close()
-    return True
+
+    return success
 
 
 if __name__ == "__main__":
@@ -147,13 +155,17 @@ if __name__ == "__main__":
     parser.add_argument("endtime", help="endtime")
     parser.add_argument("sensor", help="sensor")
     parser.add_argument("channel", help="channel")
-    parser.add_argument("--user", type=str, default=None, help="Remote server username")
-    parser.add_argument("--pasw", type=str, default=None, help="Remote server password")
-    parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
     parser.add_argument("--data_path", default='data/seismic/', help="Path to store downloaded files")
+    parser.add_argument("--file_log", default='data/metadata/available_files.csv', help="Path to the dowloaded files log")
+    parser.add_argument("--user", type=str, default=None, help="Remote server username")
     parser.add_argument("--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
+    parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
+    parser.add_argument("--pasw", type=str, default=None, help="Remote server password")
+    parser.add_argument("--cpu_counts", type=int, default=1, help="Number of CPUs to use por parallelization")
     
 
     args = parser.parse_args()
-    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.user, args.pasw, args.passphrase, 
-                   args.data_path, args.key_path)
+
+    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.data_path, args.file_log,
+                   args.user, args.key_path, args.passphrase, args.pasw,
+                   args.cpu_counts)
