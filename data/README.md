@@ -4,7 +4,7 @@
 
 **stations_lp.dat** is a record of the different seismic sensors available to INVOLCÁN in La Palma.
 
-**update_metadata.py** updates _/data/metadata_ contents based on the contents in the rest of the folders in /data
+**ssh_guide.md** is a tutorial for creating an SSH key and using it to connect to a server.
 
 ## /DAS
 Contains data from the DAS
