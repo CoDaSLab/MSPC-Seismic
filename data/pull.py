@@ -78,12 +78,12 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/seismi
         username = os.getlogin() if user is None else user
         try:
             key_path = os.path.expanduser(key_path).replace('\\', '/')
-            private_key = paramiko.RSAKey.from_private_key_file(key_path, passphrase)
-            client.connect(server, username=username, pkey=private_key,
+            client.connect(server, username=username, key_filename=key_path, passphrase=passphrase,
                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
             print(f"Connected to {server} using SSH key.")
-            credentials[server] = ('key', private_key)
+            credentials[server] = ('key', username, key_path)
         except Exception as e:
+            print(key_path)
             print(f"SSH key authentication failed for {server}: {e}")
             print(f"Attempting login with username and password.")
             username = input(f"Username for {server}: ") if user is None else user
@@ -117,11 +117,11 @@ def _download_single_file(file_info, credentials, data_path):
 
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-
+    
     success = False
     try:
         if credentials[server][0] == 'key':
-            client.connect(server, username=os.getlogin(), pkey=credentials[server][1],
+            client.connect(server, username=credentials[server][1], key_filename=credentials[server][2],
                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
         else:
             username, password = credentials[server]
