@@ -19,14 +19,16 @@ Arguments:
     endtime    - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     sensor     - Sensor name.
     channel    - Channel name.
-    --user       - Remote server username (optional, default is local username).
-    --pasw       - Remote server password (optional, default is None).
-    --passphrase - Passphrase for an SSH key (optional, default is None).
     --data_path  - Local directory path where the files will be saved (optional, default is 'data/seismic/').
+    --file_log   - Local directory path where the file log is be saved (optional, default is 'data/metadata/available_files.csv').
+    --user       - Remote server username (optional, default is local username).
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
+    --passphrase - Passphrase for an SSH key (optional, default is None).
+    --pasw       - Remote server password (optional, default is None).
+    --cpu_cunts  - Number of CPUs to use for download parallelization (optional, default is 1).
 
 Example:
-    python data/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ'
+    python data/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --cpu_counts 4
 """
 
 import paramiko
@@ -37,7 +39,7 @@ import getpass
 import multiprocessing
 
 def download_files(starttime, endtime, sensors, channels, data_path='data/seismic/', file_log = 'data/metadata/available_files.csv',
-                    user=None, key_path = None, passphrase=None, pasw=None, # Authentication
+                    user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, # Authentication
                     cpu_counts = 1):
     # Convert starttime and endtime to datetime objects
     if isinstance(starttime, str):
