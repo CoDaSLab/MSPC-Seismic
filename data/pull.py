@@ -57,14 +57,13 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/seismi
             file_day = int(row['day'])
             file_date = datetime(file_year, file_month, file_day)
 
-            if (file_sensor in sensors and
-                    file_channel in channels and
-                    starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
+            if (file_sensor in sensors and file_channel in channels and
+                starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
                 files_to_download.append(row)
 
     if not files_to_download:
         print("No files found for this query.")
-        return 0, 0
+        return 0, 0 # 0 successful downloads, 0 failed downloads
 
     # Stablish the conenction to the server using the credentials
     servers = set(file_info['server'] for file_info in files_to_download)
@@ -107,8 +106,9 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/seismi
     print(f"{successful_downloads} successful downloads. {failed_downloads} failed downloads.")
     return successful_downloads, failed_downloads
 
+
+
 def _download_single_file(file_info, credentials, data_path):
-    """Downloads a single file."""
     print(f"Downloading {file_info['filename']} from {file_info['server']}...")
     server = file_info['server']
     filepath = file_info['path'] + '/' + file_info['filename']
