@@ -4,7 +4,7 @@ fetch.py
 This script connects to an SFTP server, searches for seismic files in a specified directory, and saves the information of the found files in a CSV file.
 
 Main functionalities:
-- Connect to an SFTP server using the provided credentials.
+- Connect to an SFTP server using the provided credentials (username and SSH key, or username and password)
 - Search for seismic files in the specified directory and its subdirectories.
 - Filter files based on the following conditions:
   - The file name must end with ".{julian_day}".
@@ -18,18 +18,21 @@ Main functionalities:
 - Print the total time taken by the process in a readable format (hours, minutes, and seconds).
 
 Usage:
-    python fetch.py <server> <port> <user> <pasw> <path> [--mode overwrite|append]
+    python fetch.py <server> <port> <remote_path> <user> <pasw> [--key_path] [--passphrase] [--log_path] [--mode overwrite|append]
 
 Arguments:
-    server  - SFTP server address.
-    port    - Port number.
-    user    - Username.
-    pasw    - Password.
-    path    - Remote directory path.
-    --mode  - Operation mode for the CSV file: "overwrite" or "append" (default: "append").
+    server       - SFTP server address.
+    port         - Port number.
+    remote_path  - Remote directory path.
+    user         - Username.
+    --pasw       - Password. Default is None.
+    --key_path   - SSH key path. Default is '~/.ssh/id_rsa'.
+    --passphrase - Passphrase of the SSH key. Default is None.
+    --log_path   - CSV file path. Default is 'data/metadata/available_files.csv'.
+    --mode       - Operation mode for the CSV file: "overwrite" or "append" (default: "append").
 
 Example:
-    python fetch.py 193.147.109.7 22 user password /path/to/directory --mode append
+    python fetch.py 193.147.109.7 22 /path/to/directory user --pasw password --mode append
 """
 import paramiko
 import stat
@@ -52,10 +55,10 @@ def is_seismic(file_name):
 Find seismic files in the specified path on the SFTP server.
 For each seismic file found, write its details to the CSV file.
 """
-def find_seismic_files(sftp, path, writer, server, existing_files):
+def find_seismic_files(sftp, remote_path, writer, server, existing_files):
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_directory, sftp, root, files, writer, server, existing_files) 
-                   for root, dirs, files in sftp_walk(sftp, path)]
+                   for root, dirs, files in sftp_walk(sftp, remote_path)]
         for future in as_completed(futures):
             future.result()
 
@@ -121,38 +124,48 @@ Main function to connect to the SFTP server, find seismic files,
 and write their details to a CSV file. The mode parameter determines
 whether to overwrite the CSV file or append to it.
 """
-def main(server, port, user, password, path, mode='append'):
+def main(server, port, remote_path, user, password=None, key_path='~/.ssh/id_rsa', passphrase=None, 
+         log_path='data/metadata/available_files.csv', mode='append'):
     start_time = time.time()
     
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    client.connect(server, port=port, username=user, password=password)
+    try:
+        key_path = os.path.expanduser(key_path).replace('\\', '/')
+        client.connect(server, port=port, username=user, password=password, key_filename=key_path, passphrase=passphrase)
 
-    sftp = client.open_sftp()
-    
-    if mode == 'overwrite':
-        write_mode = 'w'
-        existing_files = set()
-    else:
-        write_mode = 'a'
-        # Read existing filenames from the CSV to avoid duplicates
-        if os.path.exists('data/metadata/available_files.csv'):
-            with open('data/metadata/available_files.csv', mode='r') as file:
-                reader = csv.reader(file)
-                next(reader)  # Skip header
-                existing_files = {row[-1] for row in reader}
-        else:
+        sftp = client.open_sftp()
+        
+        if mode == 'overwrite':
             write_mode = 'w'
             existing_files = set()
-    
-    with open('data/metadata/available_files.csv', mode=write_mode, newline='') as file:
-        writer = csv.writer(file)
-        if mode == 'overwrite' or write_mode == 'w':
-            writer.writerow(['sensor', 'channel', 'year', 'month', 'day', 'hour', 'minute', 'second', 'server', 'path', 'filename'])
-        find_seismic_files(sftp, path, writer, server, existing_files)
-    
-    sftp.close()
-    client.close()
+        else:
+            write_mode = 'a'
+            # Read existing filenames from the CSV to avoid duplicates
+            if os.path.exists(log_path):
+                with open(log_path, mode='r') as file:
+                    reader = csv.reader(file)
+                    next(reader)  # Skip header
+                    existing_files = {row[-1] for row in reader}
+            else:
+                write_mode = 'w'
+                existing_files = set()
+        
+        with open(log_path, mode=write_mode, newline='') as file:
+            writer = csv.writer(file)
+            if mode == 'overwrite' or write_mode == 'w':
+                writer.writerow(['sensor', 'channel', 'year', 'month', 'day', 'hour', 'minute', 'second', 'server', 'path', 'filename'])
+            find_seismic_files(sftp, remote_path, writer, server, existing_files)
+
+    except paramiko.AuthenticationException as e:
+        print(f"Authentication failed for {server}: {e}")
+    except Exception as e:
+        print(f"Error connecting to {server}: {e}")
+    finally:
+        if sftp:
+            sftp.close()
+        if client:
+            client.close()
 
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -169,10 +182,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Find seismic files in a remote directory.")
     parser.add_argument("server", help="Server address")
     parser.add_argument("port", type=int, help="Port number")
-    parser.add_argument("user", help="Username")
-    parser.add_argument("pasw", help="Password")
-    parser.add_argument("path", help="Remote directory path")
+    parser.add_argument("remote_path", type=str, help="Remote directory path")
+    parser.add_argument("user", type=str, help="Username")
+    parser.add_argument("--pasw", type=str, default=None, help="Password")
+    parser.add_argument("--key_path", type=str, default='~/.ssh/id_rsa', help="SSH key path")
+    parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
+    parser.add_argument("--log_path", type=str, default='data/metadata/available_files.csv', help="CSV file path")
     parser.add_argument("--mode", choices=['overwrite', 'append'], default='append', help="Mode to write the CSV file: overwrite or append (default: append)")
 
     args = parser.parse_args()
-    main(args.server, args.port, args.user, args.pasw, args.path, args.mode)
+    main(args.server, args.port, args.remote_path, args.user, args.pasw, args.key_path, args.passphrase, args.log_path, args.mode)
