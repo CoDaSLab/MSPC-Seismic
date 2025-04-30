@@ -11,7 +11,7 @@ Main functionalities:
   - The system of the file must be "C7" (temporary condition).
   - The sensor of the file must be from "La Palma" (hard-coded).
   - The channel of the file must start with "HH" followed by any character.
-- Write the information of the found files to a CSV file in the `data/metadata/` directory.
+- Write the information of the found files to a CSV file in the `data/involcan/metadata/` directory.
 - Operation mode "overwrite" or "append" for the CSV file:
   - "overwrite": Create a new CSV file from scratch.
   - "append": Add the found files to the existing CSV file, avoiding duplicates.

@@ -19,8 +19,8 @@ Arguments:
     endtime    - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     sensor     - Sensor name.
     channel    - Channel name.
-    --data_path  - Local directory path where the files will be saved (optional, default is 'data/seismic/').
-    --file_log   - Local directory path where the file log is be saved (optional, default is 'data/metadata/available_files.csv').
+    --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
+    --file_log   - Local directory path where the file log is be saved (optional, default is 'data/involcan/metadata/available_files.csv').
     --user       - Remote server username (optional, default is local username).
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     --passphrase - Passphrase for an SSH key (optional, default is None).
@@ -38,7 +38,7 @@ import os
 import getpass
 import multiprocessing
 
-def download_files(starttime, endtime, sensors, channels, data_path='data/seismic/', file_log = 'data/metadata/available_files.csv',
+def download_files(starttime, endtime, sensors, channels, data_path='data/involcan/mseed/', file_log = 'data/involcan/metadata/available_files.csv',
                     user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, # Authentication
                     cpu_counts = 1):
     # Convert starttime and endtime to datetime objects
@@ -152,13 +152,13 @@ def _download_single_file(file_info, credentials, data_path):
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Donwload seismic files from a remote directory.")
+    parser = argparse.ArgumentParser(description="Download mseed files from a remote directory.")
     parser.add_argument("starttime", help="starttime")
     parser.add_argument("endtime", help="endtime")
     parser.add_argument("sensor", help="sensor")
     parser.add_argument("channel", help="channel")
-    parser.add_argument("--data_path", default='data/seismic/', help="Path to store downloaded files")
-    parser.add_argument("--file_log", default='data/metadata/available_files.csv', help="Path to the dowloaded files log")
+    parser.add_argument("--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
+    parser.add_argument("--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the dowloaded files log")
     parser.add_argument("--user", type=str, default=None, help="Remote server username")
     parser.add_argument("--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
     parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
