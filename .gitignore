@@ -1,7 +1,7 @@
 # Exclude data for capacity and security
 /data/features/**
-/data/ivc.dat
-/data/stations_lp.dat
+/data/metadata/ivc.dat
+/data/metadata/stations_lp.dat
 /data/seismic/**
 /data/DAS/**
 # Exceptions to clarify structure
