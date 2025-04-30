@@ -28,9 +28,9 @@ Arguments:
 Example:
     python fdsn_download.py available_services
     python fdsn_download.py service_connect  IRIS
-    python fdsn_download.py download_station_metadata GEOFON --starttime 2021-03-18T00:00:00 --endtime 2021-03-19T00:00:00 --output_dir data/GEOFON/metadata --filename stations.csv
+    python fdsn_download.py download_station_metadata GEOFON --starttime 2021-03-18T00:00:00 --endtime 2021-03-19T00:00:00 --output_dir data/GEOFON/metadata/ --filename stations.csv
     python fdsn_download.py download_events USGS --starttime 2023-03-15T00:00:00 --endtime 2023-03-20T00:00:00 --minmagnitude 6.0 --output_dir data/USGS/metadata/ --filename events.csv
-    python fdsn_download.py download_waveforms GEOFON --starttime 2021-03-19T00:00:00 --endtime 2021-03-19T00:10:00 --network 9F --station NUPH
+    python fdsn_download.py download_waveforms GEOFON --starttime 2021-03-19T00:00:00 --endtime 2021-03-19T00:10:00 --oputput_dir data/GEOFON/mseed/ --network 9F --station NUPH
 """
 
 from obspy.clients.fdsn.header import URL_MAPPINGS
@@ -128,7 +128,7 @@ def download_station_metadata(client, output_dir="data/metadata", filename="stat
     print(f"Station metadata saved in: {output_file}")
 
 
-def download_events(client, output_dir="data", filename="events.csv", starttime=None, endtime=None,
+def download_events(client, output_dir="data/metadata", filename="events.csv", starttime=None, endtime=None,
                     minmagnitude=None, maxmagnitude=None):
     """
     Downloads information about seismic events and saves it to a CSV file,
@@ -137,7 +137,7 @@ def download_events(client, output_dir="data", filename="events.csv", starttime=
     Args:
         client: An FDSN client object (e.g., from obspy.client.FDSN).
         output_dir (str, optional): The directory where the CSV file will be saved.
-            Defaults to "data".
+            Defaults to "data/metadata".
         filename (str, optional): The name of the CSV file. Defaults to "events.csv".
         starttime (obspy.UTCDateTime, optional): Start time for the event request.
             Defaults to None (no start time restriction).
@@ -221,16 +221,17 @@ def download_events(client, output_dir="data", filename="events.csv", starttime=
     print(f"Event data saved in {output_file}")
 
 
-def download_waveforms(client, service_name, starttime, endtime, network="*", station="*"):
+def download_waveforms(client, starttime, endtime, output_dir="data/mseed/", network="*", station="*"):
     """
     Downloads waveforms and segments them into day-long files if the
     start and end times span multiple days.
 
     Args:
         client: Obspy client object.
-        service_name (str): Name of the data service.
         starttime (UTCDateTime): Start time of the data request.
         endtime (UTCDateTime): End time of the data request.
+        output_dir (str, optional): The directory where the CSV file will be saved.
+            Defaults to "data/mseed".
         network (str): Network code (default: "*").
         station (str): Station code (default: "*").
     """
@@ -254,13 +255,12 @@ def download_waveforms(client, service_name, starttime, endtime, network="*", st
                     year = segment_start.year
                     julian_day = f"{segment_start.julday:03d}"
 
-                    path = f"data/{service_name}/mseed/"
-                    os.makedirs(os.path.dirname(path), exist_ok=True)
+                    os.makedirs(os.path.dirname(output_dir), exist_ok=True)
                     filename = f"{network}.{station}..{channel}.D.{year}.{julian_day}"
-                    trace.write(path + filename, format="MSEED")
-                    print(f"Downloaded trace at {path + filename}")
+                    trace.write(output_dir + filename, format="MSEED")
+                    print(f"Downloaded trace at {output_dir + filename}")
         except Exception as e: print(f"Error obtaining mseed data:{e}")
-        current_time = segment_end_time
+        finally: current_time = segment_end_time
     return
 
             
@@ -268,7 +268,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Obspy FDSN Client Script")
     parser.add_argument("function", help="Function to execute (available_services, service_connect, download_station_metadata, download_events, download_waveforms)")
     parser.add_argument("service", help="FDSN service name")
-    parser.add_argument("--output_dir", default="data", help="Output directory")
+    parser.add_argument("--output_dir", default="data/metadata", help="Output directory")
     parser.add_argument("--filename", default="output.csv", help="Output filename")
     parser.add_argument("--starttime", help="Start time (YYYY-MM-DDTHH:MM:SS)")
     parser.add_argument("--endtime", help="End time (YYYY-MM-DDTHH:MM:SS)")
