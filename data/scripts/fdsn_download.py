@@ -260,7 +260,7 @@ def download_waveforms(client, starttime, endtime, output_dir="data/mseed/", net
                     trace.write(output_dir + filename, format="MSEED")
                     print(f"Downloaded trace at {output_dir + filename}")
         except Exception as e: print(f"Error obtaining mseed data:{e}")
-        finally: current_time = segment_end_time
+        current_time = segment_end_time
     return
 
             
@@ -313,7 +313,7 @@ if __name__ == "__main__":
             starttime = UTCDateTime(args.starttime)
             endtime = UTCDateTime(args.endtime)
             if client:
-                download_waveforms(client, args.service, starttime, endtime, args.network, args.station)
+                download_waveforms(client, starttime, endtime, args.output_dir, args.network, args.station)
         else:
             print("Error: --service, --starttime, and --endtime arguments are required for download_waveforms")
     else:
