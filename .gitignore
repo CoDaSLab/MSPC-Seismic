@@ -1,9 +1,11 @@
 # Exclude data for capacity and security
-/data/features/**
+/data/*/metadata/**
+!/data/involcan/metadata/**
+/data/*/features/**
 /data/metadata/ivc.dat
 /data/metadata/stations_lp.dat
-/data/seismic/**
-/data/DAS/**
+/data/*/mseed/**
+/data/*/DAS/**
 # Exceptions to clarify structure
 !/data/**/
 !**/README.md

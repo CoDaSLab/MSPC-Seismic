@@ -1,7 +1,7 @@
 """
 clear.py
 
-This script deletes the seismic files downloaded by pull.py from the local directory structure and removes any empty directories.
+This script deletes the mseed files downloaded by pull.py from the local directory structure and removes any empty directories.
 
 Main functionalities:
 - Convert start and end time strings to datetime objects.

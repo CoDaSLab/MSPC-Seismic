@@ -59,7 +59,7 @@ def get_interruptions(df_time, query):
     return  n_interruptions, missing_data_periods, q0_exists, q1_exists
 
 """
-function: get_filenames(start, end, sensor, channel, path = "data/metadata/Available_files.csv")
+function: get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/Available_files.csv")
 Find the names of the files that include the data that the user desires.
 
 Inputs
@@ -77,7 +77,7 @@ paths:      list of strings containing all of the file paths
 
 """
 
-def get_filenames(start, end, sensor, channel, path = "data/metadata/available_files.csv", local = True):
+def get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/available_files.csv", local = True):
     data_files = pd.read_csv(path)
     data_files['channel'] = data_files['channel'].fillna('')
     
@@ -110,7 +110,7 @@ def get_filenames(start, end, sensor, channel, path = "data/metadata/available_f
     return filepaths, filenames, paths
     
 """
-function: check_sensors(start, end, tol = 0, pathfile = "data/metadata/Available_times.csv",
+function: check_sensors(start, end, tol = 0, pathfile = "data/involcan/metadata/Available_times.csv",
                     sensors = ['DAS', 'PLPI_HHE', 'PLPI_HHN', 'PLPI_HHZ', 'PPMA_HHE', 'PPMA_HHN', 'PPMA_HHZ'])
 Check the data availability and files containing the data of a time period of a sensor or set of sensors.
 
@@ -124,7 +124,7 @@ result: Dictionary containing the elements:
         'available_starttime','available_endtime','sensor','n_interruptions','missing_data_periods','files'
 
 """
-def check_sensors(start, end, tol = 0, pathfile = "data/metadata/Available_times.csv",
+def check_sensors(start, end, tol = 0, pathfile = "data/involcan/metadata/Available_times.csv",
                   sensors = ['DAS', 'PLPI_HHE', 'PLPI_HHN', 'PLPI_HHZ', 'PPMA_HHE', 'PPMA_HHN', 'PPMA_HHZ'],
                   filenames_path = False):
 
@@ -249,7 +249,7 @@ endtime:   {end}
     
     # quit()
     # get_interruptions health check
-    df_time = pd.read_csv("data/metadata/Available_times.csv")
+    df_time = pd.read_csv("data/involcan/metadata/Available_times.csv")
     df_time['start'] = pd.to_datetime(df_time['start'])
     df_time['end'] = pd.to_datetime(df_time['end'])
 

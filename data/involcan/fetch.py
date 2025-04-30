@@ -11,7 +11,7 @@ Main functionalities:
   - The system of the file must be "C7" (temporary condition).
   - The sensor of the file must be from "La Palma" (hard-coded).
   - The channel of the file must start with "HH" followed by any character.
-- Write the information of the found files to a CSV file in the `data/metadata/` directory.
+- Write the information of the found files to a CSV file in the `data/involcan/metadata/` directory.
 - Operation mode "overwrite" or "append" for the CSV file:
   - "overwrite": Create a new CSV file from scratch.
   - "append": Add the found files to the existing CSV file, avoiding duplicates.
@@ -136,8 +136,8 @@ def main(server, port, user, password, path, mode='append'):
     else:
         write_mode = 'a'
         # Read existing filenames from the CSV to avoid duplicates
-        if os.path.exists('data/metadata/available_files.csv'):
-            with open('data/metadata/available_files.csv', mode='r') as file:
+        if os.path.exists('data/involcan/metadata/available_files.csv'):
+            with open('data/involcan/metadata/available_files.csv', mode='r') as file:
                 reader = csv.reader(file)
                 next(reader)  # Skip header
                 existing_files = {row[-1] for row in reader}
@@ -145,7 +145,7 @@ def main(server, port, user, password, path, mode='append'):
             write_mode = 'w'
             existing_files = set()
     
-    with open('data/metadata/available_files.csv', mode=write_mode, newline='') as file:
+    with open('data/involcan/metadata/available_files.csv', mode=write_mode, newline='') as file:
         writer = csv.writer(file)
         if mode == 'overwrite' or write_mode == 'w':
             writer.writerow(['sensor', 'channel', 'year', 'month', 'day', 'hour', 'minute', 'second', 'server', 'path', 'filename'])

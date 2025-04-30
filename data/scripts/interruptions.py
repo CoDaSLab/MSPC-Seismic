@@ -1,7 +1,7 @@
 """
 interruptions.py
 
-This scripts scans seismic data in the given time range and calculates the interruptions or gaps (empty and overlaps).
+This scripts scans mseed data in the given time range and calculates the interruptions or gaps (empty and overlaps).
 Saves the interruptions and information about the scan times in CSV files.
 
 Usage:
@@ -10,7 +10,7 @@ Usage:
 Main functionalities:
     - Converts start and end times of the scans to datetime objects.
     - Reads a CSV file containing metadata on previous scans and finds overlaps in scan times with the current scan.
-    - Reads seismic data corresponding to the given sensor and channel in the time range
+    - Reads mseed data corresponding to the given sensor and channel in the time range
     - Finds interruptions in the signals in those time ranges that had not been scanned previously (within the given
         range).
     - Writes information about the gaps that were found in a CSV file.
@@ -21,8 +21,8 @@ Arguments:
     endtime      - End of the time interval to check.
     --sensors    - Names of the sensors.
     --channels   - Names of the channels.
-    --gaps_path  - Path to the file where interruptions are stored. Default is 'data/metadata/interruptions.csv'.
-    --scans_path - Path to the file where scans metadata are stored. Default is 'data/metadata/scans.csv'.
+    --gaps_path  - Path to the file where interruptions are stored. Default is 'data/involcan/metadata/interruptions.csv'.
+    --scans_path - Path to the file where scans metadata are stored. Default is 'data/involcan/metadata/scans.csv'.
     --verbose    - 0: no messages. 
                    1: shows when the process starts and ends (default).
                    2: same as 1 but also details overlaps with previous scans. 
@@ -33,7 +33,7 @@ Example:
 
 from datetime import datetime
 import pandas as pd
-from data_check import get_filenames
+from data.scripts.data_check import get_filenames
 import os
 import obspy
 import concurrent.futures
@@ -106,7 +106,7 @@ def _scan_interruptions(starttime, endtime, sensor, channel, scans, verbose):
                 elif not os.path.isfile(filenames[len(filenames)-1]):
                     raise FileNotFoundError(f"Data for the last day ({filenames[len(filenames)-1]}) for {sensor} - {channel} not found. Interruptions could not be calculated.")
 
-                # Read seismic data
+                # Read mseed data
                 st = read_files_in_parallel(filenames)
                 st.trim(obspy.UTCDateTime(stime), obspy.UTCDateTime(etime))  # remove data from the previous and following day
 
@@ -163,10 +163,10 @@ def _scan_interruptions(starttime, endtime, sensor, channel, scans, verbose):
 
 
 def save_interruptions(starttime, endtime, sensors, channels,
-                     gaps_path = 'data/metadata/interruptions.csv',
-                     scans_path = 'data/metadata/scans.csv', verbose = 1):
+                     gaps_path = 'data/involcan/metadata/interruptions.csv',
+                     scans_path = 'data/involcan/metadata/scans.csv', verbose = 1):
     """
-    Calculates interruptions in seismic data in the given time range and saves the results and metadata in CSV files.
+    Calculates interruptions in mseed data in the given time range and saves the results and metadata in CSV files.
 
     Inputs
     starttime: datetime or string. Start of the time interval to check.
@@ -273,16 +273,16 @@ def read_files_in_parallel(filenames):
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="Scan seismic data for interruptions and save metadata.")
+    parser = argparse.ArgumentParser(description="Scan mseed data for interruptions and save metadata.")
 
     parser.add_argument("starttime", type=str, help="Start time in YYYY-MM-DD HH:MM:SS format.")
     parser.add_argument("endtime", type=str, help="End time in YYYY-MM-DD HH:MM:SS format.")
     parser.add_argument("--sensors", nargs='+', help="Name of the sensor.")
     parser.add_argument("--channels", nargs='+', help="Name of the channel.")
 
-    parser.add_argument("--gaps_path", type=str, default="data/metadata/interruptions.csv",
+    parser.add_argument("--gaps_path", type=str, default="data/involcan/metadata/interruptions.csv",
                         help="Path to save interruptions data.")
-    parser.add_argument("--scans_path", type=str, default="data/metadata/scans.csv",
+    parser.add_argument("--scans_path", type=str, default="data/involcan/metadata/scans.csv",
                         help="Path to save scan metadata.")
     parser.add_argument("--verbose", type=int, choices=[0, 1, 2], default=1,
                         help="Verbose level: 0 = silent, 1 = basic, 2 = detailed.")
