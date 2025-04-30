@@ -2,8 +2,8 @@
 /data/*/metadata/**
 !/data/involcan/metadata/**
 /data/*/features/**
-/data/metadata/ivc.dat
-/data/metadata/stations_lp.dat
+/data/involcan/metadata/ivc.dat
+/data/involcan/metadata/stations_lp.dat
 /data/*/mseed/**
 /data/*/DAS/**
 # Exceptions to clarify structure
