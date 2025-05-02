@@ -1,5 +1,5 @@
 """
-generate_filename.py
+get_filename.py
 
 This script generates a filename string (or a single wildcard string)
 based on the provided network, station, channel, year, and date range.
@@ -13,7 +13,7 @@ Main functionalities:
 - Returns a single string representing all possible filename combinations based on the input.
 
 Usage:
-    python generate_filename.py [-n <network>] [-s <station>] [-c <channel>] [-y <year>] [-sd <start_day>] [-ed <end_day>]
+    python get_filename.py [-n <network>] [-s <station>] [-c <channel>] [-y <year>] [-sd <start_day>] [-ed <end_day>]
 
 Arguments:
     -n, --network   Network code(s) (single string or comma-separated list).
@@ -24,14 +24,14 @@ Arguments:
     -ed, --end_day   End date in UTC format 'YYYY-MM-DD'.
 
 Example:
-    python generate_filename.py -n C7 -s PFUE -c HHE -y 2017 -sd 2017-10-22 -ed 2017-10-22
-    python generate_filename.py -n C7,GE -s PFUE,ROSA -y 2022
-    python generate_filename.py -sd 2023-01-01 -ed 2023-01-05
-    python generate_filename.py -n C -n D -n E -y 2024
-    python generate_filename.py -c HHZ,HHE
-    python generate_filename.py -s 10,11,12,15
-    python generate_filename.py -sd 2024-12-30 -ed 2025-01-03 -y 2024
-    python generate_filename.py
+    python get_filename.py -n C7 -s PFUE -c HHE -y 2017 -sd 2017-10-22 -ed 2017-10-22
+    python get_filename.py -n C7,GE -s PFUE,ROSA -y 2022
+    python get_filename.py -sd 2023-01-01 -ed 2023-01-05
+    python get_filename.py -n C -n D -n E -y 2024
+    python get_filename.py -c HHZ,HHE
+    python get_filename.py -s 10,11,12,15
+    python get_filename.py -sd 2024-12-30 -ed 2025-01-03 -y 2024
+    python get_filename.py
 """
 import argparse
 from datetime import datetime, timedelta
