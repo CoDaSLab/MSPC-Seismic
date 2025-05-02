@@ -161,4 +161,4 @@ if __name__ == '__main__':
 
     result = generate_single_string(args.network, args.station, args.channel, args.year, args.start_day, args.end_day)
     if result:
-        print(result)
+        print(result)   
