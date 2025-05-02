@@ -7,13 +7,15 @@ Description:
 Collection of functions used to extract the features from a DAS signal and SISMO signals. 
 """
 
+import os, sys
+# print(os.getcwd())
+# sys.path.insert(1, os.getcwd())
 from datetime import datetime, timedelta
 import scipy
 import numpy as np
-from data_check import *
 from HDAS import HDAS
 from SISMO import SISMO
-import os
+from data.scripts.data_check import *
 
 """
 function: create_object(files, path ='./', preprocess = True, verbose = False)
@@ -377,8 +379,8 @@ if __name__ == '__main__':
 
     time0 = datetime.now()
     print(f"\nScript start at {time0}")
-    starttime = datetime(2021, 9, 19, 9, 30)
-    endtime    = datetime(2021, 9, 19, 11, 30)
+    starttime = datetime(2021, 3, 18, 0, 0)
+    endtime    = datetime(2021, 3, 20, 0, 0)
 
 
     # window = 1.0*60*60 # 1 hour
@@ -397,6 +399,13 @@ if __name__ == '__main__':
     seconds = seconds.seconds
     # n_FFTs = 2**10 # Número de coeficientes FFT (Se divide entre 2 por positivos y negativos)
 
+    
+    S = SISMO("NUPH", "HHE", starttime, endtime,
+            detrend, windowing, cpus=10)
+    S.check()
+
+
+    quit()
 
     # SISMO extraction
     if True:
