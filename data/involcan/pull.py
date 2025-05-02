@@ -28,7 +28,7 @@ Arguments:
     --cpu_counts  - Number of CPUs to use for download parallelization (optional, default is 1).
 
 Example:
-    python data/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --cpu_counts 4
+    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --cpu_counts 4
 """
 
 import paramiko
@@ -54,10 +54,7 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
         for row in reader:
             file_sensor = row['sensor']
             file_channel = row['channel']
-            file_year = int(row['year'])
-            file_month = int(row['month'])
-            file_day = int(row['day'])
-            file_date = datetime(file_year, file_month, file_day)
+            file_date = datetime.strptime(row['start_time'], "%Y-%m-%dT%H:%M:%SZ")
 
             if (file_sensor in sensors and file_channel in channels and
                 starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
@@ -130,7 +127,8 @@ def _download_single_file(file_info, credentials, data_path):
         sftp = client.open_sftp()
 
         # Create local directory structure
-        local_dir = os.path.join(data_path, file_info['sensor'], f"{file_info['year']}_{file_info['channel']}")
+        year = datetime.strptime(file_info['start_time'], "%Y-%m-%dT%H:%M:%SZ").year
+        local_dir = os.path.join(data_path, file_info['sensor'], f"{year}_{file_info['channel']}")
         os.makedirs(local_dir, exist_ok=True)
 
         local_filepath = os.path.join(local_dir, file_info['filename'])
