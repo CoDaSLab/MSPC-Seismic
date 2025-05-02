@@ -12,42 +12,47 @@ Main functionalities:
 - Connect to the SFTP servers and download the filtered files to a local directory structure.
 
 Usage:
-    python pull.py <starttime> <endtime> <sensor> <channel> [<user>] [<pasw>] [<passphrase>] [<data_path>] [<key_path>]
+    python pull.py <starttime> <endtime> <sensor> <channel> [--user] [--pasw] [--passphrase] [--data_path] [--key_path] [--compress]
 
 Arguments:
-    starttime  - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
-    endtime    - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
-    sensor     - Sensor name.
-    channel    - Channel name.
+    starttime    - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
+    endtime      - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
+    sensor       - Sensor name.
+    channel      - Channel name.
     --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
     --file_log   - Local directory path where the file log is be saved (optional, default is 'data/involcan/metadata/available_files.csv').
     --user       - Remote server username (optional, default is local username).
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     --passphrase - Passphrase for an SSH key (optional, default is None).
     --pasw       - Remote server password (optional, default is None).
-    --cpu_counts  - Number of CPUs to use for download parallelization (optional, default is 1).
+    --compress   - Optional flag to compress files on the remote server before downloading.
 
 Example:
-    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --cpu_counts 4
+    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --user username --compress
 """
 
 import paramiko
 import csv
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 import getpass
-import multiprocessing
+from collections import defaultdict
+import tarfile
 
 def download_files(starttime, endtime, sensors, channels, data_path='data/involcan/mseed/', file_log = 'data/involcan/metadata/available_files.csv',
-                    user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, # Authentication
-                    cpu_counts = 1):
+                    user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, compress=False):
+    """
+    Downloads seismic files filtered by date, sensor, and channel from SFTP servers.
+    Performs a single SSH connection per server to download all corresponding files.
+    """
+
     # Convert starttime and endtime to datetime objects
     if isinstance(starttime, str):
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
     if isinstance(endtime, str):
         endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
 
-    # Read the CSV file and filter the rows based on the provided sensor, channel, and date range
+    # Read the CSV file and filter rows based on sensor, channel, and date range
     files_to_download = []
     with open(file_log, mode='r') as file:
         reader = csv.DictReader(file)
@@ -64,108 +69,136 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
         print("No files found for this query.")
         return 0, 0 # 0 successful downloads, 0 failed downloads
 
-    # Stablish the conenction to the server using the credentials
-    servers = set(file_info['server'] for file_info in files_to_download)
-    credentials = {}
+    # Group files by server
+    files_by_server = defaultdict(list)
+    for file_info in files_to_download:
+        server = file_info['server']
+        files_by_server[server].append(file_info)
 
-    for server in servers:
+    successful_downloads = 0
+    failed_downloads = 0
+
+    input_time = timedelta(seconds=0)  # Time the user spent entering credentials
+    start_time = datetime.now()
+
+    # Iterate over each server and download the files
+    for server, file_list in files_by_server.items():
         print(f"Connecting to {server}...")
         client = paramiko.SSHClient()
         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         username = os.getlogin() if user is None else user
+        sftp = None
+        
+        # Attempt connection via SSH key first, then username and password
         try:
             key_path = os.path.expanduser(key_path).replace('\\', '/')
-            client.connect(server, username=username, key_filename=key_path, passphrase=passphrase,
+            client.connect(server, username=username, password=pasw, key_filename=key_path, passphrase=passphrase,
                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
-            print(f"Connected to {server} using SSH key.")
-            credentials[server] = ('key', username, key_path)
+            print(f"Connected to {server}.")
+            sftp = client.open_sftp()
+        except paramiko.AuthenticationException as e:
+            input_start_time = datetime.now()
+            print(f"Authentication error for {server}: {e}")
+            print(f"Please enter username and password.")
+            username = input(f"Username for {server}: ")
+            password = getpass.getpass(f"Password for {server}: ")
+            input_time += datetime.now() - input_start_time
+            
+            try:
+                client.connect(server, username=username, password=password)
+                print(f"Connected to {server} using username and password.")
+                sftp = client.open_sftp()
+            except Exception as e:
+                print(f"Error connecting to {server}: {e}")
         except Exception as e:
-            print(key_path)
-            print(f"SSH key authentication failed for {server}: {e}")
-            print(f"Attempting login with username and password.")
-            username = input(f"Username for {server}: ") if user is None else user
-            password = getpass.getpass(f"Password for {server}: ") if pasw is None else pasw
-            credentials[server] = (username, password)
-        finally:
-            client.close()
+            print(f"Error connecting to {server}: {e}")
 
-    # Pool download process
-    start = datetime.now()
-    if cpu_counts > 1:
-        with multiprocessing.Pool(processes=cpu_counts) as pool:
-            tasks = [(file_info, credentials, data_path) for file_info in files_to_download]
-            results = pool.starmap(_download_single_file, tasks)
-    else:
-        results = [_download_single_file(file_info, credentials, data_path) for file_info in files_to_download]
-        
-    successful_downloads = results.count(True)
-    failed_downloads = len(results) - successful_downloads
+        if sftp:
+            remote_tar_file = None
+            local_tar_file = None
+            if compress:
+                remote_files_to_tar = [f"{f['path']}/{f['filename']}" for f in file_list]
+                common_dir = os.path.commonpath(remote_files_to_tar).replace('\\','/')
+                remote_files_to_tar = [os.path.relpath(f, common_dir).replace('\\', '/') for f in remote_files_to_tar]
+                
+                remote_tar_file = f'/home/{username}/data.tar.gz'
+                local_tar_file = os.path.join(data_path, 'data.tar.gz').replace('\\', '/')
 
-    print(f"Process completed. Total time: {datetime.now()-start}")
-    print(f"{successful_downloads} successful downloads. {failed_downloads} failed downloads.")
-    return successful_downloads, failed_downloads
+                # Create a tar.gz archive on the remote server
+                print("Compressing files...")
+                tar_command = f"cd {common_dir} && tar -czvf {remote_tar_file} {' '.join(remote_files_to_tar)}"
+                _, stdout, stderr = client.exec_command(tar_command)
 
+                exit_status = stdout.channel.recv_exit_status()
 
+                # Read command output
+                print("Compressed files:")
+                print(stdout.read().decode())
+                print(stderr.read().decode())
 
-def _download_single_file(file_info, credentials, data_path):
-    print(f"Downloading {file_info['filename']} from {file_info['server']}...")
-    server = file_info['server']
-    filepath = file_info['path'] + '/' + file_info['filename']
+                if exit_status != 0:
+                    print(f"Compressed file could not be created: {exit_status}")
 
-    client = paramiko.SSHClient()
-    client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-    
-    success = False
-    try:
-        if credentials[server][0] == 'key':
-            client.connect(server, username=credentials[server][1], key_filename=credentials[server][2],
-                           disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
-        else:
-            username, password = credentials[server]
-            client.connect(server, username=username, password=password)
+                # Create local directory
+                os.makedirs(data_path, exist_ok=True)
 
-        sftp = client.open_sftp()
+                # Download the compressed file
+                print(f"Downloading compressed file from {server}...")
+                sftp.get(remote_tar_file, local_tar_file)
+                successful_downloads += len(file_list) # Count all files as successfully downloaded
+                print(f"Successfully downloaded compressed file.")
+                sftp.remove(remote_tar_file)  # Remove tar file from the remote server
 
-        # Create local directory structure
-        year = datetime.strptime(file_info['start_time'], "%Y-%m-%dT%H:%M:%SZ").year
-        local_dir = os.path.join(data_path, file_info['sensor'], f"{year}_{file_info['channel']}")
-        os.makedirs(local_dir, exist_ok=True)
+                # Decompress the tar.gz file locally
+                print(f"Extracting {local_tar_file}...")
+                with tarfile.open(local_tar_file, "r:gz") as tar:
+                    tar.extractall(path=data_path, filter='data')
+                print(f"Successfully extracted data to {data_path}")
+                os.remove(local_tar_file) # Remove the archive after decompression
 
-        local_filepath = os.path.join(local_dir, file_info['filename'])
-        sftp.get(filepath, local_filepath)
+            else:
+                for file_info in file_list:
+                    filepath = file_info['path'] + '/' + file_info['filename']
 
-        sftp.close()
-        success = True
+                    # Create local directory structure
+                    os.makedirs(data_path, exist_ok=True)
+                    local_filepath = os.path.join(data_path, file_info['filename'])
 
-    except paramiko.AuthenticationException:
-        print(f"Authentication error for {server}.")
-    except Exception as e:
-        print(f"Error downloading {file_info['filename']} from {server}: {e}")
-    finally:
+                    # Download the file from the server
+                    try:
+                        print(f"Downloading {file_info['filename']} from {file_info['server']}...")
+                        sftp.get(filepath, local_filepath)
+                        successful_downloads += 1
+                    except Exception as e:
+                        print(f"Error downloading {file_info['filename']} from {server}: {e}")
+
+            sftp.close()
         client.close()
 
-    return success
+    failed_downloads = len(files_to_download) - successful_downloads
+
+    print(f"Process completed. Total time: {datetime.now()-start_time-input_time}")
+    print(f"{successful_downloads} successful downloads. {failed_downloads} failed downloads.")
+    return successful_downloads, failed_downloads
 
 
 if __name__ == "__main__":
     import argparse
 
-    parser = argparse.ArgumentParser(description="Download mseed files from a remote directory.")
-    parser.add_argument("starttime", help="starttime")
-    parser.add_argument("endtime", help="endtime")
-    parser.add_argument("sensor", help="sensor")
-    parser.add_argument("channel", help="channel")
+    parser = argparse.ArgumentParser(description="Downloads mseed files from a remote directory.")
+    parser.add_argument("starttime", help="Start date and time in the format 'YYYY-MM-DD HH:MM:SS'")
+    parser.add_argument("endtime", help="End date and time in the format 'YYYY-MM-DD HH:MM:SS'")
+    parser.add_argument("sensor", help="Sensor name")
+    parser.add_argument("channel", help="Channel name")
     parser.add_argument("--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
-    parser.add_argument("--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the dowloaded files log")
+    parser.add_argument("--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the downloaded files log")
     parser.add_argument("--user", type=str, default=None, help="Remote server username")
     parser.add_argument("--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
     parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
     parser.add_argument("--pasw", type=str, default=None, help="Remote server password")
-    parser.add_argument("--cpu_counts", type=int, default=1, help="Number of CPUs to use por parallelization")
-    
+    parser.add_argument("--compress", action='store_true', help="Compress files on the remote server before downloading")
 
     args = parser.parse_args()
 
     download_files(args.starttime, args.endtime, args.sensor, args.channel, args.data_path, args.file_log,
-                   args.user, args.key_path, args.passphrase, args.pasw,
-                   args.cpu_counts)
+                   args.user, args.key_path, args.passphrase, args.pasw, args.compress)
