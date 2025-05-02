@@ -34,7 +34,7 @@ Example:
     python generate_filename.py
 """
 import argparse
-from datetime import datetime
+from datetime import datetime, timedelta
 
 def format_wildcard(values):
     if values is None or values == []:
@@ -92,26 +92,57 @@ def generate_single_string(network=None, station=None, channel=None, year=None, 
     year_wc = str(year) if year is not None else '*'
     julian_day_wc = '*'
 
+    from collections import defaultdict
+
+    year_day_map = defaultdict(set)
+
     if start_day and end_day:
         try:
             start_date = datetime.strptime(start_day, "%Y-%m-%d")
             end_date = datetime.strptime(end_day, "%Y-%m-%d")
-            julian_days = set()
             current_date = start_date
+
             while current_date <= end_date:
-                if year is None or current_date.year == year:
-                    julian_days.add(current_date.timetuple().tm_yday)
-                try:
-                    current_date = current_date.replace(day=current_date.day + 1)
-                except ValueError:
-                    try:
-                        current_date = current_date.replace(month=current_date.month + 1, day=1)
-                    except ValueError:
-                        current_date = current_date.replace(year=current_date.year + 1, month=1, day=1)
-            julian_day_wc = format_wildcard(sorted(list(julian_days)))
+                year_key = current_date.year
+                year_day_map[year_key].add(current_date.timetuple().tm_yday)
+                current_date += timedelta(days=1)  # Mejor que manipular fechas manualmente
+
+            # Genera combinación año + día
+            year_wc_parts = []
+            for y in sorted(year_day_map):
+                days = sorted(year_day_map[y])
+                day_strs = [f"{d:03d}" for d in days]
+                digit_positions = list(zip(*day_strs))
+
+                wildcard_digits = []
+                for digits in digit_positions:
+                    unique_digits = sorted(set(digits))
+                    if len(unique_digits) == 1:
+                        wildcard_digits.append(unique_digits[0])
+                    else:
+                        if all(d.isdigit() for d in unique_digits):
+                            min_d, max_d = min(unique_digits), max(unique_digits)
+                            if ord(max_d) == ord(min_d) + len(unique_digits) - 1:
+                                wildcard_digits.append(f"[{min_d}-{max_d}]")
+                            else:
+                                wildcard_digits.append("{" + ",".join(unique_digits) + "}")
+                        else:
+                            wildcard_digits.append("{" + ",".join(unique_digits) + "}")
+
+                day_wc = "".join(wildcard_digits)
+                year_wc_parts.append(f"{y}.{day_wc}")
+
+            # Une todas las combinaciones
+            if len(year_wc_parts) == 1:
+                year_wc, julian_day_wc = year_wc_parts[0].split('.')
+            else:
+                year_wc = "{" + ",".join([p.split('.')[0] for p in year_wc_parts]) + "}"
+                julian_day_wc = "{" + ",".join([p.split('.')[1] for p in year_wc_parts]) + "}"
+
         except ValueError:
             print("Error: Invalid date format. Please use YYYY-MM-DD.")
             return None
+
     elif year is not None:
         julian_day_wc = '*'
 
