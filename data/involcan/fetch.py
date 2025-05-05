@@ -38,7 +38,7 @@ import paramiko
 import stat
 import os
 import re
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta
 import csv
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import time
