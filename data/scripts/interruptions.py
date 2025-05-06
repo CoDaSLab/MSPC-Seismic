@@ -45,6 +45,7 @@ import obspy
 import concurrent.futures
 import time
 import argparse
+import warnings
 
 
 def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path, scans, n_cpus, verbose):
@@ -107,9 +108,11 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
 
                 # Check if the data for the first or last day in the time range are missing
                 if not os.path.isfile(filenames[0]):
-                    raise FileNotFoundError(f"Data for the first day ({filenames[0]}) for {sensor} - {channel} not found. Interruptions could not be calculated.")
+                    warnings.warn(f"Data for the first day ({filenames[0]}) for {sensor} - {channel} not found. " + \
+                                   "The scan start time will be different than the one entered.")
                 elif not os.path.isfile(filenames[len(filenames)-1]):
-                    raise FileNotFoundError(f"Data for the last day ({filenames[len(filenames)-1]}) for {sensor} - {channel} not found. Interruptions could not be calculated.")
+                    warnings.warn(f"Data for the last day ({filenames[len(filenames)-1]}) for {sensor} - {channel} not found. " + \
+                                   "The scan end time will be different than the one entered.")
 
                 # Read mseed data
                 st = read_files_in_parallel(filenames, n_cpus)
