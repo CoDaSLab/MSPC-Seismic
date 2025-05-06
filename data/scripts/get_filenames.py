@@ -52,20 +52,22 @@ def get_filenames(network=None, station=None, channel=None, start_day=None, end_
 
     if start_day and end_day:
         try:
-            start_date = datetime.strptime(start_day, "%Y-%m-%d")
-            end_date = datetime.strptime(end_day, "%Y-%m-%d")
+            if isinstance(start_day, str):
+                start_day = datetime.strptime(start_day, "%Y-%m-%d")
+            if isinstance(end_day, str):
+                end_day = datetime.strptime(end_day, "%Y-%m-%d")
 
-            current_date = start_date
-            while current_date <= end_date:
-                year = current_date.year
-                jday = current_date.timetuple().tm_yday
+            current_day = start_day
+            while current_day <= end_day:
+                year = current_day.year
+                jday = current_day.timetuple().tm_yday
                 jday_str = f"{jday:03d}"
                 year_str = str(year)
 
                 # Combine all possibilities
                 for net, sta, cha in product(networks, stations, channels):
                     filenames.append(f"{net}.{sta}..{cha}.D.{year_str}.{jday_str}")
-                current_date += timedelta(days=1)
+                current_day += timedelta(days=1)
 
         except ValueError:
             print("Error: Invalid date format. Please use YYYY-MM-DD.")

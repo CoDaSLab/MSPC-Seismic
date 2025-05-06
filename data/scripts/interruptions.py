@@ -5,7 +5,8 @@ This scripts scans mseed data in the given time range and calculates the interru
 Saves the interruptions and information about the scan times in CSV files.
 
 Usage:
-    python interruptions.py <starttime> <endtime> <sensors> <channels> [<--gaps_path>] [<--scans_path>] [<--verbose>]
+    python interruptions.py <starttime> <endtime> [-n <network1> <network2> ...] [-s <sensor1> <sensor2> ...] 
+        [-c <channel1> <channel2> ...] [-dp <data_path>] [-nc <n_cpus>] [-v <verbose>]
 
 Main functionalities:
     - Converts start and end times of the scans to datetime objects.
@@ -17,23 +18,24 @@ Main functionalities:
     - Writes information about the scans performed in another CSV file.
 
 Arguments:
-    starttime    - Start of the time interval to check.
-    endtime      - End of the time interval to check.
-    --sensors    - Names of the sensors.
-    --channels   - Names of the channels.
-    --gaps_path  - Path to the file where interruptions are stored. Default is 'data/involcan/metadata/interruptions.csv'.
-    --scans_path - Path to the file where scans metadata are stored. Default is 'data/involcan/metadata/scans.csv'.
-    --verbose    - 0: no messages. 
-                   1: shows when the process starts and ends (default).
-                   2: same as 1 but also details overlaps with previous scans. 
+    starttime         - Start of the time interval to check.
+    endtime           - End of the time interval to check.
+    -n, --networks    - Names of the networks.
+    -s, --sensors     - Names of the sensors.
+    -c, --channels    - Names of the channels.
+    -dp, --data_path  - Path to the folder where data is stored. Defaults is 'data/involcan/mseed/'.
+    -nc, --n_cpus      - Maximum number of CPUs for parallelization. Default is 1.
+    -v, --verbose     - 0: no messages. 
+                        1: shows when the process starts and ends (default).
+                        2: same as 1 but also details overlaps with previous scans. 
 
 Example:
-    python interruptions.py '2021-09-16 04:00:00' '2021-09-19 08:20:00' --sensors 'PA00' 'PA01' --channels 'HHE' 'HHN' 
+    python interruptions.py '2021-09-16 04:00:00' '2021-09-19 08:20:00' -n 'C7' -s 'PA00' 'PA01' -c 'HHE' 'HHN' -nc 2
 """
 
 from datetime import datetime
 import pandas as pd
-from data.scripts.data_check import get_filenames
+from get_filenames import get_filenames
 import os
 import obspy
 import concurrent.futures
@@ -41,7 +43,7 @@ import time
 import argparse
 
 
-def _scan_interruptions(starttime, endtime, sensor, channel, scans, verbose):
+def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path, scans, n_cpus, verbose):
     """Auxiliary function that scans for interruptions for a single sensor and channel."""
     if verbose>=1: print(f'Scanning {sensor} - {channel}...')
 
@@ -95,10 +97,9 @@ def _scan_interruptions(starttime, endtime, sensor, channel, scans, verbose):
             if verbose>=1:
                 print(f'Scanning {sensor} - {channel} from {stime.strftime("%Y-%m-%d %H:%M:%S")} to {etime.strftime("%Y-%m-%d %H:%M:%S")}...')
 
-            # Obtain file paths
-            start_day = stime.replace(hour=0, minute=0, second=0)
             try:
-                filenames = get_filenames(start_day, etime, sensor, channel)[0]
+                # Obtain file paths
+                filenames = [data_path.rstrip('/') + '/' + file for file in get_filenames(network, sensor, channel, stime, etime)]
 
                 # Check if the data for the first or last day in the time range are missing
                 if not os.path.isfile(filenames[0]):
@@ -107,7 +108,7 @@ def _scan_interruptions(starttime, endtime, sensor, channel, scans, verbose):
                     raise FileNotFoundError(f"Data for the last day ({filenames[len(filenames)-1]}) for {sensor} - {channel} not found. Interruptions could not be calculated.")
 
                 # Read mseed data
-                st = read_files_in_parallel(filenames)
+                st = read_files_in_parallel(filenames, n_cpus)
                 st.trim(obspy.UTCDateTime(stime), obspy.UTCDateTime(etime))  # remove data from the previous and following day
 
                 # Create interruptions table
@@ -162,9 +163,8 @@ def _scan_interruptions(starttime, endtime, sensor, channel, scans, verbose):
     return all_gaps, all_scans_new
 
 
-def save_interruptions(starttime, endtime, sensors, channels,
-                     gaps_path = 'data/involcan/metadata/interruptions.csv',
-                     scans_path = 'data/involcan/metadata/scans.csv', verbose = 1):
+def save_interruptions(starttime, endtime, networks, sensors, channels, data_path = 'data/involcan/mseed/', 
+                       n_cpus = 1, verbose = 1):
     """
     Calculates interruptions in mseed data in the given time range and saves the results and metadata in CSV files.
 
@@ -173,8 +173,8 @@ def save_interruptions(starttime, endtime, sensors, channels,
     endtime: datetime or string. End of the time interval to check.
     sensors: string or list of strings. Names of the sensors.
     channels: string or list of strings. Names of the channels.
-    gaps_path: string. Path to the file where interruptions are stored.
-    scans_path: string. Path to the file where scans metadata are stored.
+    data_path: string. Path to the directory where data is stored.
+    n_cpus: int. Maximum number of threads (default is 1).
     verbose: int. 0: no messages. 
                 1: shows when the process starts and ends.
                 2: same as 1 but also details overlaps with previous scans. 
@@ -191,10 +191,19 @@ def save_interruptions(starttime, endtime, sensors, channels,
     assert starttime < endtime, "Start date cannot be later than end date."
 
     # Allows for single sensor and single channel input
+    if isinstance(networks, str):
+        networks = [networks]
     if isinstance(sensors, str):
         sensors = [sensors]
     if isinstance(channels, str):
         channels = [channels]
+
+    # Create metadata directory if it doesn't exist
+    meta_path = os.path.join(os.path.dirname(data_path.rstrip('/')), 'metadata').replace('\\', '/')
+    os.makedirs(meta_path, exist_ok=True)
+    scans_path = os.path.join(meta_path, 'scans.csv').replace('\\', '/')
+    gaps_path = os.path.join(meta_path, 'interruptions.csv').replace('\\', '/')
+    print(scans_path)
 
     if verbose>=1: print("Scanning for interruptions...")
 
@@ -205,10 +214,12 @@ def save_interruptions(starttime, endtime, sensors, channels,
         scans = pd.DataFrame(columns=["sensor", "channel", "scan_start", "scan_end", "signal_start", "signal_end", "execution_time", "save_time"])
 
     tasks = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        for sensor in sensors:
-            for channel in channels:
-                tasks.append(executor.submit(_scan_interruptions, starttime, endtime, sensor, channel, scans.copy(), verbose))
+    with concurrent.futures.ThreadPoolExecutor(max_workers=n_cpus) as executor:
+        for network in networks:
+            for sensor in sensors:
+                for channel in channels:
+                    tasks.append(executor.submit(_scan_interruptions, starttime, endtime, network, sensor, channel, 
+                                                 data_path, scans.copy(), n_cpus, verbose))
 
         all_results_gaps = []
         all_results_scans = []
@@ -241,13 +252,11 @@ def save_interruptions(starttime, endtime, sensors, channels,
         if verbose >=1: print(f"All scan metadata added to {scans_path}.")
 
 
-def process_file(filename, verbose=False):
+def process_file(filename):
     """
     Process a file individually.
     """
     try:
-        if verbose:
-            print(f"Reading file: {filename}")
         st = obspy.read(filename, format="MSEED")  # Read the file using obspy
         return st
     except FileNotFoundError:
@@ -255,12 +264,12 @@ def process_file(filename, verbose=False):
         return None
 
 
-def read_files_in_parallel(filenames):
+def read_files_in_parallel(filenames, n_cpus):
     """
     Read the files in parallel using ThreadPoolExecutor.
     """
     ST = obspy.Stream()
-    with concurrent.futures.ThreadPoolExecutor() as executor:
+    with concurrent.futures.ThreadPoolExecutor(max_workers=n_cpus) as executor:
         futures = {executor.submit(process_file, filename): filename for filename in filenames}
 
         for future in concurrent.futures.as_completed(futures):
@@ -277,16 +286,15 @@ if __name__ == "__main__":
 
     parser.add_argument("starttime", type=str, help="Start time in YYYY-MM-DD HH:MM:SS format.")
     parser.add_argument("endtime", type=str, help="End time in YYYY-MM-DD HH:MM:SS format.")
-    parser.add_argument("--sensors", nargs='+', help="Name of the sensor.")
-    parser.add_argument("--channels", nargs='+', help="Name of the channel.")
-
-    parser.add_argument("--gaps_path", type=str, default="data/involcan/metadata/interruptions.csv",
-                        help="Path to save interruptions data.")
-    parser.add_argument("--scans_path", type=str, default="data/involcan/metadata/scans.csv",
-                        help="Path to save scan metadata.")
-    parser.add_argument("--verbose", type=int, choices=[0, 1, 2], default=1,
+    parser.add_argument("-n", "--networks", nargs='+', help="Network names.")
+    parser.add_argument("-s", "--sensors", "--stations", nargs='+', help="Sensor names.")
+    parser.add_argument("-c", "--channels", nargs='+', help="Channel names.")
+    parser.add_argument("-dp", "--data_path", type=str, default="data/involcan/mseed/",
+                        help="Path to data folder.")
+    parser.add_argument("-nc", "--n_cpus", type=int, default=1, help="Maximum number of CPUS for parallelization.")
+    parser.add_argument("-v", "--verbose", type=int, choices=[0, 1, 2], default=1,
                         help="Verbose level: 0 = silent, 1 = basic, 2 = detailed.")
     args = parser.parse_args()
 
-    save_interruptions(args.starttime, args.endtime, args.sensors, args.channels,
-                       args.gaps_path, args.scans_path, args.verbose)
+    save_interruptions(args.starttime, args.endtime, args.networks, args.sensors, args.channels, args.data_path,
+                       args.n_cpus, args.verbose)

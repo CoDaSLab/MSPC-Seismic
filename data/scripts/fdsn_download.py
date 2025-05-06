@@ -30,7 +30,7 @@ Example:
     python fdsn_download.py service_connect  IRIS
     python fdsn_download.py download_station_metadata GEOFON --starttime 2021-03-18T00:00:00 --endtime 2021-03-19T00:00:00 --output_dir data/GEOFON/metadata/ --filename stations.csv
     python fdsn_download.py download_events USGS --starttime 2023-03-15T00:00:00 --endtime 2023-03-20T00:00:00 --minmagnitude 6.0 --output_dir data/USGS/metadata/ --filename events.csv
-    python fdsn_download.py download_waveforms GEOFON --starttime 2021-03-19T00:00:00 --endtime 2021-03-19T00:10:00 --oputput_dir data/GEOFON/mseed/ --network 9F --station NUPH
+    python fdsn_download.py download_waveforms GEOFON --starttime 2021-03-19T00:00:00 --endtime 2021-03-19T00:10:00 --output_dir data/GEOFON/mseed/ --network 9F --station NUPH
 """
 
 from obspy.clients.fdsn.header import URL_MAPPINGS
