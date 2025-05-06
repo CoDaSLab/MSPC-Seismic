@@ -39,7 +39,7 @@ Example:
 
 from datetime import datetime
 import pandas as pd
-from get_filenames import get_filenames
+from data.scripts.get_filenames import get_filenames
 import os
 import obspy
 import concurrent.futures
@@ -50,7 +50,7 @@ import warnings
 
 def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path, scans, n_cpus, verbose):
     """Auxiliary function that scans for interruptions for a single sensor and channel."""
-    if verbose>=1: print(f'Scanning {sensor} - {channel}...')
+    if verbose>=1: print(f'Scanning {network}.{sensor}..{channel}...')
 
     # Previous scans that are contained within the current scan
     scans_overlap_contained = scans[(scans["sensor"] == sensor) & \
@@ -60,7 +60,7 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
                                     (pd.to_datetime(scans["scan_end"]) < endtime)]
 
     if not scans_overlap_contained.empty:
-        if verbose>=2: print(f"A previous scan for {sensor} - {channel} is contained within the time range of the current scan.")
+        if verbose>=2: print(f"A previous scan for {network}.{sensor}..{channel} is contained within the time range of the current scan.")
 
     # Start and end times of the intervals to be scanned
     starttimes = [starttime] + pd.to_datetime(scans_overlap_contained["signal_end"]).to_list()
@@ -83,7 +83,7 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
                                         (stime <= pd.to_datetime(scans["scan_end"]))]
 
         if not scans_overlap_at_start.empty:
-            if verbose>=2: print(f"A previous scan for {sensor} - {channel} overlaps with the start time of the current scan.")
+            if verbose>=2: print(f"A previous scan for {network}.{sensor}..{channel} overlaps with the start time of the current scan.")
             stime = max(pd.to_datetime(scans_overlap_at_start["signal_end"]))
 
         # Previous scans that overlap with the end of the current scan
@@ -93,14 +93,14 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
                                       (etime <= pd.to_datetime(scans["scan_end"]))]
 
         if not scans_overlap_at_end.empty:
-            if verbose>=2: print(f"A previous scan for {sensor} - {channel} overlaps with the end time of the current scan.")
+            if verbose>=2: print(f"A previous scan for {network}.{sensor}..{channel} overlaps with the end time of the current scan.")
             etime = min(pd.to_datetime(scans_overlap_at_end["signal_start"]))
 
         t0 = time.time()
 
         if stime < etime:
             if verbose>=1:
-                print(f'Scanning {sensor} - {channel} from {stime.strftime("%Y-%m-%d %H:%M:%S")} to {etime.strftime("%Y-%m-%d %H:%M:%S")}...')
+                print(f'Scanning {network}.{sensor}..{channel} from {stime.strftime("%Y-%m-%d %H:%M:%S")} to {etime.strftime("%Y-%m-%d %H:%M:%S")}...')
 
             try:
                 # Obtain file paths
@@ -108,10 +108,10 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
 
                 # Check if the data for the first or last day in the time range are missing
                 if not os.path.isfile(filenames[0]):
-                    warnings.warn(f"Data for the first day ({filenames[0]}) for {sensor} - {channel} not found. " + \
+                    warnings.warn(f"Data for the first day ({filenames[0]}) for {network}.{sensor}..{channel} not found. " + \
                                    "The scan start time will be different than the one entered.")
                 elif not os.path.isfile(filenames[len(filenames)-1]):
-                    warnings.warn(f"Data for the last day ({filenames[len(filenames)-1]}) for {sensor} - {channel} not found. " + \
+                    warnings.warn(f"Data for the last day ({filenames[len(filenames)-1]}) for {network}.{sensor}..{channel} not found. " + \
                                    "The scan end time will be different than the one entered.")
 
                 # Read mseed data
@@ -129,8 +129,8 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
 
                     if len(gaps) > 0:  # if there are gaps
                         gaps_df = pd.DataFrame(gaps)
-                        gaps_df = gaps_df.drop(gaps_df.columns[[0, 2]], axis=1)
-                        gaps_df.columns = ["sensor", "channel", "gap_start", "gap_end", "delta", "n_samples"]
+                        gaps_df = gaps_df.drop(gaps_df.columns[2], axis=1)
+                        gaps_df.columns = ["network", "sensor", "channel", "gap_start", "gap_end", "delta", "n_samples"]
 
                         gaps_df["gap_start"] = gaps_df["gap_start"].apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S") + "." + str(x.microsecond)[:2])
                         gaps_df["gap_end"] = gaps_df["gap_end"].apply(lambda x: x.strftime("%Y-%m-%d %H:%M:%S") + "." + str(x.microsecond)[:2])
@@ -141,14 +141,15 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
                         gaps_df.loc[overlap_mask, ["gap_start", "gap_end"]] = gaps_df.loc[overlap_mask, ["gap_end", "gap_start"]].values
                         all_gaps.append(gaps_df.round(2))
 
-                        if verbose>=1: print(f"Gaps identified for {sensor} - {channel}.")
+                        if verbose>=1: print(f"Gaps identified for {network}.{sensor}..{channel}.")
 
-                    elif verbose>=1: print(f"No gaps were found for {sensor} - {channel}.")
+                    elif verbose>=1: print(f"No gaps were found for {network}.{sensor}..{channel}.")
 
                     t1 = time.time()
 
                     # Save scan metadata to csv
                     scans_new = pd.DataFrame({
+                        "network": [network],
                         "sensor": [sensor],
                         "channel": [channel],
                         "scan_start": [stime.strftime("%Y-%m-%d %H:%M:%S")],
@@ -159,13 +160,13 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
                         "save_time": [datetime.now().strftime("%Y-%m-%d %H:%M:%S")]
                     })
                     all_scans_new.append(scans_new.round(4))
-                    if verbose >=1: print(f"Scan metadata added for {sensor} - {channel}.")
-                elif verbose>=1: print(f"No data found in the specified time range for {sensor} - {channel}.")
+                    if verbose >=1: print(f"Scan metadata added for {network}.{sensor}..{channel}.")
+                elif verbose>=1: print(f"No data found in the specified time range for {network}.{sensor}..{channel}.")
 
             except FileNotFoundError as e:
                 print(e)
 
-        elif verbose>=1: print(f"The time range from {stime_original} to {etime_original} for {sensor} - {channel} was already scanned.")
+        elif verbose>=1: print(f"The time range from {stime_original} to {etime_original} for {network}.{sensor}..{channel} was already scanned.")
 
     return all_gaps, all_scans_new
 
@@ -222,6 +223,8 @@ def save_interruptions(starttime, endtime, networks, sensors, channels, data_pat
     except FileNotFoundError:
         scans = pd.DataFrame(columns=["sensor", "channel", "scan_start", "scan_end", "signal_start", "signal_end", "execution_time", "save_time"])
 
+    t0 = datetime.now()
+
     tasks = []
     with concurrent.futures.ThreadPoolExecutor(max_workers=n_cpus) as executor:
         for network in networks:
@@ -236,6 +239,8 @@ def save_interruptions(starttime, endtime, networks, sensors, channels, data_pat
             gaps_result, scans_result = future.result()
             all_results_gaps.extend(gaps_result)
             all_results_scans.extend(scans_result)
+    
+    t1 = datetime.now()
 
     # Save all identified gaps
     if all_results_gaps:
@@ -260,6 +265,8 @@ def save_interruptions(starttime, endtime, networks, sensors, channels, data_pat
         scans = pd.concat([scans if not scans.empty else None, pd.concat(all_results_scans)], ignore_index=True)
         scans.to_csv(scans_path, header=True, index=False)
         if verbose >=1: print(f"All scan metadata added to {scans_path}.")
+    
+    print(f"Process completed. Total time: {t1-t0}.")
 
 
 def process_file(filename):
