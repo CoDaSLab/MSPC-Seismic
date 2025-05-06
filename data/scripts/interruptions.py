@@ -24,6 +24,10 @@ Arguments:
     -s, --sensors     - Names of the sensors.
     -c, --channels    - Names of the channels.
     -dp, --data_path  - Path to the folder where data is stored. Defaults is 'data/involcan/mseed/'.
+    -gp, --gaps_path  - Path to the file where interruptions are stored. Default is /metadata/interruptions.csv' 
+                        in the parent folder of `data_path`.
+    -sp, --scans_path - Path to the file where scans metadata are stored. Default is '/metadata/scans.csv'
+                        in the parent folder of `data_path`.
     -nc, --n_cpus      - Maximum number of CPUs for parallelization. Default is 1.
     -v, --verbose     - 0: no messages. 
                         1: shows when the process starts and ends (default).
@@ -163,8 +167,8 @@ def _scan_interruptions(starttime, endtime, network, sensor, channel, data_path,
     return all_gaps, all_scans_new
 
 
-def save_interruptions(starttime, endtime, networks, sensors, channels, data_path = 'data/involcan/mseed/', 
-                       n_cpus = 1, verbose = 1):
+def save_interruptions(starttime, endtime, networks, sensors, channels, data_path = 'data/involcan/mseed/',
+                       gaps_path = None, scans_path = None, n_cpus = 1, verbose = 1):
     """
     Calculates interruptions in mseed data in the given time range and saves the results and metadata in CSV files.
 
@@ -198,17 +202,19 @@ def save_interruptions(starttime, endtime, networks, sensors, channels, data_pat
     if isinstance(channels, str):
         channels = [channels]
 
-    # Create metadata directory if it doesn't exist
-    meta_path = os.path.join(os.path.dirname(data_path.rstrip('/')), 'metadata').replace('\\', '/')
-    os.makedirs(meta_path, exist_ok=True)
-    scans_path = os.path.join(meta_path, 'scans.csv').replace('\\', '/')
-    gaps_path = os.path.join(meta_path, 'interruptions.csv').replace('\\', '/')
-    print(scans_path)
+    # CSV file names
+    if scans_path is None:
+        meta_path = os.path.join(os.path.dirname(data_path.rstrip('/')), 'metadata').replace('\\', '/')
+        scans_path = os.path.join(meta_path, 'scans.csv').replace('\\', '/')
+    if gaps_path is None:
+        meta_path = os.path.join(os.path.dirname(data_path.rstrip('/')), 'metadata').replace('\\', '/')
+        gaps_path = os.path.join(meta_path, 'interruptions.csv').replace('\\', '/')
 
     if verbose>=1: print("Scanning for interruptions...")
 
     # Check if the interruptions were already calculated
     try:
+        os.makedirs(os.path.dirname(scans_path), exist_ok=True)
         scans = pd.read_csv(scans_path)
     except FileNotFoundError:
         scans = pd.DataFrame(columns=["sensor", "channel", "scan_start", "scan_end", "signal_start", "signal_end", "execution_time", "save_time"])
@@ -230,12 +236,13 @@ def save_interruptions(starttime, endtime, networks, sensors, channels, data_pat
 
     # Save all identified gaps
     if all_results_gaps:
+        os.makedirs(os.path.dirname(gaps_path), exist_ok=True)
         try:
             gaps_table = pd.read_csv(gaps_path)
         except FileNotFoundError:
             gaps_table = pd.DataFrame(columns=["sensor", "channel", "gap_start", "gap_end", "delta", "n_samples", "gap_type"])
         gaps_table = pd.concat([gaps_table if not gaps_table.empty else None, pd.concat(all_results_gaps)], ignore_index=True)
-        gaps_table = gaps_table.sort_values(by=["sensor", "channel"])
+        gaps_table = gaps_table.sort_values(by=["network", "sensor", "channel"])
         gaps_table.to_csv(gaps_path, header=True, index=False)
         if verbose>=1: print(f"All identified gaps added to {gaps_path}.")
     elif verbose>=1 and not sensors:
@@ -291,10 +298,14 @@ if __name__ == "__main__":
     parser.add_argument("-c", "--channels", nargs='+', help="Channel names.")
     parser.add_argument("-dp", "--data_path", type=str, default="data/involcan/mseed/",
                         help="Path to data folder.")
+    parser.add_argument("-gp", "--gaps_path", type=str, default=None,
+                         help="Path to save interruptions data.")
+    parser.add_argument("-sp", "--scans_path", type=str, default=None,
+                         help="Path to save scan metadata.")
     parser.add_argument("-nc", "--n_cpus", type=int, default=1, help="Maximum number of CPUS for parallelization.")
     parser.add_argument("-v", "--verbose", type=int, choices=[0, 1, 2], default=1,
                         help="Verbose level: 0 = silent, 1 = basic, 2 = detailed.")
     args = parser.parse_args()
 
     save_interruptions(args.starttime, args.endtime, args.networks, args.sensors, args.channels, args.data_path,
-                       args.n_cpus, args.verbose)
+                       args.gaps_path, args.scans_path, args.n_cpus, args.verbose)
