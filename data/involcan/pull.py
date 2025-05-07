@@ -1,7 +1,8 @@
 """
 pull.py
 
-This script connects to SFTP servers, filters seismic files based on a specified date range, sensor, and channel, and downloads the corresponding files to a local directory structure.
+This script connects to SFTP servers, filters seismic files based on a specified date range, sensor, and channel, and downloads 
+the corresponding files to a local directory structure.
 
 Main functionalities:
 - Convert start and end time strings to datetime objects.
@@ -25,10 +26,11 @@ Arguments:
     --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     --passphrase - Passphrase for an SSH key (optional, default is None).
     --pasw       - Remote server password (optional, default is None).
-    --compress   - Optional flag to compress files on the remote server before downloading.
+    --compress   - Optional flag to compress files on the remote server before downloading. Not recommended
+                    because the server does not have much available storage.
 
 Example:
-    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --user username --compress
+    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --user username
 """
 
 import paramiko
