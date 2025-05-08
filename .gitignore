@@ -20,4 +20,5 @@ jobs
 # ignore conda enviroment
 installation/**/
 !installation/docker_legacy/
+!installation/guide_img/
 # !.gitignore
