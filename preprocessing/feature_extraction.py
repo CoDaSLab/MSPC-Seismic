@@ -289,7 +289,7 @@ def _save_features(H, features, feature_type,
     #######################################################
 
     filename = f"{id}.mat"
-    scipy.io.savemat(f"{save_folder}/{filename}", features)
+    scipy.io.savemat(f"{save_folder.rstrip('/')}/{filename}", features)
 
     n_variables = 0
     for key, feature in features.items():
