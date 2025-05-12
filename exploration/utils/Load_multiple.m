@@ -1,8 +1,14 @@
 function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, total_magnitudes, max_depths, total_depths, eq_count] ...
-    = Load_multiple(log, unfolding, obs_subset)
+    = Load_multiple(log, unfolding, path, obs_subset)
     
-    if nargin < 3 || isempty(obs_subset)
+    if nargin < 4 || isempty(obs_subset)
         obs_subset = false;
+    end
+    
+    % Path formatting
+    path = string(path);
+    if endsWith(path, "/")
+        path = extractBefore(path, strlength(path)); 
     end
 
     % pre allocation
@@ -28,7 +34,8 @@ function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, to
 
     for i = 1:length(ids)
         id = ids(i);
-        filepath = sprintf('data/metadata/features/%d.mat', id);
+        path = string(path);
+        filepath = sprintf(path + "/%d.mat", id);
         
         [data_single, var_l_single, var_classes_single] = Load(filepath);
 
@@ -39,7 +46,7 @@ function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, to
             + seconds((0:num_rows-1) * (log(i, :).window - log(i, :).overlap)))';
         [max_mag, magnitudes, max_dep, depths, EQs] = ivc_labels(log, i);
 
-        % Aplicar subconjunto de observaciones si se ha especificado
+        % Apply observations subset if specified
         if obs_subset
             data_single = data_single(obs_subset, :);
             obs_label_single = obs_label_single(obs_subset, :);
@@ -77,7 +84,7 @@ function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, to
         end
     end
 
-    % Asignar los resultados a las variables de salida
+    % Assign results to output variables
     data = data_matrix;
     var_l = var_l_matrix;
     var_classes = var_classes_matrix;

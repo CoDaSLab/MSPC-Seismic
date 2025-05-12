@@ -19,12 +19,12 @@ import matplotlib.dates as mdates
 import antropy as ant
 from scipy.signal import periodogram, welch
 import librosa.display
-from features.base import logfbank 
-from features.base import delta
+from preprocessing.features.base import logfbank 
+from preprocessing.features.base import delta
 from scipy import signal
 
 
-from HDAS_File_Open import Load_2D_Data_bin
+from preprocessing.HDAS_File_Open import Load_2D_Data_bin
 import concurrent.futures
 import os
 import multiprocessing as mp
@@ -1202,7 +1202,7 @@ class HDAS:
         from datetime import datetime
         starttime = datetime(2021, 11, 26, 0, 0)
         endtime   = datetime(2021, 11, 26, 0, 20)
-        from data_check import get_filenames
+        from data.scripts.data_check import get_filenames
         filepaths,  _, _ = get_filenames(starttime, endtime, 'DAS', '')
 
         from HDAS import HDAS

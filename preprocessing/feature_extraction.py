@@ -7,14 +7,12 @@ Description:
 Collection of functions used to extract the features from a DAS signal and SISMO signals. 
 """
 
-import os, sys
-# print(os.getcwd())
-# sys.path.insert(1, os.getcwd())
+import os
 from datetime import datetime, timedelta
 import scipy
 import numpy as np
-from HDAS import HDAS
-from SISMO import SISMO
+from preprocessing.HDAS import HDAS
+from preprocessing.SISMO import SISMO
 from data.scripts.data_check import *
 
 """
@@ -247,8 +245,8 @@ def _calculate_FFT_coefficients(H, fft_points = 256, verbose = False):
 
 """
 function: _save_features(H, features_list,
-                  save_folder ="./data/metadata/features" ,
-                  log_path = "./data/metadata/feature_log.csv",
+                  save_folder ="./data/involcan/features" ,
+                  log_path = "./data/involcan/metadata/feature_log.csv",
                   verbose = False)
 
 Save the calculated features of the HDAS object H
@@ -263,8 +261,8 @@ Outputs
 None
 """
 def _save_features(H, features, feature_type,
-                  save_folder ="./data/metadata/features" ,
-                  log_path = "./data/metadata/feature_log.csv",
+                  save_folder ="./data/involcan/features" ,
+                  log_path = "./data/involcan/metadata/feature_log.csv",
                   verbose = False):
     
     # Check log
@@ -341,8 +339,8 @@ None
 """
 def get_features(H, window, shift, fft_points = 256,
                 types = ["FFT", "feature"],
-                save_folder ="./data/metadata/features" ,
-                log_path = "./data/metadata/feature_log.csv",
+                save_folder ="./data/involcan/features" ,
+                log_path = "./data/involcan/metadata/feature_log.csv",
                 verbose = False, timer = False):
 
 
@@ -363,7 +361,7 @@ def get_features(H, window, shift, fft_points = 256,
 
     return
 
-def check_log(query, log_path = "data/metadata/feature_log.csv"):
+def check_log(query, log_path = "data/involcan/metadata/feature_log.csv"):
     log = pd.read_csv(log_path, parse_dates=["starttime", "endtime", "save_time"],
                       date_format='mixed')
 
@@ -379,9 +377,12 @@ if __name__ == '__main__':
 
     time0 = datetime.now()
     print(f"\nScript start at {time0}")
-    starttime = datetime(2021, 3, 18, 0, 0)
-    endtime    = datetime(2021, 3, 20, 0, 0)
+    starttime = datetime(2021, 9, 18, 0, 0)
+    endtime   = datetime(2021, 9, 20, 0, 0)
 
+    networks = ["C7"]
+    sensors = ["PPMA"]
+    channels = ["HHE"]
 
     # window = 1.0*60*60 # 1 hour
     # window = 10 #s
@@ -399,38 +400,31 @@ if __name__ == '__main__':
     seconds = seconds.seconds
     # n_FFTs = 2**10 # Número de coeficientes FFT (Se divide entre 2 por positivos y negativos)
 
-    
-    S = SISMO("NUPH", "HHE", starttime, endtime,
-            detrend, windowing, cpus=10)
-    S.check()
-
-
-    quit()
-
     # SISMO extraction
     if True:
-        for sensor in ["PLPI", "PPMA"][:]:
-            for channel in ["HHN", "HHE", "HHZ"][:]:
-                print(f"""
-                Extracting SISMO features 
-                    sensor: {sensor}, channel: {channel}
-                    from {starttime}
-                    to {endtime}
-                    window: {window} s
-                    overlap: {overlap} s
-                    windowing: {windowing}
-                    """)
-                print(f"\nRunning for {sensor} sensor and {channel} channel ...")
+        for network in networks:
+            for sensor in sensors:
+                for channel in channels:
+                    print(f"""
+                    Extracting SISMO features 
+                        network: {network}, sensor: {sensor}, channel: {channel}
+                        from {starttime}
+                        to {endtime}
+                        window: {window} s
+                        overlap: {overlap} s
+                        windowing: {windowing}
+                        """)
+                    print(f"\nRunning for {sensor} sensor and {channel} channel ...")
 
-                S = SISMO(sensor, channel, starttime, endtime,
-                        detrend, windowing, cpus=10)
-                S.resampling_factor = 50
-                S.check()
-                
-                S.set_windows(window, shift)
-                get_features(S, window, shift, 'Auto',
-                             types=['FFT'],
-                             verbose = True, timer = True)
+                    S = SISMO(network, sensor, channel, starttime, endtime,
+                              detrend, windowing, cpus=10)
+                    S.resampling_factor = 50
+                    S.check()
+                    
+                    S.set_windows(window, shift)
+                    get_features(S, window, shift, 'Auto',
+                                types=['FFT'],
+                                verbose = True, timer = True)
                 
     # DAS extraction
     if False:

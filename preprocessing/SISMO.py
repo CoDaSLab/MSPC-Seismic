@@ -9,26 +9,25 @@ This file contains the SISMO class, used to calculate features the same way the 
 This class is a child class of the HDAS class
 """
 
-from HDAS import HDAS
+from preprocessing.HDAS import HDAS
 import obspy
 import numpy as np
-import scipy
 from datetime import datetime, timedelta
 import concurrent.futures
-from data.scripts.data_check import get_filenames
+from data.scripts.get_filenames import get_filenames
 
 import multiprocessing as mp
 import warnings
 
 class SISMO(HDAS):
 
-    def __init__(self, sensor, channel, starttime, endtime,
+    def __init__(self, network, sensor, channel, starttime, endtime,
                  detrend = False, windowing = False,
-                 cpus = 2, verbose=False):
+                 cpus = 2, data_path = "data/involcan/mseed", verbose=False):
    
         # Get the filenames to read according to the starttime and endtime
         start_day = starttime.replace(hour=0, minute=0, second=0)
-        filenames = get_filenames(start_day, endtime, sensor, channel)[0]
+        filenames = [data_path.rstrip('/') + '/' + file for file in get_filenames(network, sensor, channel, start_day, endtime)]
 
         assert len(filenames) > 0, "No data files in the selected time period"
         
@@ -81,6 +80,7 @@ class SISMO(HDAS):
         self.trel = np.arange(self.nsamp) * self.dt
 
         # Extra info
+        self.network = self.tr.stats.network
         self.sensor = self.tr.stats.station
         self.channel = self.tr.stats.channel
 
@@ -232,28 +232,27 @@ class SISMO(HDAS):
 
 if __name__=='__main__':
 
-    sensor  = 'PLPI'
-    channel = 'HHN'
+    network = 'C7'
+    sensor  = 'PPMA'
+    channel = 'HHE'
 
     starttime  = datetime(2021, 9, 14, 0, 0, 0)
     endtime    = datetime(2021, 9, 15, 0, 0, 0)
 
-    S = SISMO(sensor, channel, starttime, endtime,
-              verbose=False,
-              detrend=None, windowing = False)
+    S = SISMO(network, sensor, channel, starttime, endtime,
+              verbose=False, detrend=None, windowing = False)
 
     S.set_windows(3600)
     FFT_points = int(S.points_per_window * 1.0)
     S.fft_bin(FFT_points)
-
+    
     E_t_14, E_f_14 = S.energy_check()
 
     starttime  = datetime(2021, 9, 19, 0, 0, 0)
     endtime    = datetime(2021, 9, 20, 0, 0, 0)
 
-    S = SISMO(sensor, channel, starttime, endtime,
-              verbose=False,
-              detrend=None, windowing = False)
+    S = SISMO(network, sensor, channel, starttime, endtime,
+            verbose=False, detrend=None, windowing = False)
 
     S.set_windows(3600)
     FFT_points = int(S.points_per_window * 1.0)

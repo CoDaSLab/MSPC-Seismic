@@ -1,6 +1,6 @@
 # calculate filterbank features. Provides e.g. fbank and mfcc features for use in ASR applications
 import numpy
-from features import sigproc
+from preprocessing.features import sigproc
 from scipy.fftpack import dct
 import numpy as np
     
