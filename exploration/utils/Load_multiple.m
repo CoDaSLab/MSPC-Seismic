@@ -1,8 +1,12 @@
-function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, total_magnitudes, max_depths, total_depths, eq_count] ...
-    = Load_multiple(log, unfolding, path, obs_subset)
+function [data, var_l, var_classes, obs_label, max_magnitudes, total_magnitudes, max_depths, total_depths, eq_count] ...
+    = Load_multiple(log, unfolding, path, obs_subset, start_window_id)
     
     if nargin < 4 || isempty(obs_subset)
         obs_subset = false;
+    end
+
+    if nargin < 5
+        start_window_id = 1;
     end
     
     % Path formatting
@@ -11,41 +15,35 @@ function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, to
         path = extractBefore(path, strlength(path)); 
     end
 
-    % pre allocation
     ids = log.file_id;
-
-    data_matrix = [];
-    var_l_matrix = [];
-    var_classes_matrix = [];
-    obs_unfolding = [];
-    var_unfolding = [];
-    obs_label = [];
-    total_magnitudes = [];
-    max_magnitudes = [];
-    total_depths = [];
-    max_depths = [];
-    eq_count = [];
-
-
-     % I need to preallocate before running with parallelization
-     % For that, I need to know the initial dimension
-     % For that, I need to save not only the number of windows in
-     % feature_log, but also the number of variables
-
-    for i = 1:length(ids)
+    num_ids = length(ids);
+    
+    % Pre-allocation
+   
+    
+    start_index = 1;
+    for i = 1:num_ids
         id = ids(i);
+        
+        n = log.n_windows(i);  % Number of observations of the file
+        v = log.n_variables(i);  % Number of variables of the file
+
         path = string(path);
-        filepath = sprintf(path + "/%d.mat", id);
+        if ~endsWith(path, ".mat")
+            filepath = sprintf(path + "/%d.mat", id);
+        else
+            filepath = path;
+        end
         
         [data_single, var_l_single, var_classes_single] = Load(filepath);
 
         starttime = log(i, :).starttime;
         starttime.Format = 'dd-MMM-yyyy HH:mm:ss';
         num_rows = size(data_single, 1);
-        obs_label_single = string(starttime +seconds(log(i,:).window)...
+        obs_label_single = string(starttime +seconds(log(i,:).window) ...
             + seconds((0:num_rows-1) * (log(i, :).window - log(i, :).overlap)))';
-        [max_mag, magnitudes, max_dep, depths, EQs] = ivc_labels(log, i);
-
+        [max_mag, magnitudes, max_dep, depths, EQs] = ivc_labels(log, i, start_window_id);
+        
         % Apply observations subset if specified
         if obs_subset
             data_single = data_single(obs_subset, :);
@@ -56,36 +54,57 @@ function [data, var_l, var_classes, obs_label, obs_unfolding, max_magnitudes, to
             max_dep = max_dep(obs_subset, :);
             EQs = EQs(obs_subset, :);
         end
-
+        
         if unfolding == "obs"
-            data_matrix = [data_matrix; data_single];
-            obs_unfolding = [obs_unfolding; ones(size(data_single, 1), 1) * id];
-            var_l_matrix = string(var_l_single);
-            var_classes_matrix = var_classes_single;
-            obs_label = [obs_label, obs_label_single'];
-            total_magnitudes = [total_magnitudes; magnitudes];
-            max_magnitudes = [max_magnitudes; max_mag];
-            total_depths = [total_depths; depths];
-            max_depths = [max_depths; max_dep];
-            eq_count = [eq_count; EQs];
+            if i == 1
+                % Pre-allocation
+                N = sum(log.n_windows);  % total number of observations
+                V = log.n_variables(1);  % total number of variables
+        
+                data = zeros(N, V);
+                obs_label = strings(N, 1);
+                max_magnitudes = zeros(N, 1);
+                total_magnitudes = zeros(N, 1);
+                max_depths = zeros(N, 1);
+                total_depths = zeros(N, 1);
+                eq_count = zeros(N, 1);
+                var_l = string(var_l_single)';
+                var_classes = var_classes_single';
+            end
+
+            end_index = start_index + n - 1;
+            data(start_index:end_index, :) = data_single;
+            obs_unfolding(start_index:end_index) = id;
+            obs_label(start_index:end_index) = obs_label_single';
+            total_magnitudes(start_index:end_index) = magnitudes;
+            max_magnitudes(start_index:end_index) = max_mag;
+            total_depths(start_index:end_index) = depths;
+            max_depths(start_index:end_index) = max_dep;
+            eq_count(start_index:end_index) = EQs;
 
         elseif unfolding == "var"
-            data_matrix = [data_matrix, data_single];
-            var_unfolding = [var_unfolding; ones(size(data_single, 2), 1) * i];
-            var_l_matrix = [var_l_matrix; var_l_single + " - " + num2str(id)];
-            var_classes_matrix = [var_classes_matrix; var_classes_single + " - " + num2str(id)];
-            obs_label = obs_label_single;
-            total_magnitudes = magnitudes;
-            max_magnitudes = max_mag;
-            total_depths = depths;
-            max_depths = max_dep;
-            eq_count = EQs;
-            obs_unfolding = ones(size(data_single, 1), 1);
-        end
-    end
+            if i == 1
+                % Pre-allocation
+                N = log.n_windows(1);  % total number of observations
+                V = sum(log.n_variables);  % total number of variables
+    
+                data = zeros(N, V);
+                var_l = strings(1, V);
+                var_classes = strings(1, V);
+                obs_label = obs_label_single;
+                total_magnitudes = magnitudes;
+                max_magnitudes = max_mag;
+                total_depths = depths;
+                max_depths = max_dep;
+                eq_count = EQs;
+            end
 
-    % Assign results to output variables
-    data = data_matrix;
-    var_l = var_l_matrix;
-    var_classes = var_classes_matrix;
+            end_index = start_index + v - 1;
+            data(:, start_index:end_index) = data_single;
+            var_l(start_index:end_index) = var_l_single + " - " + num2str(id);
+            var_classes(start_index:end_index) = var_classes_single + " - " + num2str(id);
+        end
+
+        start_index = end_index + 1;
+    end
 end

@@ -1,6 +1,10 @@
-function [maximum_magnitudes, total_magnitudes, maximum_depths, total_depths, eq_count] = ivc_labels(filtered_log, i)
+function [maximum_magnitudes, total_magnitudes, maximum_depths, total_depths, eq_count] = ivc_labels(filtered_log, i, start_window_id)
+    if nargin < 3
+        start_window_id = 1;
+    end
+
     % Leer el archivo ivc_available_data.csv
-    ivc = readtable('data/metadata/ivc_available_data.csv', 'VariableNamesLine', 1, 'VariableNamingRule', 'preserve');
+    ivc = readtable('data/involcan/metadata/ivc_available_data.csv', 'VariableNamesLine', 1, 'VariableNamingRule', 'preserve');
     ivc = ivc(:, [1:7 10]);
     
     % Convertir las columnas de fecha y hora en una sola columna Datetime
@@ -15,12 +19,13 @@ function [maximum_magnitudes, total_magnitudes, maximum_depths, total_depths, eq
     eq_count = [];
     
     % Obtener los tiempos inicial y final del intervalo
-    starttime = filtered_log(i, :).starttime;
-    endtime = starttime + seconds(filtered_log(i, :).window);% - seconds(filtered_log(i, :).overlap);
-
+    window = filtered_log(i, :).window;  % window length in seconds
+    overlap = filtered_log(i, :).overlap;  % window overlap in seconds
+    starttime = filtered_log(i, :).starttime + seconds((window - overlap)*(start_window_id - 1));
+    endtime = starttime + seconds(window);% - seconds(filtered_log(i, :).overlap);
     
     % Bucle hasta que starttime supere el endtime de filtered_log
-    while endtime   <= filtered_log.endtime
+    while endtime <= filtered_log.endtime
           
         
         % Filtrar los datos de ivc dentro del intervalo de tiempo actual
@@ -43,7 +48,7 @@ function [maximum_magnitudes, total_magnitudes, maximum_depths, total_depths, eq
         if isempty(maximum_depth) 
             maximum_depth = 0;
         end
-        maximum_depths = [maximum_depths; maximum_depths];
+        maximum_depths = [maximum_depths; maximum_depth];
 
         % Sumar las profundidades omitiendo NaN
         total_depth = sum(filtered_ivc.depth, 'omitnan');
@@ -54,8 +59,8 @@ function [maximum_magnitudes, total_magnitudes, maximum_depths, total_depths, eq
         event_count = size(filtered_ivc, 1);  % Número de filas (eventos)
         eq_count = [eq_count; event_count];
         % Actualizar los tiempos para el siguiente intervalo
-        starttime = starttime + seconds(filtered_log(i, :).window) - seconds(filtered_log(i, :).overlap);
-        endtime = endtime + seconds(filtered_log(i, :).window) - seconds(filtered_log(i, :).overlap);
+        starttime = starttime + seconds(window - overlap);
+        endtime = endtime + seconds(window - overlap);
     
     end
 end

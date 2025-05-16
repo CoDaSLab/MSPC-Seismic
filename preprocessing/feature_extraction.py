@@ -1,5 +1,5 @@
 """
-Last update: 11/04/2025
+Last update: 15/05/2025
 
 file name: feature_extraction
 
@@ -14,22 +14,22 @@ import numpy as np
 from preprocessing.HDAS import HDAS
 from preprocessing.SISMO import SISMO
 from data.scripts.data_check import *
+from itertools import islice
 
-"""
-function: create_object(files, path ='./', preprocess = True, verbose = False)
-Create the DAS object for feature extraction
-
-Inputs
-files: Files to use to create the HDAS object
-path: Path to the files.
-preprocess: bool. Determines wether or not the DAS data is preprocessed after creating the object (removeTrend and removeCoherentNoise via fit)
-verbose: bool. Update the log on the status of the function's process.
-
-Outputs
-H: Created object of the HDAS class.
-"""
 
 def create_DAS_object(files, path ='./', cpus = 4, preprocess = True, verbose = False):
+    """
+    Create the DAS object for feature extraction
+
+    Inputs
+    files: Files to use to create the HDAS object
+    path: Path to the files.
+    preprocess: bool. Determines wether or not the DAS data is preprocessed after creating the object (removeTrend and removeCoherentNoise via fit)
+    verbose: bool. Update the log on the status of the function's process.
+
+    Outputs
+    H: Created object of the HDAS class.
+    """
 
     if verbose == True: print("Creating HDAS object")
     H = HDAS(path, files, verbose=verbose)
@@ -45,19 +45,18 @@ def create_DAS_object(files, path ='./', cpus = 4, preprocess = True, verbose = 
     return H
 
 
-"""
-function: create_SISMO_object(filepaths, preprocess = True, verbose = False)
-Create the DAS object for feature extraction
-
-Inputs
-filespaths: list of paths to the files to read to create the object.
-preprocess: bool. Determines wether or not the DAS data is preprocessed after creating the object (removeTrend and removeCoherentNoise via fit)
-verbose: bool. Update the log on the status of the function's process.
-
-Outputs
-S: Created object of the SISMO class.
-"""
 def create_SISMO_object(filepaths, cpus, windowing, preprocess = False, verbose = False):
+    """
+    Create the DAS object for feature extraction
+
+    Inputs
+    filespaths: list of paths to the files to read to create the object.
+    preprocess: bool. Determines wether or not the DAS data is preprocessed after creating the object (removeTrend and removeCoherentNoise via fit)
+    verbose: bool. Update the log on the status of the function's process.
+
+    Outputs
+    S: Created object of the SISMO class.
+    """
 
     if verbose == True: print("Creating SISMO object")
     S = SISMO(filepaths, windowing=windowing, cpus=cpus, verbose=verbose)
@@ -72,21 +71,19 @@ def create_SISMO_object(filepaths, cpus, windowing, preprocess = False, verbose 
     return S
 
 
-"""
-function: select_sps(H, sp_min = 0, sp_max = None, verbose = False)
-Reduce the number of spatial points of the DAS considered in the HDAS object
-
-Inputs
-H: HDAS object. Object where to perform the operation
-sp_min: lower limit of the spatial point range to be cut
-sp_max: upper limit of the spatial point range to be cut.
-verbose: bool. Update the log on the status of the function's process.
-
-Outputs
-H: HDAS object after the cut
-"""
-
 def select_sps(H, sp_min = 0, sp_max = None, verbose = False):
+    """
+    Reduce the number of spatial points of the DAS considered in the HDAS object
+
+    Inputs
+    H: HDAS object. Object where to perform the operation
+    sp_min: lower limit of the spatial point range to be cut
+    sp_max: upper limit of the spatial point range to be cut.
+    verbose: bool. Update the log on the status of the function's process.
+
+    Outputs
+    H: HDAS object after the cut
+    """
     if sp_max == None: sp_max = H.nsens
     assert sp_min < sp_max, "sp_min must be lower than sp_max"
 
@@ -98,21 +95,21 @@ def select_sps(H, sp_min = 0, sp_max = None, verbose = False):
 
     return H
 
-"""
-function: _calculate_features(H, window_size, window_shift, filenames, existing_files, filter, folder = "Features DAS", verbose = False)
-Calculate a set of features from the signal of each of the spatial points in H.
 
-
-Inputs
-H: HDAS object. Object where to extract the features from
-window_size: float. duration of the window
-window_shift: float. duration of the window shift
-verbose: bool. Update the log on the status of the function's process.
-
-Outputs
-features_list: list of dictionaries. Each element contains a dictionary with the features calculated for every SP.
-"""
 def _calculate_features(H, verbose = False, timer = False):
+    """
+    Calculate a set of features from the signal of each of the spatial points in H.
+
+
+    Inputs
+    H: HDAS object. Object where to extract the features from
+    window_size: float. duration of the window
+    window_shift: float. duration of the window shift
+    verbose: bool. Update the log on the status of the function's process.
+
+    Outputs
+    features_list: list of dictionaries. Each element contains a dictionary with the features calculated for every SP.
+    """
     if verbose:
         time0 = datetime.now()
         print(f"[{time0}] Calculating features ...")
@@ -208,24 +205,20 @@ def _calculate_features(H, verbose = False, timer = False):
         # 'Existing_files': ''.join(existing_files)
         }
 
-     
 
-
-"""
-function: _calculate_FFT_coefficients(H, window_size, window_shift, filenames, existing_files, filter, folder = "Features DAS", verbose = False)
-Calculate the FFT coefficients from the signal of each of the spatial points in H.
-
-
-Inputs
-H: HDAS object. Object where to extract the features from
-window_size: float. duration of the window
-window_shift: float. duration of the window shift
-verbose: bool. Update the log on the status of the function's process.
-
-Outputs
-FFTs_list: list of dictionaries. Each element copntains a dictionary with FFT coefficients calculated for every SP.
-"""
 def _calculate_FFT_coefficients(H, fft_points = 256, verbose = False):
+    """
+    Calculate the FFT coefficients from the signal of each of the spatial points in H.
+
+    Inputs
+    H: HDAS object. Object where to extract the features from
+    window_size: float. duration of the window
+    window_shift: float. duration of the window shift
+    verbose: bool. Update the log on the status of the function's process.
+
+    Outputs
+    FFTs_list: list of dictionaries. Each element contains a dictionary with FFT coefficients calculated for every SP.
+    """
 
     if verbose:
         print(f"[{datetime.now()}] Calculating FFT coefficients ...")
@@ -242,28 +235,22 @@ def _calculate_FFT_coefficients(H, fft_points = 256, verbose = False):
         }
 
 
-
-"""
-function: _save_features(H, features_list,
-                  save_folder ="./data/involcan/features" ,
-                  log_path = "./data/involcan/metadata/feature_log.csv",
-                  verbose = False)
-
-Save the calculated features of the HDAS object H
-
-Inputs
-H: HDAS object. Object where to extrac the features from
-features_list: list of dictionaries. Each element copntains a dictionary with the features calculated for every SP.
-save_folder: string. Path to the folder where the features will be saved.
-log_path: string. Path to the log document where we can check the id of every feature file.
-
-Outputs
-None
-"""
 def _save_features(H, features, feature_type,
                   save_folder ="./data/involcan/features" ,
                   log_path = "./data/involcan/metadata/feature_log.csv",
-                  verbose = False):
+                  split_by_rows=False, verbose = False):
+    """
+    Save the calculated features of the HDAS object H
+
+    Inputs
+    H: HDAS object. Object where to extract the features from
+    features_list: list of dictionaries. Each element copntains a dictionary with the features calculated for every SP.
+    save_folder: string. Path to the folder where the features will be saved.
+    log_path: string. Path to the log document where we can check the id of every feature file.
+
+    Outputs
+    None
+    """
     
     # Check log
     df_log = pd.read_csv(log_path)
@@ -280,7 +267,7 @@ def _save_features(H, features, feature_type,
         for key, array in features.items():
             SP, W, F = array.shape
             if F % factor != 0:
-                raise ValueError(f"El número de columnas en '{key}' no es múltiplo de {factor}.")
+                raise ValueError(f"The number of columns in '{key}' is not a multiple of {factor}.")
             
             # Aplicar el promedio en cada bloque de 100 columnas
             resampled_features[key] = array.reshape(SP, W, F // factor, factor).mean(axis=3)
@@ -288,11 +275,43 @@ def _save_features(H, features, feature_type,
         features = resampled_features
     #######################################################
 
-    filename = f"{id}.mat"
-    scipy.io.savemat(f"{save_folder.rstrip('/')}/{filename}", features)
+    missing = H.get_missing_samples(percent = True)
+
+    if split_by_rows:
+        split_features = {}
+
+        # Split the array in chunks of split_by_rows rows
+        for key, array in features.items():
+            SP, W, F = array.shape
+            split_by_rows = 100  # CHANGE THIS
+            if W > split_by_rows:
+                # Split the array into smaller chunks
+                n_chunks = (W // split_by_rows) + 1
+                split_features[key] = []
+                for i in range(n_chunks):
+                    start = i * split_by_rows
+                    end = (i + 1) * split_by_rows if i < n_chunks - 1 else W
+                    array_chunk = array[:, start:end, :]
+                    split_features[key].append(array_chunk)
+        
+        for i in range(n_chunks):
+            feature_chunk = {}
+            for key in features.keys():
+                feature_chunk[key] = split_features[key][i]
+            # Save the features in a .mat file
+            filename = f"{id}_{i}.mat" if W > split_by_rows else f"{id}.mat"
+
+            feature_chunk["missing_percents"] = missing
+            scipy.io.savemat(f"{save_folder.rstrip('/')}/{filename}", feature_chunk)
+
+    else:
+        # Save the features in a .mat file
+        filename = f"{id}.mat"
+        features["missing_percents"] = missing
+        scipy.io.savemat(f"{save_folder.rstrip('/')}/{filename}", features)
 
     n_variables = 0
-    for key, feature in features.items():
+    for key, feature in islice(features.items(), 3):
         feature = np.squeeze(feature)
         n_variables += feature.shape[1]
 
@@ -301,63 +320,74 @@ def _save_features(H, features, feature_type,
     else:
         window_name = False
 
+    # Percent of missing data in the whole signal
+    missing_mean = np.mean(missing).round(4)
     row = pd.DataFrame(
         [[id, H.sensor, H.channel, feature_type,
           H.stime, H.etime,
           H.window_size, H.window_size - H.window_shift, window_name,
           H.n_windows, n_variables,
+          missing_mean,
           H.fmin, H.fmax,
           H.nsamp, H.srate,
           H.detrend, H.Coherent_noise_removed,
           datetime.now()]])
-    # starttime,  endtime, save_time
-    for col_id in [4, 5,]:
-        row[col_id] = pd.to_datetime(row[col_id], format ="%Y-%m-%d %H:%M:%S") 
+    # starttime, endtime, save_time
+    for col_id in [4, 5, 18]:
+       row[col_id] = pd.to_datetime(row[col_id], format ="%Y-%m-%d %H:%M:%S") 
 
-    row.to_csv(log_path, mode='a', sep=",", index=False, header=False)
+    row.to_csv(log_path, mode='a', sep=",", index=False, header=False, date_format="%Y-%m-%d %H:%M:%S")
 
-    if verbose == True: print(f"Features saved at {save_folder}/{filename}")
+    if verbose == True: print(f"Features saved at {save_folder}/{id}.mat")
     
     return
 
 
-"""
-function: get_features(H, window, shift, verbose = False)
 
-Calculate the features and FFT coefficients of an HDAS object and save the results
-
-Inputs
-H: HDAS object. Object where to extrac the features from
-window: float. duration of the window
-shift: float. duration of the window shift
-features_list: list of dictionaries. Each element copntains a dictionary with the features calculated for every SP.
-save_folder: string. Path to the folder where the features will be saved.
-log_path: string. Path to the log document where we can check the id of every feature file.
-
-Outputs
-None
-"""
-def get_features(H, window, shift, fft_points = 256,
+def get_features(H, window, shift, fft_points = 256, max_gap_length = 'auto',
                 types = ["FFT", "feature"],
                 save_folder ="./data/involcan/features" ,
                 log_path = "./data/involcan/metadata/feature_log.csv",
-                verbose = False, timer = False):
+                split_by_rows=False, verbose = False, timer = False):
+    """    
+    Calculate the features and FFT coefficients of an HDAS object and save the results
 
+    Inputs
+    H: HDAS object. Object where to extrac the features from
+    window: float. duration of the window.
+    shift: float. duration of the window shift.
+    fft_points: int. Number of FFT points to calculate.
+    types: list of strings. Types of features to calculate. Options: "feature", "FFT"
+    max_gap_length: int or string. Maximum number of missing samples allowed to calculate the features. 
+        If 'auto', the maximum gap length is set to 5% of the window size.
+    save_folder: string. Path to the folder where the features will be saved.
+    log_path: string. Path to the log document where we can check the id of every feature file.
+    split_by_rows: int or False. If it is an int, features will be split in different chunks of at most
+        `split_by_rows` rows and saved in different files.
+    verbose: bool. If True, prints information about the process.
+    timer: bool. If True, prints the time taken to calculate the features.
+
+    Outputs
+    None
+    """
 
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
 
     H.set_windows(window, shift)
 
-    # # Features
+    if max_gap_length == 'auto':
+        max_gap_length = int(0.05 * H.points_per_window)
+
+    # Features
     if "feature" in types:
         features = _calculate_features(H, verbose, timer)
-        _save_features(H, features, "feature", save_folder, log_path, verbose = verbose)   
+        _save_features(H, features, "feature", save_folder, log_path, split_by_rows, verbose = verbose)   
 
     # FFT
     if "FFT" in types:
         features = _calculate_FFT_coefficients(H, fft_points, verbose)
-        _save_features(H, features, "FFT", save_folder, log_path, verbose = verbose)
+        _save_features(H, features, "FFT", save_folder, log_path, split_by_rows, verbose = verbose)
 
     return
 

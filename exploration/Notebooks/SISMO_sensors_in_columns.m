@@ -6,7 +6,7 @@
 
 % Load data
 
-log = readtimetable('data/metadata/feature_log.csv', 'VariableNamesLine', 1);
+log = readtimetable('data/involcan/metadata/feature_log.csv', 'VariableNamesLine', 1);
 filtered_log = log;
 
 %filtered_log = filtered_log(strcmp(filtered_log.sensor, 'PLPI'),:);

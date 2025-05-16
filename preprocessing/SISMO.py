@@ -1,6 +1,6 @@
 
 """
-Last update: 11/04/2025
+Last update: 14/05/2025
 
 file name: SISMO.py
 
@@ -22,7 +22,7 @@ import warnings
 class SISMO(HDAS):
 
     def __init__(self, network, sensor, channel, starttime, endtime,
-                 detrend = False, windowing = False,
+                 detrend = False, windowing = False, merge_method = 0, merge_fill_value = None, 
                  cpus = 2, data_path = "data/involcan/mseed", verbose=False):
    
         # Get the filenames to read according to the starttime and endtime
@@ -37,6 +37,8 @@ class SISMO(HDAS):
         self.windowing = windowing
         self.detrend = detrend # This detrend method is independent from the window by window demeaning when calculating FFTs
         self.Coherent_noise_removed = False
+        self.merge_method = merge_method
+        self.merge_fill_value = merge_fill_value
         self.verbose = verbose
 
         # Fixed values for consistency with HDAS
@@ -69,10 +71,10 @@ class SISMO(HDAS):
 
         self.cutT(starttime, endtime)
         if self.detrend:
-            self.tr.detrend(self.detrend,) # Detrend followind the specified method
+            self.tr.detrend(self.detrend,) # Detrend following the specified method
             if self.verbose: print(f"Trend removed from trace via {self.detrend}")    
 
-        dd = np.array(self.tr.data).reshape(1, -1)
+        dd = self.tr.data.reshape(1, -1)
         dd = np.nan_to_num(dd)
         self.da = dd.astype(float)
         self.xpos = np.arange(self.nsens) * self.dx
@@ -117,7 +119,7 @@ class SISMO(HDAS):
             if self.verbose: print(f"Total number of traces: {total_traces}")
 
             # Merge all stream traces
-            ST.merge(1, fill_value= None)
+            ST.merge(method = self.merge_method, fill_value = self.merge_fill_value)
 
         print(ST)
         assert len(ST) == 1, "Number of traces in stream should be 1"

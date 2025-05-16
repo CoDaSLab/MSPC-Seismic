@@ -1,5 +1,5 @@
 """
-Last update: 25/10/2024
+Last update: 15/05/2025
 
 file name: HDAS.py
 
@@ -640,10 +640,8 @@ class HDAS:
                         // (self.points_per_window - overlap_points)
 
         self.window_start_index = np.arange(0, self.nsamp - self.points_per_window + 1, self.shift_points)
-        
+
         return
-
-
 
 
     def fft_10bin(self, fft_points=128):
@@ -732,12 +730,47 @@ class HDAS:
         start_index = self.window_start_index[window_id]
         end_index = start_index + self.points_per_window
         window_data = self.da[sp, start_index:end_index] # shape: (sps, n_windows)
-        return window_data
 
-    """
-    Run the calculations for just one window and one spatial point
-    """  
+        return window_data
+    
+
+    def get_missing_samples(self, percent = False):
+        """
+        Returns the number of missing values in the specified window.
+
+        Parameters
+        ----------
+        percent : bool, optional
+            If True, returns percentages instead of the amount of missing values. Default is False.
+
+        Returns
+        -------
+        missing_samples : array
+            Array of shape (number of spatial points x number of windows) containing the number or
+            percentage of missing values of each window.
+        """
+        missing_samples = np.zeros((len(self.sps), self.n_windows))
+        for sp in range(len(self.sps)):
+            for window_id in range(self.n_windows):
+                window_data = self.get_window_data(sp, window_id)
+
+                # Get number of missing samples in the window
+                if isinstance(window_data, np.ma.MaskedArray):
+                    window_mask = window_data.mask
+                    window_missing = np.sum(window_mask)
+
+                    if percent:
+                        window_missing = window_missing / len(window_data)
+
+                    missing_samples[sp, window_id] = window_missing
+
+        return missing_samples
+
+
     def _calculate_hjorth_parameters(self, sp, window_id):
+        """
+        Run the calculations for just one window and one spatial point
+        """  
         window_data = self.get_window_data(sp, window_id)
 
         mobility, complexity = ant.hjorth_params(window_data)
@@ -745,10 +778,11 @@ class HDAS:
 
         return mobility, complexity, variance
 
-    """
-    Run parallel calculations for all sps and windows
-    """
+    
     def calculate_hjorth_parameters(self):
+        """
+        Run parallel calculations for all sps and windows
+        """
         self.mobility_vals      = np.zeros((len(self.sps), self.n_windows))
         self.complexity_vals    = np.zeros((len(self.sps), self.n_windows))
         self.variance_vals      = np.zeros((len(self.sps), self.n_windows))
@@ -1144,14 +1178,32 @@ class HDAS:
             self.deltas_deltas_lpc_frec[sp]  = delta(self.deltas_lpc_frec[sp], 2)
         return
     
-    """
-    Run the calculations for just one window and one spatial point
-    """
+
     def _fft_bin(self, sp, window_id, fft_points = None):
+        """
+        Compute the FFT magnitude spectrum for a given spatial point and time window.
+
+        The signal is demeaned, optionally windowed, and transformed using the FFT.
+
+        Parameters
+        ----------
+        sp : int
+            Spatial point index.
+        window_id : int
+            Time window identifier.
+        fft_points : int, optional
+            Number of FFT points. Defaults to window length.
+
+        Returns
+        -------
+        np.ndarray
+            FFT magnitudes for positive frequencies, or NaNs if data is too incomplete.
+        """
         window_data = self.get_window_data(sp, window_id)
         # Demean the trace of the window
         window_data = window_data - np.mean(window_data)
-
+        
+        # FFT coefficient calculation
         windowing = self.windowing
         if windowing != False:
             window_data = window_data*windowing(self.points_per_window)
@@ -1163,12 +1215,26 @@ class HDAS:
         return FFTs
 
 
-    """
-    Run parallel calculations for all sps and windows
-    """
     def fft_bin(self, fft_points=256):
+        """
+        Compute FFT coefficients for all spatial points and time windows in parallel.
 
-        if fft_points == 'Auto': fft_points = self.points_per_window
+        The FFT coefficients, as well as the first and second derivatives, are stored
+        in the attributes `self.fft`, `self.deltas_fft`, and `self.deltas_deltas_fft`.
+
+        Parameters
+        ----------
+        fft_points : int or str, optional
+            Number of FFT points. If set to `'auto'`, uses the number of points per window
+            (`self.points_per_window`).
+
+        Returns
+        -------
+        None
+        """
+
+        if isinstance(fft_points, str) and fft_points.lower() == 'auto': 
+            fft_points = self.points_per_window
 
         self.fft = np.zeros((len(self.sps), self.n_windows, fft_points//2))
         self.deltas_fft = np.zeros((len(self.sps), self.n_windows, fft_points//2))
@@ -1190,8 +1256,8 @@ class HDAS:
 
         # Calculate derivatives
         for sp in range(len(self.sps)):
-            self.deltas_fft[sp]         = delta(self.fft[sp], 2)
-            self.deltas_deltas_fft[sp]  = delta(self.deltas_fft[sp], 2)  
+            self.deltas_fft[sp]        = delta(self.fft[sp], 2)
+            self.deltas_deltas_fft[sp] = delta(self.deltas_fft[sp], 2)  
 
         return
 

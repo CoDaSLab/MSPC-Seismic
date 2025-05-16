@@ -1,4 +1,4 @@
-year,month,day,hour,minute,second,magnitude,longitude,latitude,*,*,*,DAS_interruptions,PLPI_HHE_interruptions,PLPI_HHN_interruptions,PLPI_HHZ_interruptions,PPMA_HHE_interruptions,PPMA_HHN_interruptions,PPMA_HHZ_interruptions
+year,month,day,hour,minute,second,magnitude,longitude,latitude,depth,*,*,DAS_interruptions,PLPI_HHE_interruptions,PLPI_HHN_interruptions,PLPI_HHZ_interruptions,PPMA_HHE_interruptions,PPMA_HHN_interruptions,PPMA_HHZ_interruptions
 2021,9,11,4,8,49,1.34441,-17.813669,28.594521,9.996047,254.172222,-622.154988,-1,0,0,0,1,1,1
 2021,9,11,20,24,48,1.062989,-17.845434,28.561531,12.607839,254.85,-621.477222,-1,0,0,0,1,1,1
 2021,9,11,4,29,4,1.194265,-17.946378,28.586381,0.365625,254.186806,-622.140926,-1,0,0,0,1,1,1

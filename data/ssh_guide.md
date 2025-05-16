@@ -31,11 +31,11 @@ For example, `ssh-add ~/.ssh/id_rsa`.
 
 ### 8. *(Optional)* Enter your key's passphrase.
 
-### 8. Run `ssh-copy-id -i ~/.ssh/<keyname> <username>@<server>`. Replace `<keyname>` with your key name, `<username>` with you username in the remote server, and `<server>` with the remote server's address. Answer `yes` to all prompts.
+### 9. Run `ssh-copy-id -i ~/.ssh/<keyname> <username>@<server>`. Replace `<keyname>` with your key name, `<username>` with you username in the remote server, and `<server>` with the remote server's address. Answer `yes` to all prompts.
 
 For example, `ssh-copy-id -i ~/.ssh/id_rsa user@193.147.109.7`. You might need to enter your key's passphrase if you set one in Step 5 and didn't follow Steps 6-8.
 
-### 9. Enter your password for the remote server.
+### 10. Enter your password for the remote server.
 
 Your public key is now uploaded to the remote server and you should be able to connect without a password.
 
