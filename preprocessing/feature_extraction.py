@@ -1,5 +1,5 @@
 """
-Last update: 15/05/2025
+Last update: 16/05/2025
 
 file name: feature_extraction
 
@@ -338,7 +338,7 @@ def _save_features(H, features, feature_type,
 
     row.to_csv(log_path, mode='a', sep=",", index=False, header=False, date_format="%Y-%m-%d %H:%M:%S")
 
-    if verbose == True: print(f"Features saved at {save_folder}/{id}.mat")
+    if verbose == True: print(f"Features saved at {save_folder.rstrip('/')}/{id}.mat")
     
     return
 

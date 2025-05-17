@@ -1,6 +1,6 @@
 
 """
-Last update: 14/05/2025
+Last update: 16/05/2025
 
 file name: SISMO.py
 
@@ -26,7 +26,7 @@ class SISMO(HDAS):
                  cpus = 2, data_path = "data/involcan/mseed", verbose=False):
    
         # Get the filenames to read according to the starttime and endtime
-        start_day = starttime.replace(hour=0, minute=0, second=0)
+        start_day = starttime.replace(hour=0, minute=0, second=0) - timedelta(days=1)
         filenames = [data_path.rstrip('/') + '/' + file for file in get_filenames(network, sensor, channel, start_day, endtime)]
 
         assert len(filenames) > 0, "No data files in the selected time period"
