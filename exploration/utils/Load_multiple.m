@@ -1,4 +1,5 @@
-function [data, var_l, var_classes, obs_label, max_magnitudes, total_magnitudes, max_depths, total_depths, eq_count] ...
+function [data, var_l, var_classes, obs_label, max_magnitudes, ...
+    total_magnitudes, max_depths, total_depths, eq_count, missing_percents] ...
     = Load_multiple(log, unfolding, path, obs_subset, start_window_id)
     
     if nargin < 4 || isempty(obs_subset)
@@ -18,9 +19,6 @@ function [data, var_l, var_classes, obs_label, max_magnitudes, total_magnitudes,
     ids = log.file_id;
     num_ids = length(ids);
     
-    % Pre-allocation
-   
-    
     start_index = 1;
     for i = 1:num_ids
         id = ids(i);
@@ -35,7 +33,7 @@ function [data, var_l, var_classes, obs_label, max_magnitudes, total_magnitudes,
             filepath = path;
         end
         
-        [data_single, var_l_single, var_classes_single] = Load(filepath);
+        [data_single, var_l_single, var_classes_single, missing_percents] = Load(filepath);
 
         starttime = log(i, :).starttime;
         starttime.Format = 'dd-MMM-yyyy HH:mm:ss';

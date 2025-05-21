@@ -82,6 +82,8 @@ class SISMO(HDAS):
         self.trel = np.arange(self.nsamp) * self.dt
 
         # Extra info
+        self.stime = self.tr.stats.starttime
+        self.etime = self.tr.stats.endtime
         self.network = self.tr.stats.network
         self.sensor = self.tr.stats.station
         self.channel = self.tr.stats.channel

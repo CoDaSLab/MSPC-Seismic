@@ -24,7 +24,7 @@ def create_DAS_object(files, path ='./', cpus = 4, preprocess = True, verbose = 
     Inputs
     files: Files to use to create the HDAS object
     path: Path to the files.
-    preprocess: bool. Determines wether or not the DAS data is preprocessed after creating the object (removeTrend and removeCoherentNoise via fit)
+    preprocess: bool. Determines whether or not the DAS data is preprocessed after creating the object (removeTrend and removeCoherentNoise via fit)
     verbose: bool. Update the log on the status of the function's process.
 
     Outputs
@@ -344,7 +344,7 @@ def _save_features(H, features, feature_type,
 
 
 
-def get_features(H, window, shift, fft_points = 256, max_gap_length = 'auto',
+def get_features(H, window, shift, fft_points = 256,
                 types = ["FFT", "feature"],
                 save_folder ="./data/involcan/features" ,
                 log_path = "./data/involcan/metadata/feature_log.csv",
@@ -358,8 +358,6 @@ def get_features(H, window, shift, fft_points = 256, max_gap_length = 'auto',
     shift: float. duration of the window shift.
     fft_points: int. Number of FFT points to calculate.
     types: list of strings. Types of features to calculate. Options: "feature", "FFT"
-    max_gap_length: int or string. Maximum number of missing samples allowed to calculate the features. 
-        If 'auto', the maximum gap length is set to 5% of the window size.
     save_folder: string. Path to the folder where the features will be saved.
     log_path: string. Path to the log document where we can check the id of every feature file.
     split_by_rows: int or False. If it is an int, features will be split in different chunks of at most
@@ -375,9 +373,6 @@ def get_features(H, window, shift, fft_points = 256, max_gap_length = 'auto',
         os.makedirs(save_folder)
 
     H.set_windows(window, shift)
-
-    if max_gap_length == 'auto':
-        max_gap_length = int(0.05 * H.points_per_window)
 
     # Features
     if "feature" in types:

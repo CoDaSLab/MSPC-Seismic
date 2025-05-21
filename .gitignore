@@ -13,6 +13,8 @@
 
 # ignore pycache
 **/__pycache__
+# ignore matlab autosave files
+**/*.asv
 
 # ignore jobs folder
 jobs
