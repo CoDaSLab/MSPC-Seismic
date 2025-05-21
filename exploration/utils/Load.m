@@ -1,9 +1,9 @@
-function [data, var_l, var_classes, missing_percents] = Load(pathfile)
+function [data, var_l, var_classes, missing_rates] = Load(pathfile)
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % pathfile: path to the file you want to load
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Full call example:
-% new_Load("data/82.mat");
+% [data, var_l, var_classes, missing_rates] = Load("data/involcan/features/82.mat");
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
     % Carga de los datos y obtención de los nombres de las variables
@@ -28,7 +28,7 @@ function [data, var_l, var_classes, missing_percents] = Load(pathfile)
         field_data = data_struct.(var_l{i});
         field_data = squeeze(field_data)';
 
-        if isnumeric(field_data) && var_l{i} ~= "missing_percents"
+        if isnumeric(field_data) && var_l{i} ~= "missing_rates"
             num_rows = size(field_data, 1);
             if num_rows == 1
                 % Si es una fila única, se almacena directamente
@@ -46,8 +46,8 @@ function [data, var_l, var_classes, missing_percents] = Load(pathfile)
                     data_idx = data_idx + 1;
                 end
             end
-        elseif var_l{i} == "missing_percents" 
-            missing_percents = field_data;
+        elseif var_l{i} == "missing_rates" 
+            missing_rates = field_data;
         end
     end
 

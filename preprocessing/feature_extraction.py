@@ -275,7 +275,7 @@ def _save_features(H, features, feature_type,
         features = resampled_features
     #######################################################
 
-    missing = H.get_missing_samples(percent = True)
+    missing = H.get_missing_samples(rate = True)
 
     if split_by_rows:
         split_features = {}
@@ -301,13 +301,13 @@ def _save_features(H, features, feature_type,
             # Save the features in a .mat file
             filename = f"{id}_{i}.mat" if W > split_by_rows else f"{id}.mat"
 
-            feature_chunk["missing_percents"] = missing
+            feature_chunk["missing_rates"] = missing
             scipy.io.savemat(f"{save_folder.rstrip('/')}/{filename}", feature_chunk)
 
     else:
         # Save the features in a .mat file
         filename = f"{id}.mat"
-        features["missing_percents"] = missing
+        features["missing_rates"] = missing
         scipy.io.savemat(f"{save_folder.rstrip('/')}/{filename}", features)
 
     n_variables = 0
@@ -320,23 +320,23 @@ def _save_features(H, features, feature_type,
     else:
         window_name = False
 
-    # Percent of missing data in the whole signal
+    # Fraction of missing data in the whole signal
     missing_mean = np.mean(missing).round(4)
     row = pd.DataFrame(
         [[id, H.sensor, H.channel, feature_type,
-          H.stime, H.etime,
+          H.stime.strftime("%Y-%m-%d %H:%M:%S.%f"), H.etime.strftime("%Y-%m-%d %H:%M:%S.%f"),
           H.window_size, H.window_size - H.window_shift, window_name,
           H.n_windows, n_variables,
           missing_mean,
           H.fmin, H.fmax,
           H.nsamp, H.srate,
           H.detrend, H.Coherent_noise_removed,
-          datetime.now()]])
-    # starttime, endtime, save_time
+          datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")]])
+    # starttime, endtime
     for col_id in [4, 5, 18]:
-       row[col_id] = pd.to_datetime(row[col_id], format ="%Y-%m-%d %H:%M:%S") 
+       row[col_id] = row[col_id].str.slice(0, -4)
 
-    row.to_csv(log_path, mode='a', sep=",", index=False, header=False, date_format="%Y-%m-%d %H:%M:%S")
+    row.to_csv(log_path, mode='a', sep=",", index=False, header=False, date_format="%Y-%m-%d %H:%M:%S.%f")
 
     if verbose == True: print(f"Features saved at {save_folder.rstrip('/')}/{id}.mat")
     

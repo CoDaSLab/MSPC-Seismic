@@ -734,20 +734,21 @@ class HDAS:
         return window_data
     
 
-    def get_missing_samples(self, percent = False):
+    def get_missing_samples(self, rate = False):
         """
         Returns the number of missing values in the specified window.
 
         Parameters
         ----------
-        percent : bool, optional
-            If True, returns percentages instead of the amount of missing values. Default is False.
+        rate : bool, optional
+            If True, returns rate of missing values (between 0 and 1) instead of the amount of missing values. 
+            Default is False.
 
         Returns
         -------
         missing_samples : array
             Array of shape (number of spatial points x number of windows) containing the number or
-            percentage of missing values of each window.
+            rate of missing values of each window.
         """
         missing_samples = np.zeros((len(self.sps), self.n_windows))
         for sp in range(len(self.sps)):
@@ -759,7 +760,7 @@ class HDAS:
                     window_mask = window_data.mask
                     window_missing = np.sum(window_mask)
 
-                    if percent:
+                    if rate:
                         window_missing = window_missing / len(window_data)
 
                     missing_samples[sp, window_id] = window_missing
