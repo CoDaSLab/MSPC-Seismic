@@ -98,9 +98,9 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
             print(f"Connected to {server}.")
             sftp = client.open_sftp()
-        except paramiko.AuthenticationException as e:
+        except Exception as e:
             input_start_time = datetime.now()
-            print(f"Authentication error for {server}: {e}")
+            print(f"Connection to {server} via SSH key failed: {e}")
             print(f"Please enter username and password.")
             username = input(f"Username for {server}: ")
             password = getpass.getpass(f"Password for {server}: ")
@@ -112,8 +112,6 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
                 sftp = client.open_sftp()
             except Exception as e:
                 print(f"Error connecting to {server}: {e}")
-        except Exception as e:
-            print(f"Error connecting to {server}: {e}")
 
         if sftp:
             remote_tar_file = None
