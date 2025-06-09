@@ -13,24 +13,25 @@ Main functionalities:
 - Connect to the SFTP servers and download the filtered files to a local directory structure.
 
 Usage:
-    python pull.py <starttime> <endtime> <sensor> <channel> [--user] [--pasw] [--passphrase] [--data_path] [--key_path] [--compress]
+    python pull.py <starttime> <endtime> [-s <sensor1> <sensor2> ...] [-c <channel1> <channel2> ...] [-u <user>] [-pw <password>] 
+        [-pp <passphrase>] [-dp <data_path>] [-l <file_log>] [-kp <key_path>] [--compress]
 
 Arguments:
-    starttime    - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
-    endtime      - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
-    sensor       - Sensor name.
-    channel      - Channel name.
-    --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
-    --file_log   - Local directory path where the file log is be saved (optional, default is 'data/involcan/metadata/available_files.csv').
-    --user       - Remote server username (optional, default is local username).
-    --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
-    --passphrase - Passphrase for an SSH key (optional, default is None).
-    --pasw       - Remote server password (optional, default is None).
-    --compress   - Optional flag to compress files on the remote server before downloading. Not recommended
-                    because the server does not have much available storage.
+    starttime         - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
+    endtime           - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
+    -s, --sensors     - Sensor names.
+    -c, --channels    - Channel names.
+    -dp, --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
+    -l, --file_log    - Local directory path where the file log is be saved (optional, default is 'data/involcan/metadata/available_files.csv').
+    -u, --user        - Remote server username (optional, default is local username).
+    -kp, --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
+    -pp, --passphrase - Passphrase for an SSH key (optional, default is None).
+    -pw, --pasw       - Remote server password (optional, default is None).
+    --compress        - Optional flag to compress files on the remote server before downloading. Not recommended
+                            if the server does not have much available storage.
 
 Example:
-    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' 'PPMA' 'HHZ' --user username
+    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' --user username
 """
 
 import paramiko
@@ -53,6 +54,14 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
     if isinstance(endtime, str):
         endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+
+    assert starttime < endtime, "Start date cannot be later than end date."
+
+    # Allows for single sensor and single channel input
+    if isinstance(sensors, str):
+        sensors = [sensors]
+    if isinstance(channels, str):
+        channels = [channels]
 
     # Read the CSV file and filter rows based on sensor, channel, and date range
     files_to_download = []
@@ -188,17 +197,17 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Downloads mseed files from a remote directory.")
     parser.add_argument("starttime", help="Start date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("endtime", help="End date and time in the format 'YYYY-MM-DD HH:MM:SS'")
-    parser.add_argument("sensor", help="Sensor name")
-    parser.add_argument("channel", help="Channel name")
-    parser.add_argument("--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
-    parser.add_argument("--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the downloaded files log")
-    parser.add_argument("--user", type=str, default=None, help="Remote server username")
-    parser.add_argument("--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
-    parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
-    parser.add_argument("--pasw", type=str, default=None, help="Remote server password")
+    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Sensor names.")
+    parser.add_argument("-c", "--channels", nargs='+', required=True, help="Channel names.")
+    parser.add_argument("-dp", "--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
+    parser.add_argument("-l", "--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the available files log")
+    parser.add_argument("-u", "--user", type=str, default=None, help="Remote server username")
+    parser.add_argument("-kp", "--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
+    parser.add_argument("-pp", "--passphrase", type=str, default=None, help="SSH key passphrase")
+    parser.add_argument("-pw", "--pasw", type=str, default=None, help="Remote server password")
     parser.add_argument("--compress", action='store_true', help="Compress files on the remote server before downloading")
 
     args = parser.parse_args()
 
-    download_files(args.starttime, args.endtime, args.sensor, args.channel, args.data_path, args.file_log,
+    download_files(args.starttime, args.endtime, args.sensors, args.channels, args.data_path, args.file_log,
                    args.user, args.key_path, args.passphrase, args.pasw, args.compress)
