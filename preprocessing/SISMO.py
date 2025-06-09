@@ -130,7 +130,7 @@ class SISMO(HDAS):
         # Warn about filled values
         filled_points = tr.stats.npts - total_points
         if filled_points > 0:
-            warnings.warn(f"{filled_points} values filled as None.")
+            warnings.warn(f"{filled_points} values filled as {self.merge_fill_value}.")
 
         self.tr = tr
         return
