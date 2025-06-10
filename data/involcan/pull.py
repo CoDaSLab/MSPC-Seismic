@@ -14,7 +14,7 @@ Main functionalities:
 
 Usage:
     python pull.py <starttime> <endtime> [-s <sensor1> <sensor2> ...] [-c <channel1> <channel2> ...] [-u <user>] [-pw <password>] 
-        [-pp <passphrase>] [-dp <data_path>] [-l <file_log>] [-kp <key_path>] [--compress]
+        [-pp <passphrase>] [-dp <data_path>] [-l <file_log>] [-kp <key_path>] [-v] [--compress]
 
 Arguments:
     starttime         - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
@@ -27,11 +27,12 @@ Arguments:
     -kp, --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     -pp, --passphrase - Passphrase for an SSH key (optional, default is None).
     -pw, --pasw       - Remote server password (optional, default is None).
-    --compress        - Optional flag to compress files on the remote server before downloading. Not recommended
-                            if the server does not have much available storage.
+    -v, --verbose     - Print extra messages (optional, default is False).
+    --compress        - Compress files on the remote server before downloading. Not recommended if the server 
+                        does not have much storage available (optional, default is False).
 
 Example:
-    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' --user username
+    python data/involcan/pull.py '2021-09-17 00:10:00' '2021-09-20 19:59:59' -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' --user username -v
 """
 
 import paramiko
@@ -43,7 +44,7 @@ from collections import defaultdict
 import tarfile
 
 def download_files(starttime, endtime, sensors, channels, data_path='data/involcan/mseed/', file_log = 'data/involcan/metadata/available_files.csv',
-                    user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, compress=False):
+                    user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, verbose=False, compress=False):
     """
     Downloads seismic files filtered by date, sensor, and channel from SFTP servers.
     Performs a single SSH connection per server to download all corresponding files.
@@ -141,9 +142,10 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
                 exit_status = stdout.channel.recv_exit_status()
 
                 # Read command output
-                print("Compressed files:")
-                print(stdout.read().decode())
-                print(stderr.read().decode())
+                if verbose:
+                    print("Compressed files:")
+                    print(stdout.read().decode())
+                    print(stderr.read().decode())
 
                 if exit_status != 0:
                     print(f"Compressed file could not be created: {exit_status}")
@@ -166,6 +168,7 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
                 os.remove(local_tar_file) # Remove the archive after decompression
 
             else:
+                if not verbose: print("Downloading files...")
                 for file_info in file_list:
                     filepath = file_info['path'] + '/' + file_info['filename']
 
@@ -175,7 +178,7 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
 
                     # Download the file from the server
                     try:
-                        print(f"Downloading {file_info['filename']} from {file_info['server']}...")
+                        if verbose: print(f"Downloading {file_info['filename']} from {file_info['server']}...")
                         sftp.get(filepath, local_filepath)
                         successful_downloads += 1
                     except Exception as e:
@@ -205,9 +208,10 @@ if __name__ == "__main__":
     parser.add_argument("-kp", "--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
     parser.add_argument("-pp", "--passphrase", type=str, default=None, help="SSH key passphrase")
     parser.add_argument("-pw", "--pasw", type=str, default=None, help="Remote server password")
+    parser.add_argument("-v", "--verbose", action='store_true', help="Print extra messages (default: False)")
     parser.add_argument("--compress", action='store_true', help="Compress files on the remote server before downloading")
 
     args = parser.parse_args()
 
     download_files(args.starttime, args.endtime, args.sensors, args.channels, args.data_path, args.file_log,
-                   args.user, args.key_path, args.passphrase, args.pasw, args.compress)
+                   args.user, args.key_path, args.passphrase, args.pasw, args.verbose, args.compress)

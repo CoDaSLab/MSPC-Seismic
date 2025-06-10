@@ -19,21 +19,23 @@ Main functionalities:
 - Print the total time taken by the process in a readable format (hours, minutes, and seconds).
 
 Usage:
-    python fetch.py <server> <port> <remote_path> <user> [--pasw] [--key_path] [--passphrase] [--log_path] [--mode overwrite|append]
+    python fetch.py <server> <port> <remote_path> <user> [-pw <password>] [-kp <key_path>] [-pp <passphrase>]
+      [-lp <log_path>] [-m overwrite|append] [-v]
 
 Arguments:
-    server       - SFTP server address.
-    port         - Port number.
-    remote_path  - Remote directory path.
-    user         - Username.
-    --pasw       - Password. Default is None.
-    --key_path   - SSH key path. Default is '~/.ssh/id_rsa'.
-    --passphrase - Passphrase of the SSH key. Default is None.
-    --log_path   - CSV file path. Default is 'data/involcan/metadata/available_files.csv'.
-    --mode       - Operation mode for the CSV file: "overwrite" or "append" (default: "append").
+    server            - SFTP server address.
+    port              - Port number.
+    remote_path       - Remote directory path.
+    user              - Username.
+    -pw, --pasw       - Password. Default is None.
+    -kp, --key_path   - SSH key path. Default is '~/.ssh/id_rsa'.
+    -pp, --passphrase - Passphrase of the SSH key. Default is None.
+    -lp, --log_path   - CSV file path. Default is 'data/involcan/metadata/available_files.csv'.
+    -m, --mode        - Operation mode for the CSV file: "overwrite" or "append". Default is "append".
+    -v, --verbose     - Print extra messages. Default is False.
 
 Example:
-    python data/involcan/fetch.py 193.147.109.7 22 /path/to/directory user --pasw password --mode append
+    python data/involcan/fetch.py 193.147.109.7 22 /path/to/directory user --pasw password --mode append -v
 """
 import paramiko
 import stat
@@ -52,7 +54,7 @@ def is_seismic(file_name):
     """
     return re.match(r'.*\.\d{3}$', file_name) is not None
 
-def find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_sensors, found_sensors):
+def find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_sensors, found_sensors, verbose):
     """
     Find seismic files in the specified path on the SFTP server.
     For each seismic file found, write its details to the CSV file.
@@ -60,7 +62,7 @@ def find_seismic_files(sftp, remote_path, writer, server, existing_files, expect
     """
     with ThreadPoolExecutor() as executor:
         futures = [executor.submit(process_directory, root, files, writer, server, existing_files, expected_sensors, found_sensors) 
-                   for root, dirs, files in sftp_walk(sftp, remote_path)]
+                   for root, dirs, files in sftp_walk(sftp, remote_path, verbose)]
         for future in as_completed(futures):
             future.result()
 
@@ -90,7 +92,7 @@ def process_directory(root, files, writer, server, existing_files, expected_sens
                     # Add the sensor to the set of sensors with new files
                     found_sensors.add(sensor)
 
-def sftp_walk(sftp, remotepath):
+def sftp_walk(sftp, remotepath, verbose):
     """
     Walk through the directories and subdirectories on the SFTP server.
     Yield the path, folders, and files in each directory.
@@ -98,7 +100,8 @@ def sftp_walk(sftp, remotepath):
     path = remotepath
     files = []
     folders = []
-    print(f"Checking directory: {remotepath}")
+    if verbose:
+        print(f"Checking directory: {remotepath}")
     try:
         for f in sftp.listdir_attr(remotepath):
             if stat.S_ISDIR(f.st_mode):
@@ -108,7 +111,7 @@ def sftp_walk(sftp, remotepath):
         yield path, folders, files
         for folder in folders:
             new_path = os.path.join(remotepath, folder).replace('\\', '/')
-            for x in sftp_walk(sftp, new_path):
+            for x in sftp_walk(sftp, new_path, verbose):
                 yield x
     except IOError as e:
         print(f"Error accessing directory {remotepath}: {e}. Skipping this directory.")
@@ -138,7 +141,7 @@ def parse_filename(file_name):
     return network, sensor, channel, date
 
 def fetch_files(server, port, remote_path, user, password=None, key_path='~/.ssh/id_rsa', passphrase=None, 
-                log_path='data/involcan/metadata/available_files.csv', mode='append'):
+                log_path='data/involcan/metadata/available_files.csv', mode='append', verbose=False):
     """
     Main function to connect to the SFTP server, find seismic files,
     and write their details to a CSV file. The mode parameter determines
@@ -198,7 +201,7 @@ def fetch_files(server, port, remote_path, user, password=None, key_path='~/.ssh
                 writer.writerow(['network', 'sensor', 'channel', 'start_time', 'end_time', 'server', 'path', 'filename'])
             
             # Pass the found_sensors set to the search function
-            find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_sensors, found_sensors)
+            find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_sensors, found_sensors, verbose)
 
         # Check which expected sensors did not have new files
         missing_sensors = expected_sensors - found_sensors
@@ -238,11 +241,12 @@ if __name__ == "__main__":
     parser.add_argument("port", type=int, help="Port number")
     parser.add_argument("remote_path", type=str, help="Remote directory path")
     parser.add_argument("user", type=str, help="Username")
-    parser.add_argument("--pasw", type=str, default=None, help="Password")
-    parser.add_argument("--key_path", type=str, default='~/.ssh/id_rsa', help="SSH key path")
-    parser.add_argument("--passphrase", type=str, default=None, help="SSH key passphrase")
-    parser.add_argument("--log_path", type=str, default='data/involcan/metadata/available_files.csv', help="CSV file path")
-    parser.add_argument("--mode", choices=['overwrite', 'append'], default='append', help="Mode to write the CSV file: overwrite or append (default: append)")
+    parser.add_argument("-pw", "--pasw", type=str, default=None, help="Password")
+    parser.add_argument("-kp", "--key_path", type=str, default='~/.ssh/id_rsa', help="SSH key path")
+    parser.add_argument("-pp", "--passphrase", type=str, default=None, help="SSH key passphrase")
+    parser.add_argument("-lp", "--log_path", type=str, default='data/involcan/metadata/available_files.csv', help="CSV file path")
+    parser.add_argument("-m", "--mode", choices=['overwrite', 'append'], default='append', help="Mode to write the CSV file: overwrite or append (default: append)")
+    parser.add_argument("-v", "--verbose", action='store_true', help="Print extra messages (default: False)")
 
     args = parser.parse_args()
-    fetch_files(args.server, args.port, args.remote_path, args.user, args.pasw, args.key_path, args.passphrase, args.log_path, args.mode)
+    fetch_files(args.server, args.port, args.remote_path, args.user, args.pasw, args.key_path, args.passphrase, args.log_path, args.mode, args.verbose)
