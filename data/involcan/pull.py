@@ -2,14 +2,13 @@
 pull.py
 
 This script connects to SFTP servers, filters seismic files based on a specified date range, sensor, and channel, and downloads 
-the corresponding files to a local directory structure.
+the corresponding files to a local directory structure. It makes use of a list of available files created by fetch.py.
 
 Main functionalities:
 - Convert start and end time strings to datetime objects.
 - Read a CSV file containing metadata of available files and filter the rows based on the provided sensor, channel, and date range.
 - Try to connect to the host using an SSH key.
-- If an SSH key is not found, check is credentials are available as environment variables.
-- If credentials are not available as environment variables, attempt connection with credentials manually entered by the user.
+- If an SSH key is not found, attempt connection with username and password.
 - Connect to the SFTP servers and download the filtered files to a local directory structure.
 
 Usage:
@@ -22,7 +21,7 @@ Arguments:
     -s, --sensors     - Sensor names.
     -c, --channels    - Channel names.
     -dp, --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
-    -l, --file_log    - Local directory path where the file log is be saved (optional, default is 'data/involcan/metadata/available_files.csv').
+    -l, --file_log    - Local directory path where the file log is saved (optional, default is 'data/involcan/metadata/available_files.csv').
     -u, --user        - Remote server username (optional, default is local username).
     -kp, --key_path   - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     -pp, --passphrase - Passphrase for an SSH key (optional, default is None).
