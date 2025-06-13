@@ -1,9 +1,10 @@
 """
-pull2.py
+pull_rt.py
 
 This script connects to SFTP servers, filters seismic files based on a specified date range, sensor, and channel, and downloads 
-the corresponding files to a local directory structure. It keeps track of the latest download times for each channel-sensor
-combination in a CSV file. Unlike pull.py, this script does not make use of the list of available files created by fetch.py.
+the corresponding files to a local directory structure. It also keeps track of the latest download times for each channel-sensor
+combination in a CSV file. It is intended for downloading data for real-time monitoring. Unlike pull.py, this script 
+does not make use of the list of available files created by fetch.py.
 
 Main functionalities:
 - Convert start and end time strings to datetime objects.
@@ -13,7 +14,7 @@ Main functionalities:
 - Saves the latest pull times for each sensor-channel combination in another CSV file.
 
 Usage:
-    python pull2.py <starttime> <endtime> <server> <user> [-s <sensor1> <sensor2> ...] [-c <channel1> <channel2> ...] 
+    python pull_rt.py <starttime> <endtime> <server> <user> [-s <sensor1> <sensor2> ...] [-c <channel1> <channel2> ...] 
         [-pw <password>] [-pp <passphrase>] [-dp <data_path>] [-lp <log_path] [-kp <key_path>] [-p <port>] [-v]
 
 Arguments:
@@ -34,7 +35,7 @@ Arguments:
     -v, --verbose           - Print extra messages (optional, default is False).
 
 Example:
-    python -m data.involcan.pull2 '2021-09-17 00:10:00' '2021-09-20 19:59:59' 193.147.109.7 user C7 -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' -p 22 -v
+    python -m data.involcan.pull_rt '2021-09-17 00:10:00' '2021-09-20 19:59:59' 193.147.109.7 user C7 -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' -p 22 -v
 """
 
 import paramiko
@@ -44,7 +45,7 @@ import os
 import getpass
 from data.scripts.get_filenames import get_filenames
 
-def download_files2(starttime, endtime, server, user, network, sensors, channels, 
+def download_files_rt(starttime, endtime, server, user, network, sensors, channels, 
                              data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/pull_times.csv',
                              key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, port=22, verbose=False):
     """
@@ -184,5 +185,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    download_files2(args.starttime, args.endtime, args.server, args.user, args.network, args.sensors, args.channels, args.data_path,
+    download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.sensors, args.channels, args.data_path,
                    args.log_path, args.key_path, args.passphrase, args.pasw, args.port, args.verbose)
