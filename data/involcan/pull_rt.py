@@ -26,8 +26,8 @@ Arguments:
     -s, --sensors           - Sensor names.
     -c, --channels          - Channel names.
     -dp, --data_path        - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
-    -lp, --log_path         - Local directory path where the fetch and pull times log is saved (optional, default is 
-                                'data/involcan/metadata/fetch_pull_times.csv').
+    -lp, --log_path         - Local directory path where the pull times log is saved (optional, default is 
+                                'data/involcan/metadata/latest_pulls.csv').
     -kp, --key_path         - Path to the SSH key (optional, default is '~/.ssh/id_rsa')
     -pp, --passphrase       - Passphrase for an SSH key (optional, default is None).
     -pw, --pasw             - Remote server password (optional, default is None).
@@ -46,7 +46,7 @@ import getpass
 from data.scripts.get_filenames import get_filenames
 
 def download_files_rt(starttime, endtime, server, user, network, sensors, channels, 
-                             data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/pull_times.csv',
+                             data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/latest_pulls.csv',
                              key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, port=22, verbose=False):
     """
     Downloads seismic files filtered by date, sensor, and channel from SFTP server.
@@ -151,7 +151,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
 
     # Find latest download times
     log = pd.concat([log, file_list], ignore_index=True)
-    log['latest_pull_time'] = pd.to_datetime(log['latest_pull_time'])
+    log['latest_pull_time'] = pd.to_datetime(log['latest_pull_time'], format='%Y-%m-%d %H:%M:%S')
     latest_rows = log.groupby(['sensor', 'channel'])['latest_pull_time'].idxmax()
     latest_files = log.loc[latest_rows].reset_index(drop=True)
     # Save CSV
@@ -176,7 +176,7 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Sensor names.")
     parser.add_argument("-c", "--channels", nargs='+', required=True, help="Channel names.")
     parser.add_argument("-dp", "--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
-    parser.add_argument("-lp", "--log_path", default='data/involcan/metadata/pull_times.csv', help="Path to the fetch and pull times log")
+    parser.add_argument("-lp", "--log_path", default='data/involcan/metadata/latest_pulls.csv', help="Path to the pull times log")
     parser.add_argument("-kp", "--key_path", default='~/.ssh/id_rsa', help="Path to an SSH key")
     parser.add_argument("-pp", "--passphrase", type=str, default=None, help="SSH key passphrase")
     parser.add_argument("-pw", "--pasw", type=str, default=None, help="Remote server password")
