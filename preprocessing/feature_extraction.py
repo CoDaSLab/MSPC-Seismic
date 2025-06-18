@@ -323,7 +323,7 @@ def _save_features(H, features, feature_type,
     # Fraction of missing data in the whole signal
     missing_mean = np.mean(missing).round(4)
     row = pd.DataFrame(
-        [[id, H.sensor, H.channel, feature_type,
+        [[id, H.network, H.sensor, H.channel, feature_type,
           H.stime.strftime("%Y-%m-%d %H:%M:%S.%f"), H.etime.strftime("%Y-%m-%d %H:%M:%S.%f"),
           H.window_size, H.window_size - H.window_shift, window_name,
           H.n_windows, n_variables,
@@ -333,7 +333,7 @@ def _save_features(H, features, feature_type,
           H.detrend, H.Coherent_noise_removed,
           datetime.now().strftime("%Y-%m-%d %H:%M:%S.%f")]])
     # starttime, endtime
-    for col_id in [4, 5, 18]:
+    for col_id in [5, 6, 19]:
        row[col_id] = row[col_id].str.slice(0, -4)
 
     row.to_csv(log_path, mode='a', sep=",", index=False, header=False, date_format="%Y-%m-%d %H:%M:%S.%f")
