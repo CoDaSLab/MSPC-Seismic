@@ -123,7 +123,8 @@ class SISMO(HDAS):
             # Merge all stream traces
             ST.merge(method = self.merge_method, fill_value = self.merge_fill_value)
 
-        print(ST)
+        if self.verbose:
+            print(ST)
         assert len(ST) == 1, "Number of traces in stream should be 1"
         tr = ST[0]
 

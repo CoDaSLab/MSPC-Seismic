@@ -40,7 +40,7 @@ Example:
 
 import paramiko
 import pandas as pd
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import os
 import getpass
 from data.scripts.get_filenames import get_filenames
@@ -131,7 +131,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
                         if verbose: print(f"Downloading {filename}...")
                         sftp.get(filepath, local_filepath)
                         successful_downloads += 1
-                        pull_time = datetime.now()
+                        pull_time = datetime.now(timezone.utc)
                     except Exception as e:
                         print(f"Error downloading {filepath}: {e}")
                     else:
@@ -151,7 +151,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
 
     # Find latest download times
     log = pd.concat([log, file_list], ignore_index=True)
-    log['latest_pull_time'] = pd.to_datetime(log['latest_pull_time'], format='%Y-%m-%d %H:%M:%S')
+    log['latest_pull_time'] = pd.to_datetime(log['latest_pull_time'], format='%Y-%m-%dT%H:%M:%SZ')
     latest_rows = log.groupby(['sensor', 'channel'])['latest_pull_time'].idxmax()
     latest_files = log.loc[latest_rows].reset_index(drop=True)
     # Save CSV
