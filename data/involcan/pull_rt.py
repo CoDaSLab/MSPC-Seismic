@@ -136,7 +136,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
                         print(f"Error downloading {filepath}: {e}")
                     else:
                         row = pd.DataFrame({'network' : [network], 'sensor' : [sensor], 'channel' : [channel], 'latest_file' : [filename],
-                                            'start_time' : [stime], 'latest_pull_time' : [pull_time.strftime('%Y-%m-%d %H:%M:%S')]})
+                                            'start_time' : [stime], 'latest_pull_time' : [pull_time.strftime('%Y-%m-%dT%H:%M:%SZ')]})
                         file_list = pd.concat([file_list, row])
         
         sftp.close()
@@ -155,7 +155,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
     latest_rows = log.groupby(['sensor', 'channel'])['latest_pull_time'].idxmax()
     latest_files = log.loc[latest_rows].reset_index(drop=True)
     # Save CSV
-    latest_files.to_csv(log_path, header=True, index=False)
+    latest_files.to_csv(log_path, header=True, index=False, date_format='%Y-%m-%dT%H:%M:%SZ')
 
     failed_downloads = total_files - successful_downloads
 
