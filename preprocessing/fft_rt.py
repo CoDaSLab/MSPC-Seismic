@@ -7,10 +7,9 @@ from scipy.io import savemat
 from preprocessing.SISMO import SISMO
 
 def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN', 'HHZ'], 
-            window=10, overlap=0, windowing=False, detrend=False, fft_points=256, merge_method=0,
-            merge_fill_value = None, resampling_factor=1, 
-            data_path="data/involcan/mseed", cpus=1, verbose=False, 
-            save=False, save_path="data/involcan/features"):
+                    window=10, overlap=0, windowing=False, detrend=False, fft_points=256, 
+                    merge_method=0, merge_fill_value = None, data_path="data/involcan/mseed",
+                    cpus=1, verbose=False, save=False, save_path="data/involcan/features"):
     """
     Extracts FFT coefficients and derivatives from seismic signals over a specified time range 
     for multiple sensors and channels. This function is meant for use in real time monitoring.
@@ -32,7 +31,6 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
             `Trace` class from the ObsPy module).
         merge_fill_value (any): Value used to fill gaps when merging if applicable
             (see documentation for the `Stream.merge` method from the ObsPy module).
-        resampling_factor (int): Resampling factor for FFT features (default: 1 = no resampling).
         data_path (str): Directory path containing seismic data (default: "data/involcan/mseed").
         cpus (int): Number of CPU cores to use for processing (default: 1).
         verbose (bool): Whether to print detailed messages during feature extraction (default: False).
@@ -73,7 +71,6 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
                 window: {window} s
                 overlap: {overlap} s
                 windowing: {windowing}
-                resampling_factor: {resampling_factor}
                 """)
 
         S = SISMO(
@@ -95,16 +92,7 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
                             'deltas_ffts': np.squeeze(S.deltas_fft),
                             'deltas_deltas_ffts': np.squeeze(S.deltas_deltas_fft)}
 
-        # Resampling of the FFTs
-        for key, array in channel_features.items():
-            if resampling_factor > 1:
-                w, f = array.shape
-                if f % resampling_factor != 0:
-                    raise ValueError(f"The number of columns in '{key}' ({f}) is not a multiple of {resampling_factor}.")
-                
-                # Average blocks of columns
-                channel_features[key] = array.reshape(w, f // resampling_factor, resampling_factor).mean(axis=2)
-        
+        for key, array in channel_features.items():        
             features[key].append(array)
 
     # Concatenate features for all channels along the columns
