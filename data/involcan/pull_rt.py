@@ -59,7 +59,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
     if isinstance(endtime, str):
         endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
 
-    assert starttime < endtime, "Start date cannot be later than end date."
+    assert starttime <= endtime, "Start date cannot be later than end date."
 
     # Allows for single sensor and single channel input
     if isinstance(sensors, str):

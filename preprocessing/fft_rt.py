@@ -1,15 +1,16 @@
 import os
 import re
-from datetime import datetime
+from datetime import datetime, timedelta
 import numpy as np
 from scipy.io import savemat
 
 from preprocessing.SISMO import SISMO
 
 def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN', 'HHZ'], 
-                    window=10, overlap=0, windowing=False, detrend=False, fft_points=256, 
-                    merge_method=0, merge_fill_value = None, data_path="data/involcan/mseed",
-                    cpus=1, verbose=False, save=False, save_path="data/involcan/features"):
+                    window_size=10, window_shift=None, detrend=False, fft_points=256, 
+                    merge_method=0, merge_fill_value = None, pad_fill_value=False,
+                    data_path="data/involcan/mseed", cpus=1, verbose=False, save=False, 
+                    save_path="data/involcan/features"):
     """
     Extracts FFT coefficients and derivatives from seismic signals over a specified time range 
     for multiple sensors and channels. This function is meant for use in real time monitoring.
@@ -19,11 +20,10 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
         starttime (datetime): Start time for data extraction.
         endtime (datetime): End time for data extraction.
         network (str): Seismic network identifier.
-        sensors (list of str): List of station codes.
+        sensor (str): Station codes.
         channels (list of str): List of channels (default: ['HHE', 'HHN', 'HHZ']).
-        window (int): Time window size in seconds (default: 10).
-        overlap (int): Overlap between windows in seconds (default: 0).
-        windowing (bool): Whether to apply a window function to each segment (default: False).
+        window_size (int): Time window size in seconds (default: 10).
+        window_shift (int): Interval between the start of windows in seconds (default: window_size).
         detrend (bool): Whether to remove linear trend from signals (default: False).
         fft_points (int or 'auto'): Number of FFT points. If set to `'auto'`, uses the number of 
             points per window.
@@ -31,6 +31,8 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
             `Trace` class from the ObsPy module).
         merge_fill_value (any): Value used to fill gaps when merging if applicable
             (see documentation for the `Stream.merge` method from the ObsPy module).
+        pad_fill_value (any): Value used to fill gaps at the start or end of the time range if
+            the signal is contained within the given time range. If False, no padding is applied.
         data_path (str): Directory path containing seismic data (default: "data/involcan/mseed").
         cpus (int): Number of CPU cores to use for processing (default: 1).
         verbose (bool): Whether to print detailed messages during feature extraction (default: False).
@@ -40,10 +42,13 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
     Returns
     -------
         features (dict): A dictionary containing the following extracted features:
-            - 'ffts': FFT coefficients for each time window.
-            - 'deltas_ffts': First-order differences of FFTs.
-            - 'deltas_deltas_ffts': Second-order differences of FFTs.
-            - 'missing_rates': Proportion of missing samples in each time window.
+            - 'ffts' (numpy array): FFT coefficients for each time window.
+            - 'deltas_ffts' (numpy array): First-order differences of FFTs.
+            - 'deltas_deltas_ffts' (numpy array): Second-order differences of FFTs.
+            - 'missing_rates' (numpy array): Proportion of missing samples in each time window.
+            - 'obs_labels' (list): Observation (row) labels, the corresponding end time for each window.
+            - 'var_labels' (list): Variable (column) labels, the corresponding frequency for each column.
+            - 'var_classes' (list): Variable (column) classes, the corresponding channel for each column.
 
     """
     if isinstance(starttime, str):
@@ -54,9 +59,11 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
     time0 = datetime.now()
-    print(f"Extracting features...")
+    if verbose:
+        print(f"Extracting features...")
 
-    shift = window - overlap
+    if window_shift is None:
+        window_shift = window_size
 
     features = {'ffts': [], 
                 'deltas_ffts': [],
@@ -68,23 +75,21 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
                 Extracting SISMO features 
                 network: {network}, sensor: {sensor}, channel: {channel}
                 from {starttime} to {endtime}
-                window: {window} s
-                overlap: {overlap} s
-                windowing: {windowing}
+                window size: {window_size} s
+                window shift: {window_shift} s
                 """)
 
         S = SISMO(
             network, sensor, channel, 
-            starttime, endtime,
-            detrend, windowing,
+            starttime, endtime, detrend=detrend,
             merge_method=merge_method, merge_fill_value=merge_fill_value,
-            cpus=cpus, data_path=data_path
+            pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
         )
         if verbose:
             S.check()
         
         # Set window size and overlap
-        S.set_windows(window, shift)
+        S.set_windows(window_size, window_shift)
 
         # Calculate FFT coefficients
         S.fft_bin(fft_points)
@@ -105,7 +110,21 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
     # Rate of missing values for every window
     features['missing_rates'] = np.squeeze(S.get_missing_samples(rate=True))
 
-    print(f"Extracted FFT coefficients. Time taken: {datetime.now() - time0}")
+    # Observation labels (window end times)
+    n_obs, n_vars = features['ffts'].shape
+    window_times = [starttime + timedelta(seconds=window_shift * i + window_size) for i in range(n_obs)]
+    features['obs_labels'] = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in window_times]
+
+    # Variable labels (frequencies)
+    n_vars_per_channel = n_vars // len(channels)
+    frequencies = np.round(np.linspace(S.fmin, S.fmax, n_vars), 4)
+    features['var_labels'] = frequencies.tolist() * len(channels)
+
+    # Variable classes (channels)
+    features['var_classes'] = [ch for ch in channels for _ in range(n_vars_per_channel)]
+
+    if verbose:
+        print(f"Extracted FFT coefficients. Time taken: {datetime.now() - time0}")
 
     if save:
         file_name = sensor + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
@@ -123,8 +142,8 @@ def delete_fft(path, sensor, starttime, endtime, verbose = False):
     ----------
         path (str): Path to the directory containing the files.
         sensor (str): Name of the sensor.
-        starttime (str, datetime): The start date of the range.
-        endtime (str, datetime): The end date of the range.
+        starttime (str or datetime): The start date of the range.
+        endtime (str or datetime): The end date of the range.
     """
     # Convert date strings to datetime objects for comparison
     if isinstance(starttime, str):
@@ -174,59 +193,3 @@ def delete_fft(path, sensor, starttime, endtime, verbose = False):
         print(f"Error: The directory '{path}' does not exist.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
-
-
-if __name__ == '__main__':
-    # Test for delete_fft
-    from datetime import timedelta
-    import shutil
-    
-    # Create a test directory and some dummy files
-    test_dir = "test_files"
-    if not os.path.exists(test_dir):
-        os.makedirs(test_dir)
-    
-    sensor_1 = "sensorX"
-    sensor_2 = "sensorY"
-    
-    base_dt = datetime(2025, 6, 1, 0, 1, 2)
-    for i in range(10):
-        file_start = base_dt + timedelta(days=i)
-        file_end = file_start + timedelta(days=2)
-        
-        # Files for sensorX
-        filename_1 = f"{sensor_1}_{file_start.strftime('%Y-%m-%dT%H-%M-%SZ')}_{file_end.strftime('%Y-%m-%dT%H-%M-%SZ')}.xyz"
-        with open(os.path.join(test_dir, filename_1), 'w') as f:
-            f.write("dummy content")
-        
-        # Files for sensorY
-        filename_2 = f"{sensor_2}_{file_start.strftime('%Y-%m-%dT%H-%M-%SZ')}_{file_end.strftime('%Y-%m-%dT%H-%M-%SZ')}.xyz"
-        with open(os.path.join(test_dir, filename_2), 'w') as f:
-            f.write("dummy content")
-    
-    print(f"Files created in '{test_dir}':")
-    for f in os.listdir(test_dir):
-        print(f"- {f}")
-    print("-" * 30)
-    
-    #--- Call the function ---
-    #This will delete 'sensorX' files overlapping with 2025-06-05 to 2025-06-07
-    delete_fft(
-        path="jobs/test_files",
-        sensor="sensorX",
-        starttime="2025-06-05 00:00:00",
-        endtime="2025-06-08 00:01:02",
-        verbose=True
-    )
-    
-    print("\nRemaining files in directory after execution:")
-    if os.path.exists(test_dir):
-        for f in os.listdir(test_dir):
-            print(f"- {f}")
-    else:
-        print("Test directory deleted or does not exist.")
-    
-    # Clean up the test directory if needed
-    if os.path.exists(test_dir):
-        shutil.rmtree(test_dir)
-        print(f"\nTest directory '{test_dir}' removed.")

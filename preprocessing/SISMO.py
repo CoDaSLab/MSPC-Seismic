@@ -23,10 +23,48 @@ class SISMO(HDAS):
 
     def __init__(self, network, sensor, channel, starttime, endtime,
                  detrend = False, windowing = False, merge_method = 0, merge_fill_value = None, 
-                 cpus = 2, data_path = "data/involcan/mseed", verbose=False):
+                 pad_fill_value = False, cpus = 2, data_path = "data/involcan/mseed", verbose=False):
+        """
+        Reads seismic data corresponding to a sensor, channel and time range, and extracts features.
+
+        Parameters
+        ----------
+        network (str): 
+            Seismic network identifier.
+        sensor (str): 
+            Station code.
+        channels (str):
+            Channel code.
+        starttime (datetime):
+            Start of the time range to read.
+        endtime (datetime):
+            End of the time range to read.
+        detrend (any):
+            Detrending method. If False, no detrending is performed (default: False).
+        windowing (any):
+            Windowing function. If False, no windowing function is applied.
+        merge_method (int): 
+            Method used for merging waveform segments (see documentation for the 
+            `Trace` class from the ObsPy module).
+        merge_fill_value (any):
+            Value used to fill gaps when merging if applicable
+            (see documentation for the `Stream.merge` method from the ObsPy module).
+        pad_fill_value (any): 
+            Value used to fill gaps at the start or end of the time range if
+            the signal is contained within the given time range. If False, no padding is applied.
+        data_path (str): 
+            Directory path containing seismic data (default: "data/involcan/mseed").
+        cpus (int): 
+            Number of CPU cores to use for processing (default: 2).
+        verbose (bool): 
+            Whether to print detailed messages (default: False).
+        """
    
         # Get the filenames to read according to the starttime and endtime
-        start_day = starttime.replace(hour=0, minute=0, second=0) - timedelta(days=1)
+        if starttime.hour == 0 and starttime.minute == 0:
+            start_day = starttime.replace(hour=0, minute=0, second=0) - timedelta(days=1)
+        else:
+            start_day = starttime.replace(hour=0, minute=0, second=0)
         filenames = [data_path.rstrip('/') + '/' + file for file in get_filenames(network, sensor, channel, start_day, endtime)]
 
         assert len(filenames) > 0, "No data files in the selected time period"
@@ -39,7 +77,11 @@ class SISMO(HDAS):
         self.Coherent_noise_removed = False
         self.merge_method = merge_method
         self.merge_fill_value = merge_fill_value
+        self.pad_fill_value = pad_fill_value
         self.verbose = verbose
+
+        self.stime = obspy.UTCDateTime(starttime)
+        self.etime = obspy.UTCDateTime(endtime)
 
         # Fixed values for consistency with HDAS
         self.nsens = 1
@@ -50,14 +92,6 @@ class SISMO(HDAS):
         self.cpus = cpus
         assert type(cpus) == int and cpus > 0, "Select a valid number of cpus"
         assert cpus <= mp.cpu_count(), "Specified number of CPUs is larger than available."
-
-        # Determine initial starttime and endtime based on found files to read
-        day = int(filenames[0][-3:])
-        year = int(filenames[0][-8:-4])
-        self.stime = datetime(year, 1, 1) + timedelta(days=day - 1)
-        day = int(filenames[-1][-3:])
-        year = int(filenames[-1][-8:-4])
-        self.etime = datetime(year, 1, 1) + timedelta(days=day)
 
         # Read files in parallel
         self.read_files_in_parallel(filenames)
@@ -71,7 +105,7 @@ class SISMO(HDAS):
 
         self.cutT(starttime, endtime)
         if self.detrend:
-            self.tr.detrend(self.detrend,) # Detrend following the specified method
+            self.tr.detrend(self.detrend) # Detrend following the specified method
             if self.verbose: print(f"Trend removed from trace via {self.detrend}")    
 
         dd = self.tr.data.reshape(1, -1)
@@ -81,9 +115,11 @@ class SISMO(HDAS):
         self.nsamp = self.tr.stats.npts
         self.trel = np.arange(self.nsamp) * self.dt
 
-        # Extra info
+        # Update start and end times
         self.stime = self.tr.stats.starttime
         self.etime = self.tr.stats.endtime
+
+        # Extra info
         self.network = self.tr.stats.network
         self.sensor = self.tr.stats.station
         self.channel = self.tr.stats.channel
@@ -95,7 +131,7 @@ class SISMO(HDAS):
         try:
             if self.verbose:
                 print(f"Reading file: {filename}")
-            st = obspy.read(filename)  # Leer el archivo usando obspy
+            st = obspy.read(filename, starttime=self.stime, endtime = self.etime)  # Leer el archivo usando obspy
             return st
         except FileNotFoundError:
             print(f"File '{filename}' not found. It will be skipped.")
@@ -147,9 +183,14 @@ class SISMO(HDAS):
 
         if self.verbose: print(f"Cutting trend from {starttime} to {endtime}")
 
-        self.tr.trim(
-            starttime = starttimeUTC,
-            endtime   = endtimeUTC)
+        if self.pad_fill_value is False:
+            self.tr.trim(starttime = starttimeUTC, endtime = endtimeUTC)
+        else:
+            self.tr.trim(starttime = starttimeUTC, endtime = endtimeUTC,
+                        pad = True, fill_value=self.pad_fill_value)
+            mask = self.tr.data == self.pad_fill_value
+            if np.any(mask):
+                self.tr.data = np.ma.masked_array(self.tr.data, mask=mask, fill_value = self.pad_fill_value)
         
         self.nsamp = self.tr.stats.npts
 
@@ -168,8 +209,14 @@ class SISMO(HDAS):
         fig, ax = plt.subplots(figsize=(10,4))
         if ylim !=None:
             plt.ylim(ylim[0], ylim[1])
+        
+        if isinstance(self.tr.data, np.ma.MaskedArray):
+            start = self.stime.matplotlib_date
+            end = self.etime.matplotlib_date
+            times_mpl = np.linspace(start, end, self.nsamp)
+        else:
+            times_mpl = self.tr.times(type = 'matplotlib')
 
-        times_mpl = self.tr.times(type = 'matplotlib')
         ax.plot(times_mpl, self.tr, label=self.tr.stats.channel,
                 color='black')
         ax.set_xlim(times_mpl[0], times_mpl[-1])

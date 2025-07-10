@@ -1,0 +1,28 @@
+{
+  "update_frequency": 5,
+  "data_path": "data/involcan/mseed",
+  "features_path": "data/involcan/features",
+  "nocs_path": "data/involcan/nocs",
+  "latest_pulls_log_path": "data/involcan/metadata/latest_pulls.csv",
+  "noc_log_path": "data/involcan/metadata/noc_list.csv",
+  "anomaly_log_path": "data/involcan/metadata/anomaly_log.csv",
+  "network": "C7",
+  "stations": ["PPMA"],
+  "channels": ["HHE", "HHN", "HHZ"],
+  "starttime": "auto",
+  "endtime": "auto",
+  "window_size": 10,
+  "window_shift": null,
+  "detrend": false,
+  "feature_types": ["ffts"],
+  "fft_points": "auto",
+  "merge_method": 1,
+  "merge_fill_value": "interpolate",
+  "pad_fill_value": 0,
+  "cpus": 8,
+  "verbose": false,
+  "days_before_delete": 10,
+  "metadata": {
+    "max_frequency": 50
+  }
+}

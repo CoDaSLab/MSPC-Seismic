@@ -6,6 +6,8 @@
 /data/involcan/metadata/stations_lp.dat
 /data/*/mseed/**
 /data/*/DAS/**
+/tests/data/**/*
+!/tests/data/**/
 # Exceptions to clarify structure
 !/data/**/
 !**/README.md
@@ -23,4 +25,5 @@ jobs
 installation/**/
 !installation/docker_legacy/
 !installation/guide_img/
+.vscode
 # !.gitignore
