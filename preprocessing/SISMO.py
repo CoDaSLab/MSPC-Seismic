@@ -131,7 +131,10 @@ class SISMO(HDAS):
         try:
             if self.verbose:
                 print(f"Reading file: {filename}")
-            st = obspy.read(filename, starttime=self.stime, endtime = self.etime)  # Leer el archivo usando obspy
+            # Read file using ObsPy
+            st = obspy.read(filename, starttime=self.stime, endtime = self.etime)
+            if len(st) == 0:
+                st = obspy.read(filename)
             return st
         except FileNotFoundError:
             print(f"File '{filename}' not found. It will be skipped.")

@@ -2,25 +2,25 @@ import os
 import re
 from datetime import datetime, timedelta
 import numpy as np
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
 
 from preprocessing.SISMO import SISMO
 
-def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN', 'HHZ'], 
+def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN', 'HHZ'], 
                     window_size=10, window_shift=None, detrend=False, fft_points=256, 
                     merge_method=0, merge_fill_value = None, pad_fill_value=False,
                     data_path="data/involcan/mseed", cpus=1, verbose=False, save=False, 
                     save_path="data/involcan/features"):
     """
     Extracts FFT coefficients and derivatives from seismic signals over a specified time range 
-    for multiple sensors and channels. This function is meant for use in real time monitoring.
+    for multiple stations and channels. This function is meant for use in real time monitoring.
 
     Parameters
     ----------
         starttime (datetime): Start time for data extraction.
         endtime (datetime): End time for data extraction.
         network (str): Seismic network identifier.
-        sensor (str): Station codes.
+        station (str): Station codes.
         channels (list of str): List of channels (default: ['HHE', 'HHN', 'HHZ']).
         window_size (int): Time window size in seconds (default: 10).
         window_shift (int): Interval between the start of windows in seconds (default: window_size).
@@ -73,14 +73,14 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
         if verbose:
             print(f"""
                 Extracting SISMO features 
-                network: {network}, sensor: {sensor}, channel: {channel}
+                network: {network}, station: {station}, channel: {channel}
                 from {starttime} to {endtime}
                 window size: {window_size} s
                 window shift: {window_shift} s
                 """)
 
         S = SISMO(
-            network, sensor, channel, 
+            network, station, channel, 
             starttime, endtime, detrend=detrend,
             merge_method=merge_method, merge_fill_value=merge_fill_value,
             pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
@@ -127,21 +127,21 @@ def calculate_fft_rt(starttime, endtime, network, sensor, channels=['HHE', 'HHN'
         print(f"Extracted FFT coefficients. Time taken: {datetime.now() - time0}")
 
     if save:
-        file_name = sensor + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
+        file_name = station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
         mat_path = os.path.join(save_path, file_name).replace('\\', '/')
         savemat(mat_path, features)
 
     return features
 
 
-def delete_fft(path, sensor, starttime, endtime, verbose = False):
+def delete_fft(path, station, starttime, endtime, verbose = False):
     """
-    Deletes files in a directory that match a sensor name and fall within a date range.
+    Deletes files in a directory that match a station name and fall within a date range.
 
     Parameters
     ----------
         path (str): Path to the directory containing the files.
-        sensor (str): Name of the sensor.
+        station (str): Name of the station.
         starttime (str or datetime): The start date of the range.
         endtime (str or datetime): The end date of the range.
     """
@@ -154,9 +154,9 @@ def delete_fft(path, sensor, starttime, endtime, verbose = False):
     assert starttime <= endtime, "Error: Start date cannot be after end date."
     
     try:
-        # Regex pattern to extract sensor name and dates
-        # Example filename: sensorname_2025-06-16T09-00-00Z_2025-06-18T11-00-00Z.mat
-        pattern = re.compile(rf"^{re.escape(sensor)}_(\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}-\d{{2}}-\d{{2}}Z)_(\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}-\d{{2}}-\d{{2}}Z).*$")
+        # Regex pattern to extract station name and dates
+        # Example filename: stationname_2025-06-16T09-00-00Z_2025-06-18T11-00-00Z.mat
+        pattern = re.compile(rf"^{re.escape(station)}_(\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}-\d{{2}}-\d{{2}}Z)_(\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}-\d{{2}}-\d{{2}}Z).*$")
 
         deleted_files = []
 
@@ -183,13 +183,70 @@ def delete_fft(path, sensor, starttime, endtime, verbose = False):
 
         if verbose:  
             if deleted_files:
-                print(f"\nSuccessfully deleted the following files for sensor '{sensor}' in the range {starttime} to {endtime}:")
+                print(f"\nSuccessfully deleted the following files for station '{station}' in the range {starttime} to {endtime}:")
                 for f in deleted_files:
                     print(f"- {f}")
             else:
-                print(f"\nNo files found to delete for sensor '{sensor}' in the range {starttime} to {endtime}.")
+                print(f"\nNo files found to delete for station '{station}' in the range {starttime} to {endtime}.")
 
     except FileNotFoundError:
         print(f"Error: The directory '{path}' does not exist.")
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
+
+
+def list_fft_files(path, station, starttime, endtime, verbose=False):
+    """
+    Lists .mat files in a directory that match a station name and fall within a date range.
+
+    Parameters
+    ----------
+        path (str): Path to the directory containing the files.
+        station (str): Name of the station.
+        starttime (str or datetime): The start date of the range.
+        endtime (str or datetime): The end date of the range.
+        verbose (bool): Whether to print information about matched files.
+
+    Returns
+    -------
+        list: List of matching filenames.
+    """
+    if isinstance(starttime, str):
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+    if isinstance(endtime, str):
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+
+    assert starttime <= endtime, "Error: Start date cannot be after end date."
+
+    pattern = re.compile(rf"^{re.escape(station)}_(\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}-\d{{2}}-\d{{2}}Z)_(\d{{4}}-\d{{2}}-\d{{2}}T\d{{2}}-\d{{2}}-\d{{2}}Z).*\.mat$")
+    matching_files = []
+
+    try:
+        for filename in os.listdir(path):
+            match = pattern.match(filename)
+            if match:
+                file_start_str = match.group(1)
+                file_end_str = match.group(2)
+
+                try:
+                    file_start = datetime.strptime(file_start_str, '%Y-%m-%dT%H-%M-%SZ')
+                    file_end = datetime.strptime(file_end_str, '%Y-%m-%dT%H-%M-%SZ')
+
+                    if file_start >= starttime and file_end <= endtime:
+                        matching_files.append(filename)
+                        if verbose:
+                            print(f"Matched file: {filename}")
+
+                except ValueError:
+                    if verbose:
+                        print(f"Warning: Skipping file with unparseable dates: {filename}")
+
+        if verbose and not matching_files:
+            print(f"\nNo files found for station '{station}' in the range {starttime} to {endtime}.")
+
+    except FileNotFoundError:
+        print(f"Error: The directory '{path}' does not exist.")
+    except Exception as e:
+        print(f"An unexpected error occurred: {e}")
+
+    return matching_files

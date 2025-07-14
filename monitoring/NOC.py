@@ -13,7 +13,7 @@ import os
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from mspc_pca.mspc import DyQ, plot_DyQ
+from mspc_pca.mspc import DyQ, DyQ_tt, plot_DyQ, plot_DyQ_tt
 from scipy.io import savemat
 import csv
 from datetime import datetime, timezone
@@ -95,8 +95,9 @@ class NOC:
         self.q_method = q_method
         self.csv_path = csv_path
 
-        # Calculate PCA
-        self.pca()
+        self.D_test = []
+        self.Q_test = []
+        self.test_labels = []
 
         # Calculate D and Q statistics
         self.calculate_DQ()
@@ -144,9 +145,6 @@ class NOC:
         else:
             self.obs_labels.extend([""] * num_new_rows)
         self.get_time_range()
-        
-        # Update PCA model
-        self.pca()
 
         # Update D and Q statistics
         self.calculate_DQ()
@@ -154,19 +152,25 @@ class NOC:
         self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-    def pca(self):
+    def pca(self, n_components=None):
         """
         Computes a PCA model from the features matrix.
         """
+
+        if n_components is None:
+            n_components = self.n_components
+            
         if self.preprocessing == 2:
             scaler = StandardScaler(with_std=True)
             X = scaler.fit_transform(self.features)
         else:
             X = self.features
 
-        self.pca_model = PCA(n_components=self.n_components)
-        self.scores = self.pca_model.fit_transform(X)
-        self.loadings = self.pca_model.components_.T
+        pca_model = PCA(n_components=self.n_components)
+        scores = pca_model.fit_transform(X)
+        loadings = pca_model.components_.T
+
+        return scores, loadings, pca_model
 
 
     def calculate_DQ(self):
@@ -182,9 +186,65 @@ class NOC:
         
         if len(self.Q_threshold) == 1:
             self.Q_threshold = self.Q_threshold[0]
+
+    
+    def calculate_DQ_test(self, test, test_labels, store_dq=False):
+        """
+        Computes the D and Q-statistic for test data using NOC features as training.
+
+        Parameters
+        ----------
+        test (numpy array)
+            Features to be used as test for D and Q calculation.
+        test_labels (list)
+            Labels (times) for all observations in test data.
+        store_dq (bool)
+            If True, stores results as attributes. If False, returns results (default: False).
+
+        Returns
+        -------
+        D_test (list)
+            D-statistic values for test data.
+        Q_test (list)
+            Q-statistic values for test data.
+        """
+        _, _, D_test, Q_test, _, _ = DyQ_tt(self.features, test, n_components=self.n_components, 
+                                            preprocessing=self.preprocessing, alpha=self.alpha, 
+                                            percentile_threshold=self.percentile_threshold, 
+                                            type_q=self.q_method, plot=False)
+        
+        if store_dq:
+            self.D_test.extend(D_test)
+            self.Q_test.extend(Q_test)
+            self.test_labels.extend(test_labels)
+        else:
+            return D_test, Q_test
     
 
-    def plot_DQ(self, logscale=False):
+    def delete_DQ_test(self, stop_date = None):
+        """
+        Deletes D and Q values from previous calculations with test data.
+
+        Parameters
+        ----------
+        stop_date (str or datetime)
+            Date from when to keep values. Values corresponding to previous dates will be deleted.
+            Default is None (delete all values).
+        """
+        if self.D_test and self.Q_test and self.test_labels:
+            if stop_date is None:
+                self.D_test = []
+                self.Q_test = []
+            else:
+                if isinstance(stop_date, str):
+                    stop_date = datetime.strptime(stop_date, '%Y-%m-%dT%H:%M:%SZ')
+
+                time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in self.test_labels]
+                self.D_test = [value for value, date in zip(self.D_test, time_labels) if date > stop_date]
+                self.Q_test = [value for value, date in zip(self.Q_test, time_labels) if date > stop_date]
+
+
+    def plot_DQ(self, logscale=False, event_index=None):
         """
         Plots D and Q-statistics and control limits.
 
@@ -192,8 +252,50 @@ class NOC:
         ----------
         logscale (bool) 
             If True, plots the statistics on a logarithmic scale (default: False)
+        event_index (list)
+            List of indices of observations to highlight in the graph (default: None).
         """
-        plot_DyQ(self.D, self.Q, self.D_threshold, self.Q_threshold, logscale=logscale)
+        plot_DyQ(self.D, self.Q, self.D_threshold, self.Q_threshold, logscale=logscale, 
+                 event_index=event_index)
+
+
+    def plot_DQ_test(self, starttime, endtime, logscale=True, event_index=None, save=False, save_path=None):
+        """
+        Plots D and Q-statistics and control limits for train and test.
+
+        Parameters
+        ----------
+        starttime (str or datetime)
+            Start of the time range depicted in the plot.
+        endtime (str or datetime)
+            End of the time range depicted in the plot.
+        logscale (bool) 
+            If True, plots the statistics on a logarithmic scale (default: False)
+        event_index (list)
+            List of indices of observations to highlight in the graph (default: None).
+        save (bool)
+            If True, save graph in `save_path`.
+        save_path (str)
+            Path to save the graph.
+        """
+        # Convert start and end to datetime if they are strings
+        if isinstance(starttime, str):
+            starttime = datetime.strptime(starttime, "%Y-%m-%dT%H:%M:%SZ")
+        if isinstance(endtime, str):
+            endtime = datetime.strptime(endtime, "%Y-%m-%dT%H:%M:%SZ")
+
+        time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in self.test_labels]
+        # Assumes that labels refer to the end time of the window
+        label_indices = [i for i, date in enumerate(time_labels) if starttime < date <= endtime]
+
+        # D and Q values, and labels to plot
+        D_plot = [self.D_test[i] for i in label_indices]
+        Q_plot = [self.Q_test[i] for i in label_indices]
+        plot_labels = [self.test_labels[i] for i in label_indices]
+
+        # Plot
+        plot_DyQ_tt(self.D, self.Q, D_plot, Q_plot, self.D_threshold, self.Q_threshold, logscale=logscale, 
+                    event_index=event_index)
 
 
     def get_time_range(self):
@@ -292,7 +394,6 @@ class NOC:
 
         if filetype == 'mat':
             data = self.__dict__
-            del data['pca_model']
             del data['csv_path']
 
             # Save dictionary with all NOC attributes
@@ -331,6 +432,12 @@ class NOC:
             # Create directory if it does not exist
             os.makedirs(os.path.dirname(csv_path), exist_ok=True)
             
+            starttime = ""
+            endtime = ""
+            if len(self.time_range) > 0 and isinstance(self.time_range[0], str):
+                starttime = self.time_range[0]
+                endtime = self.time_range[1]
+                    
             # Create new row
             row = {
                 'name': self.name,
@@ -342,7 +449,8 @@ class NOC:
                 'n_components': self.n_components,
                 'D_threshold': np.round(self.D_threshold, 4),
                 'Q_threshold': np.round(self.Q_threshold, 4),
-                'time_range': self.time_range,
+                'start_time': starttime,
+                'end_time': endtime,
                 'last_update_time': self.last_update_time
             }
 
@@ -370,33 +478,3 @@ class NOC:
 
     def __str__(self):
         return f"NOC class. Name: {self.name}."
-
-
-if __name__ == '__main__':
-    from scipy.io import loadmat
-
-    # data = loadmat("data/involcan/features/PPMA_2025-06-18T01-00-00Z_2025-06-18T09-00-00Z", 
-    #                 squeeze_me=True)
-    # features = data['ffts']
-
-    features = np.random.randn(50, 5)
-    labels = np.arange(50)
-    n_cols = features.shape[1]
-
-    noc = NOC('test_NOC', features, preprocessing=1, n_components=2)
-    # noc.plot_DQ()
-    noc.summary()
-
-    # Update NOC
-    new_features = np.random.randn(5, n_cols)
-    new_labels = ["a", "e", "i", "o", "u"]
-    noc.update(new_features, new_labels)
-    noc.summary()
-
-    noc.update(new_features, delete_old=False)
-    noc.summary()
-
-    noc.update()
-    noc.save("jobs/nocs/nocnoc")
-    noc.write_csv('jobs/nocs/noc_list.csv')
-    print(noc.time_range)

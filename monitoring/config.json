@@ -3,6 +3,7 @@
   "data_path": "data/involcan/mseed",
   "features_path": "data/involcan/features",
   "nocs_path": "data/involcan/nocs",
+  "plots_path": "data/involcan/nocs/plots",
   "latest_pulls_log_path": "data/involcan/metadata/latest_pulls.csv",
   "noc_log_path": "data/involcan/metadata/noc_list.csv",
   "anomaly_log_path": "data/involcan/metadata/anomaly_log.csv",
@@ -20,8 +21,10 @@
   "merge_fill_value": "interpolate",
   "pad_fill_value": 0,
   "cpus": 8,
+  "anomaly_criterion": "consecutive",
   "verbose": false,
   "days_before_delete": 10,
+  "num_hours_for_plot": 1,
   "metadata": {
     "max_frequency": 50
   }

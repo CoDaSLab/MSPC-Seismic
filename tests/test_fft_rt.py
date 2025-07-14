@@ -5,45 +5,62 @@ import shutil
 import numpy as np
 
 def test_calculate_fft():
-    features = calculate_fft_rt('2025-06-17 12:00:00', '2025-06-17 13:00:00', 'C7', 'PPMA', channels=['HHE', 'HHN', 'HHZ'], 
+    features = calculate_fft_rt('2025-06-17 12:00:00', '2025-06-17 12:05:00', 'C7', 'PPMA', channels=['HHE', 'HHN', 'HHZ'], 
                     window_size=10, window_shift=None, detrend=False, fft_points='auto', 
                     merge_method=0, merge_fill_value = None, data_path="tests/data/mseed",
                     cpus=1, verbose=False, save=True, save_path="tests/data/features")
 
-    assert features['ffts'].shape == (360, 1500), "Features shape is should be (360, 1500)"
-    assert len(features['obs_labels']) == 360, "Number of labels does not match number of rows."
+    assert features['ffts'].shape == (30, 1500)
+    assert len(features['obs_labels']) == 30, "Number of labels does not match number of rows."
     assert features['obs_labels'][0] == "2025-06-17T12:00:10Z"
     assert features['obs_labels'][1] == "2025-06-17T12:00:20Z"
-    assert features['obs_labels'][-1] == "2025-06-17T13:00:00Z"
+    assert features['obs_labels'][-1] == "2025-06-17T12:05:00Z"
     
     
 def test_calculate_fft_with_overlap():
-    features = calculate_fft_rt('2025-06-17 12:00:00', '2025-06-17 12:30:00', 'C7', 'PSAB', channels=['HHE', 'HHN', 'HHZ'], 
+    features = calculate_fft_rt('2025-06-17 12:00:00', '2025-06-17 12:02:30', 'C7', 'PSAB', channels=['HHE', 'HHN', 'HHZ'], 
                     window_size=10, window_shift=5, detrend=False, fft_points='auto', 
                     merge_method=1, merge_fill_value = None, data_path="tests/data/mseed",
                     cpus=2, verbose=False, save=True, save_path="tests/data/features")
 
-    assert features['ffts'].shape == (359, 1500), "Features shape is should be (359, 1500)"
-    assert len(features['obs_labels']) == 359, "Number of labels does not match number of rows."
+    assert features['ffts'].shape == (29, 1500)
+    assert len(features['obs_labels']) == 29, "Number of labels does not match number of rows."
     assert features['obs_labels'][0] == "2025-06-17T12:00:10Z"
     assert features['obs_labels'][1] == "2025-06-17T12:00:15Z"
-    assert features['obs_labels'][-1] == "2025-06-17T12:30:00Z"
+    assert features['obs_labels'][-1] == "2025-06-17T12:02:30Z"
 
 
 def test_calculate_fft_gap():
-    features = calculate_fft_rt('2021-09-10 22:00:00', '2021-09-10 23:00:00', 'C7', 'PPMA', channels=['HHE'], 
+    features = calculate_fft_rt('2021-09-10 22:30:00', '2021-09-10 23:00:00', 'C7', 'PPMA', channels=['HHE'], 
                     window_size=10, window_shift=None, detrend=False, fft_points='auto', 
                     merge_method=0, merge_fill_value = None, pad_fill_value = 0, data_path="tests/data/mseed",
                     cpus=1, verbose=False, save=True, save_path="tests/data/features")
 
-    assert features['ffts'].shape == (360, 500), "Features shape is should be (360, 500)"
-    assert len(features['obs_labels']) == 360, "Number of labels does not match number of rows."
-    assert features['obs_labels'][0] == "2021-09-10T22:00:10Z"
-    assert features['obs_labels'][1] == "2021-09-10T22:00:20Z"
+    assert features['ffts'].shape == (180, 500)
+    assert len(features['obs_labels']) == 180, "Number of labels does not match number of rows."
+    assert features['obs_labels'][0] == "2021-09-10T22:30:10Z"
+    assert features['obs_labels'][1] == "2021-09-10T22:30:20Z"
     assert features['obs_labels'][-1] == "2021-09-10T23:00:00Z"
+    assert features['missing_rates'][0] < 1
     assert features['missing_rates'][-1] == 1
+    assert not np.all(features['ffts'][0,:] == 0)
     assert np.all(features['ffts'][-1,:] == 0)
     
+
+def test_calculate_fft_no_signal():
+    features = calculate_fft_rt('2021-09-10 22:55:00', '2021-09-10 23:00:00', 'C7', 'PPMA', channels=['HHE'], 
+                    window_size=10, window_shift=None, detrend=False, fft_points='auto', 
+                    merge_method=0, merge_fill_value = None, pad_fill_value = 0, data_path="tests/data/mseed",
+                    cpus=1, verbose=False, save=True, save_path="tests/data/features")
+
+    assert features['ffts'].shape == (30, 500)
+    assert len(features['obs_labels']) == 30, "Number of labels does not match number of rows."
+    assert features['obs_labels'][0] == "2021-09-10T22:55:10Z"
+    assert features['obs_labels'][1] == "2021-09-10T22:55:20Z"
+    assert features['obs_labels'][-1] == "2021-09-10T23:00:00Z"
+    assert np.all(features['missing_rates']) == 1
+    assert np.all(features['ffts'] == 0)
+
 
 def test_delete_fft():    
     # Create a test directory and some dummy files

@@ -9,23 +9,23 @@ from monitoring.main import monitoring
 
 @pytest.fixture
 def ppma_data():
-    features = loadmat('tests/data/features/PPMA_2025-06-17T12-00-00Z_2025-06-17T13-00-00Z', squeeze_me=True)
+    features = loadmat('tests/data/features/PPMA_2025-06-17T12-00-00Z_2025-06-17T12-05-00Z', squeeze_me=True)
     
     # Introduce anomalies
-    features['ffts'][335:340, :] = 2 * features['ffts'][5:10, :]
-    features['ffts'][345:350, :] = 2 * features['ffts'][20:25, :]
+    features['ffts'][23, :] = 2 * features['ffts'][5, :]
+    features['ffts'][25:29, :] = 2 * features['ffts'][16:20, :]
     return features
 
 @pytest.fixture
 def noc_ppma1(ppma_data):
-    noc = NOC('ppma1', ppma_data['ffts'][:270, :], obs_labels=ppma_data['obs_labels'][:270], network='C7', station='PPMA', 
+    noc = NOC('ppma1', ppma_data['ffts'][:20, :], obs_labels=ppma_data['obs_labels'][:20], network='C7', station='PPMA', 
               type='dynamic', preprocessing=1, n_components=2, alpha=0.01, percentile_threshold=True, 
               csv_path='tests/metadata/noc_list.csv')
     return noc
 
 @pytest.fixture
 def noc_ppma2(ppma_data):
-    noc = NOC('ppma2', ppma_data['ffts'][:270, :], obs_labels=ppma_data['obs_labels'][:270], network='C7', station='PPMA', 
+    noc = NOC('ppma2', ppma_data['ffts'][:20, :], obs_labels=ppma_data['obs_labels'][:20], network='C7', station='PPMA', 
               type='static', preprocessing=1, n_components=3, alpha=0.05, percentile_threshold=True, 
               csv_path='tests/metadata/noc_list.csv')
     return noc
@@ -47,9 +47,6 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     noc_ppma1.write_csv()
     noc_ppma2.write_csv()
 
-    update_time1 = noc_ppma1.last_update_time
-    update_time2 = noc_ppma2.last_update_time
-
     # Edit available stations file to make PPMA and PSAB available
     latest_pulls = pd.read_csv("tests/metadata/latest_pulls.csv")
     filtered_pulls = latest_pulls[latest_pulls['sensor'].isin(["PPMA", "PSAB"])]
@@ -59,8 +56,8 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     # Set starttime and endtime in config
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
-        config["starttime"] = '2025-06-17T12:45:00Z'
-        config["endtime"] = '2025-06-17T12:50:00Z'
+        config["starttime"] = '2025-06-17T12:03:20Z'
+        config["endtime"] = '2025-06-17T12:04:10Z'
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
@@ -68,18 +65,18 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     monitoring(config_path)
 
     # Check NOCs
-    noc1 = NOC.load(f"tests/data/nocs/{noc_ppma1.name}")
-    noc2 = NOC.load(f"tests/data/nocs/{noc_ppma2.name}")
-    update_time_new1 = noc1.last_update_time
-    update_time_new2 = noc2.last_update_time
-    assert update_time1 != update_time_new1, "First run failed: dynamic NOC was not updated."
-    assert update_time2 == update_time_new2, "First run failed: static NOC was updated."
+    noc_ppma1 = NOC.load(f"tests/data/nocs/{noc_ppma1.name}")
+    noc_ppma2 = NOC.load(f"tests/data/nocs/{noc_ppma2.name}")
+    assert len(noc_ppma1.D_test) == 5
+    assert len(noc_ppma1.Q_test) == 5
+    assert len(noc_ppma2.D_test) == 5
+    assert len(noc_ppma2.Q_test) == 5
 
     # Update starttime and endtime in config
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
-        config["starttime"] = '2025-06-17T12:50:00Z'
-        config["endtime"] = '2025-06-17T12:55:00Z'
+        config["starttime"] = '2025-06-17T12:04:10Z'
+        config["endtime"] = '2025-06-17T12:05:00Z'
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
@@ -87,7 +84,9 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     monitoring(config_path)
 
     # Check NOCs
-    noc1 = NOC.load(f"tests/data/nocs/{noc_ppma1.name}")
-    noc2 = NOC.load(f"tests/data/nocs/{noc_ppma2.name}")
-    assert update_time_new1 != noc1.last_update_time, "Second run failed: dynamic NOC was not updated when there were no anomalies."
-    assert update_time_new2 == noc2.last_update_time, "Second run failed: static NOC was updated."
+    noc_ppma1 = NOC.load(f"tests/data/nocs/{noc_ppma1.name}")
+    noc_ppma2 = NOC.load(f"tests/data/nocs/{noc_ppma2.name}")
+    assert len(noc_ppma1.D_test) == 10
+    assert len(noc_ppma1.Q_test) == 10
+    assert len(noc_ppma2.D_test) == 10
+    assert len(noc_ppma2.Q_test) == 10

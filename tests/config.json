@@ -3,6 +3,7 @@
     "data_path": "tests/data/mseed",
     "features_path": "tests/data/features",
     "nocs_path": "tests/data/nocs",
+    "plots_path": "tests/data/nocs/plots",
     "latest_pulls_log_path": "tests/metadata/latest_pulls.csv",
     "noc_log_path": "tests/metadata/noc_list.csv",
     "anomaly_log_path": "tests/metadata/anomaly_log.csv",
@@ -15,8 +16,8 @@
         "HHN",
         "HHZ"
     ],
-    "starttime": "2025-06-17T12:50:00Z",
-    "endtime": "2025-06-17T12:55:00Z",
+    "starttime": "2025-06-17T12:04:10Z",
+    "endtime": "2025-06-17T12:05:00Z",
     "window_size": 10,
     "window_shift": null,
     "detrend": false,
@@ -28,8 +29,10 @@
     "merge_fill_value": "interpolate",
     "pad_fill_value": 0,
     "cpus": 4,
+    "anomaly_criterion": "consecutive",
     "verbose": false,
     "days_before_delete": 10,
+    "num_hours_for_plot": 1,
     "metadata": {
         "max_frequency": 50,
         "sampling_rate": 100

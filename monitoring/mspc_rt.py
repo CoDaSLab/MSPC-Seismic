@@ -2,39 +2,42 @@ import os
 from mspc_pca.mspc import DyQ_tt, plot_DyQ
 from datetime import datetime, timedelta
 import csv
+import numpy as np
 
-def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, plot=False,
-         anomaly_log_path="data/involcan/metadata/anomaly_log.csv", 
-         noc_log_path = "data/involcan/metadata/noc_list.csv", 
-         nocs_path = "data/involcan/nocs/", verbose=False):
+def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, 
+         plot=False, update_log=True,
+         anomaly_log_path="data/involcan/metadata/anomaly_log.csv",
+         nocs_path = "data/involcan/nocs/",  verbose=False):
     """
     Multivariate Statistical Process Control with PCA. Uses NOC instances to calculate
     the D and Q values for test data. Updates the NOC instances.
 
     Parameters
     ----------
-        nocs (list of NOC instances): 
-            NOCs used for monitoring. 
-        starttime (datetime): 
+        nocs (list of NOC instances)
+            NOCs used for training. 
+        test (numpy array)
+            Test data
+        starttime (datetime)
             Start time of the first window.
-        endtime (datetime): 
+        endtime (datetime)
             End time of the last window.
-        window_size (int): 
+        window_size (int)
             Time window size in seconds. Used for calculating anomaly times.
-        window_shift (int): 
+        window_shift (int)
             Interval between the start of windows in seconds.
             Used for calculating anomaly times (default: window_size).
-        plot (bool):
-            If True, plots the D and Q statisttics, along with the thresholds.
-        anomaly_log_path (str): 
+        plot (bool)
+            If True, plots the D and Q statistics, along with the thresholds.
+        update_log (bool)
+            If True, updated the anomaly log with the windows that surpass the threshold
+            (default: True)
+        anomaly_log_path (str)
             Path to the CSV file that stores information about anomalies 
             (default: "data/involcan/metadata/anomaly_log.csv").
-        noc_log_path (str): 
-            Path to the CSV file that stores information about NOCs
-            (default: "data/involcan/metadata/noc_list.csv").
-        nocs_path (str):
+        nocs_path (str)
             Directory where nocs are saved (default: "data/involcan/nocs").
-        verbose (bool): 
+        verbose (bool)
             Whether to print detailed messages (default: False).
     """
     
@@ -50,34 +53,27 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, plot=Fa
 
     time0 = datetime.now()
 
+    # Start and end times of windows
+    start_times = [starttime + timedelta(seconds=window_shift * i) for i in range(test.shape[0])]
+    start_times = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in start_times]
+    end_times = [starttime + timedelta(seconds=window_shift * i + window_size) for i in range(test.shape[0])]
+    end_times = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in end_times]
+
     rows = []
     for noc in nocs:
         if verbose:
             print(f"Calculating for NOC {noc.name}...")
+
         # Calculate D and Q statistics
-        _, _, D_test, Q_test, D_threshold, Q_threshold = DyQ_tt(noc.features, test, noc.n_components, noc.preprocessing, 
-                                                                alpha=noc.alpha, plot=False, 
-                                                                percentile_threshold=noc.percentile_threshold)
-
-        # Indices of anomalous windows
-        # Considered anomaly if three consecutive windows have D or Q values above the threshold
-        anomaly_D_ids = set()
-        for i in range(len(D_test) - 2):
-            if D_test[i] > noc.D_threshold and D_test[i+1] > noc.D_threshold and D_test[i+2] > noc.D_threshold:
-                anomaly_D_ids.update((i, i+1, i+2))
-
-        anomaly_Q_ids = set()
-        for i in range(len(Q_test) - 2):
-            if Q_test[i] > noc.Q_threshold and Q_test[i+1] > noc.Q_threshold and Q_test[i+2] > noc.Q_threshold:
-                anomaly_Q_ids.update((i, i+1, i+2))
-
+        noc.calculate_DQ_test(test, end_times, store_dq=True)
+        noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
+        
+        # Indices of anomalous windows (surpass the threshold)
+        anomaly_D_ids = set([i for i, value in enumerate(noc.D_test[-test.shape[0]:]) if value > noc.D_threshold])
+        anomaly_Q_ids = set([i for i, value in enumerate(noc.Q_test[-test.shape[0]:]) if value > noc.Q_threshold])
         anomaly_ids = list(anomaly_D_ids.union(anomaly_Q_ids))
 
         # Times for the start and end of the anomalous windows
-        start_times = [starttime + timedelta(seconds=window_shift * i) for i in range(test.shape[0])]
-        start_times = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in start_times]
-        end_times = [starttime + timedelta(seconds=window_shift * i + window_size) for i in range(test.shape[0])]
-        end_times = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in end_times]
         anomaly_start_times = [start_times[i] for i in anomaly_ids]
         anomaly_end_times = [end_times[i] for i in anomaly_ids]
 
@@ -85,37 +81,136 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, plot=Fa
             rows.append({'network':noc.network, 'station':noc.station, 
                         'anomaly_start_time':anomaly_start_times[i], 'anomaly_end_time':anomaly_end_times[i],
                         'control_start_time':starttime, 'control_end_time':endtime,
-                        'D_anomaly':D_test[i], 'Q_anomaly':Q_test[i], 'D_threshold':D_threshold, 'Q_threshold':Q_threshold,
+                        'D_anomaly':noc.D_test[i], 'Q_anomaly':noc.Q_test[i], 
+                        'D_threshold':round(noc.D_threshold,4), 'Q_threshold':round(noc.Q_threshold,4),
                         'NOC':noc.name})
-        
-        # Update dynamic NOCs if there are no anomalies
-        if len(anomaly_ids) == 0 and noc.type == 'dynamic':
-            noc.update(new_features=test, new_obs_labels=end_times)
-
-            # Save NOC
-            noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
-            if verbose:
-                print(f"NOC {noc.name} updated.")
-        noc.write_csv(noc_log_path)
 
         # Plot D and Q statistics with thresholds for all NOCs
         if plot:
-            plot_DyQ(D_test, Q_test, D_threshold, Q_threshold, event_index=anomaly_ids)
-
-    # Create CSV file parent directory if it does not exist
-    os.makedirs(os.path.dirname(anomaly_log_path), exist_ok=True)
+            plot_DyQ(noc.D_test, noc.Q_test, noc.D_threshold, noc.Q_threshold, event_index=anomaly_ids)
     
     # Save anomaly data in CSV file
-    no_file = not os.path.isfile(anomaly_log_path) or os.path.getsize(anomaly_log_path) == 0
-    with open(anomaly_log_path, mode="a", newline='', encoding="utf-8") as file:
-        fields = ["network", "station", "anomaly_start_time", "anomaly_end_time", "control_start_time", 
-                  "control_end_time", "D_anomaly", "Q_anomaly", "D_threshold", "Q_threshold", "NOC"]
-        writer = csv.DictWriter(file, fieldnames=fields)
-        
-        if no_file:
-            writer.writeheader()
-        writer.writerows(rows)
+    if update_log:
+        # Create CSV file parent directory if it does not exist
+        os.makedirs(os.path.dirname(anomaly_log_path), exist_ok=True)
+
+        no_file = not os.path.isfile(anomaly_log_path) or os.path.getsize(anomaly_log_path) == 0
+        with open(anomaly_log_path, mode="a", newline='', encoding="utf-8") as file:
+            fields = ["network", "station", "anomaly_start_time", "anomaly_end_time", "control_start_time", 
+                    "control_end_time", "D_anomaly", "Q_anomaly", "D_threshold", "Q_threshold", "NOC"]
+            writer = csv.DictWriter(file, fieldnames=fields)
+            
+            if no_file:
+                writer.writeheader()
+            writer.writerows(rows)
+    elif verbose:
+        print(f"Values over the threshold for NOC {noc.name}:")
+        for row in rows:
+            print(row)
     
     if verbose:
         print(f"Finished all MSPC calculations. Time taken: {datetime.now() - time0}.")
+    
+    
+
+def get_anomalies(D_test, Q_test, D_threshold, Q_threshold, 
+                  criterion='consecutive', n_consecutive=3):
+    """
+    Applies a criterion to obtain the indices of anomalous windows given the D and Q statistics
+    values and threshold.
+
+    Parameters
+    ----------
+    noc.D_test (list)
+        D-statistic values.
+    noc.Q_test (list)
+        Q-statistic values.
+    noc.D_threshold (float)
+        Upper control limit for the D-statistic
+    noc.Q_threshold (float)
+        Upper control limit for the Q-statistic
+    criterion (str)
+        Criterion for considering an observation anomalous.
+        - `'consecutive'` (default): All observations in a group of `n_consecutive` 
+            consecutive observations above the threshold are anomalous.
+    n_consecutive (int)
+        If `criterion == 'consecutive'`, number of consecutive observations
+        above the threshold to be considered an anomaly (default: 3).
+
+    Returns
+    -------
+    anomaly_D_ids (set)
+        Set of anomaly indices for the D-statistic.
+    anomaly_Q_ids (set)
+        Set of anomaly indices for the Q-statistic.
+    """
+    assert len(D_test) == len(Q_test), "The number of D values and the number of Q values are not the same."
+
+    n_obs = len(D_test)
+    anomaly_D_ids = set()
+    anomaly_Q_ids = set()
+    
+    if criterion == 'consecutive':
+        assert n_obs >= n_consecutive, f"At least {n_consecutive} observations are needed, but only {n_obs} were given."
+
+        for i in range(n_obs - n_consecutive + 1):
+            if np.all(D_test[i:i+n_consecutive] > D_threshold):
+                anomaly_D_ids.update(np.arange(i, i+n_consecutive))
+
+            if np.all(Q_test[i:i+n_consecutive] > Q_threshold):
+                anomaly_Q_ids.update(np.arange(i, i+n_consecutive))
+
+    return anomaly_D_ids, anomaly_Q_ids
+
+
+def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecutive=3, 
+                   save=True, save_path="data/involcan/nocs/plots",
+                   plot_train=True, show=False):
+    """
+    Plots D and Q-statistics and highlights anomalies (according to a criterion) in a different color.
+
+    Parameters
+    ----------
+    noc (str)
+        NOC instance.
+    starttime (str or datetime)
+        Start of the time range to plot
+    endtime(str or datetime)
+        End of the time range to plot
+    save (bool)
+        If True, saves the graph in `save_path` (default: True)
+    save_path (str)
+        Path to save the plot.
+    criterion (str)
+        Criterion for considering an observation anomalous.
+        - `'consecutive'` (default): All observations in a group of `n_consecutive` 
+            consecutive observations above the threshold are anomalous.
+            This is the only method implemented so far.
+    n_consecutive (int)
+        If `criterion == 'consecutive'`, number of consecutive observations
+        above the threshold to be considered an anomaly (default: 3).
+    plot_train (bool)
+        If True, plots D and Q values for both training and test data. 
+        If False, only plots D and Q for test data.
+    show (bool)
+        If True, shows graph (default: False).
+    """
+    # Obtain D and Q values to plot
+    time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in noc.test_labels]
+    D_plot = [value for value, date in zip(noc.D_test, time_labels) if starttime < date <= endtime]
+    Q_plot = [value for value, date in zip(noc.Q_test, time_labels) if starttime < date <= endtime]
+
+    # Get anomalies according to the new criterion
+    anomaly_D_ids, anomaly_Q_ids = get_anomalies(D_plot, Q_plot, noc.D_threshold, noc.Q_threshold,
+                                                 criterion = criterion, n_consecutive = n_consecutive)
+    anomaly_ids = list(anomaly_D_ids.union(anomaly_Q_ids))
+    
+    if plot_train:
+        anomaly_ids = [i + len(noc.D) for i in anomaly_ids]
+
+    # Plot D and Q values and highlight anomalies
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    noc.plot_DQ_test(starttime, endtime, event_index=anomaly_ids)
+    
+
     
