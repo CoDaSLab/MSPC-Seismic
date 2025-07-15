@@ -212,8 +212,9 @@ def monitoring(config_path = 'config.json'):
 
         # Perform MSPC for all NOCs associated with the station
         test_data = np.hstack([features[key] for key in feature_types])  # one or more of [ffts, deltas_ffts, deltas_deltas_ffts]
-        mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, plot=False,
-             update_log=True, anomaly_log_path=anomaly_log_path, nocs_path=nocs_path, verbose=verbose)
+        mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
+             missing_rates=features['missing_rates'], plot=False, update_log=True, 
+             anomaly_log_path=anomaly_log_path, nocs_path=nocs_path, verbose=verbose)
 
         # Delete old features files
         delete_date = endtime - timedelta(days = days_before_delete)

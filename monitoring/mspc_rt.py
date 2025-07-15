@@ -1,11 +1,12 @@
 import os
-from mspc_pca.mspc import DyQ_tt, plot_DyQ
+from mspc_pca.mspc import plot_DQ
 from datetime import datetime, timedelta
 import csv
 import numpy as np
+import matplotlib.pyplot as plt
 
 def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, 
-         plot=False, update_log=True,
+         missing_rates=None, plot=False, update_log=True,
          anomaly_log_path="data/involcan/metadata/anomaly_log.csv",
          nocs_path = "data/involcan/nocs/",  verbose=False):
     """
@@ -27,6 +28,9 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
         window_shift (int)
             Interval between the start of windows in seconds.
             Used for calculating anomaly times (default: window_size).
+        missing_rates (list)
+            Rate of missing values for each observation in the test data 
+            (default: None).
         plot (bool)
             If True, plots the D and Q statistics, along with the thresholds.
         update_log (bool)
@@ -65,7 +69,8 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
             print(f"Calculating for NOC {noc.name}...")
 
         # Calculate D and Q statistics
-        noc.calculate_DQ_test(test, end_times, store_dq=True)
+        noc.calculate_DQ_test(test, end_times, missing_rates=missing_rates,
+                              store_dq=True)
         noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
         
         # Indices of anomalous windows (surpass the threshold)
@@ -85,9 +90,9 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
                         'D_threshold':round(noc.D_threshold,4), 'Q_threshold':round(noc.Q_threshold,4),
                         'NOC':noc.name})
 
-        # Plot D and Q statistics with thresholds for all NOCs
+        # Plot D and Q statistics with threshold
         if plot:
-            plot_DyQ(noc.D_test, noc.Q_test, noc.D_threshold, noc.Q_threshold, event_index=anomaly_ids)
+            plot_DQ(noc.D_test, noc.Q_test, noc.D_threshold, noc.Q_threshold, event_index=anomaly_ids)
     
     # Save anomaly data in CSV file
     if update_log:
@@ -164,7 +169,7 @@ def get_anomalies(D_test, Q_test, D_threshold, Q_threshold,
 
 
 def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecutive=3, 
-                   save=True, save_path="data/involcan/nocs/plots",
+                   save=True, save_path="data/involcan/nocs/plots", opacity=None,
                    plot_train=True, show=False):
     """
     Plots D and Q-statistics and highlights anomalies (according to a criterion) in a different color.
@@ -189,6 +194,9 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     n_consecutive (int)
         If `criterion == 'consecutive'`, number of consecutive observations
         above the threshold to be considered an anomaly (default: 3).
+    opacity (list or None)
+        Opacity of the bars in the plot. If None, uses rate of missing values 
+        as opacity.
     plot_train (bool)
         If True, plots D and Q values for both training and test data. 
         If False, only plots D and Q for test data.
@@ -210,7 +218,17 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
 
     # Plot D and Q values and highlight anomalies
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    noc.plot_DQ_test(starttime, endtime, event_index=anomaly_ids)
+    fig, axes = noc.plot_DQ_test(starttime, endtime, plot_train=False, event_index=anomaly_ids, 
+                                 opacity=opacity)
+    plt.tight_layout()
+
+    if save:
+        plt.savefig(os.path.join(save_path))
+    if show:
+        plt.show()
+    
+    return fig, axes
+
     
 
     

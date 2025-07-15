@@ -90,7 +90,7 @@ def test_delete_fft():
 
     delete_fft(
         path=test_dir,
-        sensor="sensorX",
+        station="sensorX",
         starttime="2025-06-05 00:00:00",
         endtime="2025-06-08 00:01:02",
         verbose=True

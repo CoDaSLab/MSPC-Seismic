@@ -13,11 +13,12 @@ import os
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from mspc_pca.mspc import DyQ, DyQ_tt, plot_DyQ, plot_DyQ_tt
+from mspc_pca.mspc import DQ, DQ_tt, plot_DQ, plot_DQ_tt
 from scipy.io import savemat
 import csv
 from datetime import datetime, timezone
 import pickle
+import matplotlib.dates as mdates
 
 
 class NOC:
@@ -94,10 +95,12 @@ class NOC:
         self.percentile_threshold = percentile_threshold
         self.q_method = q_method
         self.csv_path = csv_path
-
+        
+        # Attributes for test data
         self.D_test = []
         self.Q_test = []
         self.test_labels = []
+        self.test_missing_rates = []
 
         # Calculate D and Q statistics
         self.calculate_DQ()
@@ -177,7 +180,7 @@ class NOC:
         """
         Computes the D and Q-statistics and control limits for MSPC-PCA.
         """
-        self.D, self.Q, self.D_threshold, self.Q_threshold = DyQ(self.features, n_components=self.n_components, 
+        self.D, self.Q, self.D_threshold, self.Q_threshold = DQ(self.features, n_components=self.n_components, 
                                                                  preprocessing=self.preprocessing, alpha=self.alpha, 
                                                                  percentile_threshold=self.percentile_threshold, 
                                                                  type_q=self.q_method, plot=False)
@@ -188,7 +191,7 @@ class NOC:
             self.Q_threshold = self.Q_threshold[0]
 
     
-    def calculate_DQ_test(self, test, test_labels, store_dq=False):
+    def calculate_DQ_test(self, test, test_labels, missing_rates=None, store_dq=False):
         """
         Computes the D and Q-statistic for test data using NOC features as training.
 
@@ -198,6 +201,9 @@ class NOC:
             Features to be used as test for D and Q calculation.
         test_labels (list)
             Labels (times) for all observations in test data.
+        missing_rates (list or None)
+            Rate of missing values for each observation in test data. Defaults to
+            no missing values (None).
         store_dq (bool)
             If True, stores results as attributes. If False, returns results (default: False).
 
@@ -208,7 +214,7 @@ class NOC:
         Q_test (list)
             Q-statistic values for test data.
         """
-        _, _, D_test, Q_test, _, _ = DyQ_tt(self.features, test, n_components=self.n_components, 
+        _, _, D_test, Q_test, _, _ = DQ_tt(self.features, test, n_components=self.n_components, 
                                             preprocessing=self.preprocessing, alpha=self.alpha, 
                                             percentile_threshold=self.percentile_threshold, 
                                             type_q=self.q_method, plot=False)
@@ -217,6 +223,7 @@ class NOC:
             self.D_test.extend(D_test)
             self.Q_test.extend(Q_test)
             self.test_labels.extend(test_labels)
+            self.test_missing_rates.extend(missing_rates if missing_rates is not None else [0] * len(D_test))
         else:
             return D_test, Q_test
     
@@ -235,6 +242,8 @@ class NOC:
             if stop_date is None:
                 self.D_test = []
                 self.Q_test = []
+                self.test_labels = []
+                self.test_missing_rates = []
             else:
                 if isinstance(stop_date, str):
                     stop_date = datetime.strptime(stop_date, '%Y-%m-%dT%H:%M:%SZ')
@@ -242,24 +251,50 @@ class NOC:
                 time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in self.test_labels]
                 self.D_test = [value for value, date in zip(self.D_test, time_labels) if date > stop_date]
                 self.Q_test = [value for value, date in zip(self.Q_test, time_labels) if date > stop_date]
+                self.test_labels = [label for label, date in zip(self.test_labels, time_labels) if date > stop_date]
+                self.test_missing_rates = [rate for rate, date in zip(self.test_missing_rates, time_labels) if date > stop_date]
 
 
-    def plot_DQ(self, logscale=False, event_index=None):
+    def plot_DQ(self, logscale=False, event_index=None, opacity=None, ax=None):
         """
         Plots D and Q-statistics and control limits.
 
         Parameters
         ----------
         logscale (bool) 
-            If True, plots the statistics on a logarithmic scale (default: False)
+            If True, plots the statistics on a logarithmic scale (default: False).
         event_index (list)
             List of indices of observations to highlight in the graph (default: None).
+        opacity (list)
+            Opacity values for each bar in the plot (default: None).
+        ax (tuple of Axis)
+            Axes in which to plot (optional, default: None).
+
+        Returns
+        -------
+        fig
+            Matplotlib figure.
+        axes
+            Tuple of two Axes objects, corresponding to the D and Q plots, respectively.
         """
-        plot_DyQ(self.D, self.Q, self.D_threshold, self.Q_threshold, logscale=logscale, 
-                 event_index=event_index)
+        fig, axes = plot_DQ(self.D, self.Q, self.D_threshold, self.Q_threshold, labels = self.obs_labels,
+                            logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
+        
+        if len(self.time_range) > 0:
+            # Format labels
+            for ax in axes:
+                ax.set_xlabel("UTC Time")
+
+                locator = mdates.AutoDateLocator()
+                ax.xaxis.set_major_locator(locator)
+                ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
+            fig.autofmt_xdate()
+        
+        return fig, axes
 
 
-    def plot_DQ_test(self, starttime, endtime, logscale=True, event_index=None, save=False, save_path=None):
+    def plot_DQ_test(self, starttime, endtime, logscale=False, event_index=None, opacity=None,
+                     plot_train=False, ax=None):
         """
         Plots D and Q-statistics and control limits for train and test.
 
@@ -273,10 +308,21 @@ class NOC:
             If True, plots the statistics on a logarithmic scale (default: False)
         event_index (list)
             List of indices of observations to highlight in the graph (default: None).
-        save (bool)
-            If True, save graph in `save_path`.
-        save_path (str)
-            Path to save the graph.
+        opacity (list)
+            Opacity values for each bar in the plot. Defaults to using missing rates 
+            as opacity values.
+        plot_train (bool)
+            If True, plots both training and test D and Q values. If False,  only plots
+            tests values (default: False)
+        ax (tuple of Axis)
+            Axes in which to plot (optional, default: None).
+
+        Returns
+        -------
+        fig
+            Matplotlib figure.
+        axes
+            Tuple of two Axes objects, corresponding to the D and Q plots, respectively.
         """
         # Convert start and end to datetime if they are strings
         if isinstance(starttime, str):
@@ -293,9 +339,34 @@ class NOC:
         Q_plot = [self.Q_test[i] for i in label_indices]
         plot_labels = [self.test_labels[i] for i in label_indices]
 
+        if opacity is None:
+            opacity = [1 - self.test_missing_rates[i] for i in label_indices]
+
+        if plot_train:
+            plot_labels = self.obs_labels + plot_labels
+            if opacity is not None:
+                opacity = [1] * len(self.obs_labels) + opacity
+
         # Plot
-        plot_DyQ_tt(self.D, self.Q, D_plot, Q_plot, self.D_threshold, self.Q_threshold, logscale=logscale, 
-                    event_index=event_index)
+        fig, axes = plot_DQ_tt(self.D, self.Q, D_plot, Q_plot, self.D_threshold, self.Q_threshold, 
+                               labels = plot_labels, logscale=logscale, plot_train=plot_train,
+                               event_index=event_index, opacity=opacity, ax=ax)
+
+        # Format x-axis labels
+        xlabels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in plot_labels]
+        for i in range(len(xlabels)):
+            if i % 3 != 0:
+                xlabels[i] = ""
+            else:
+                xlabels[i] = xlabels[i].strftime('%H:%M:%S')
+
+        day = datetime.strptime(plot_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        for ax in axes:
+            ax.set_xlabel(day, loc='right')
+            ax.set_xticks(np.arange(len(plot_labels))+0.5)  # Center the ticks on the bars
+            ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility
+
+        return fig, axes
 
 
     def get_time_range(self):

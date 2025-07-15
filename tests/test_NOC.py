@@ -2,6 +2,9 @@ from numpy._typing._array_like import NDArray
 from monitoring.NOC import NOC
 import numpy as np
 import pytest
+import pandas as pd
+from datetime import datetime
+import matplotlib.pyplot as plt
 
 @pytest.fixture
 def features():
@@ -21,6 +24,7 @@ def test_NOC_init_without_labels(features, new_features):
     noc.update(new_features, new_labels)
     noc.summary()
 
+
 def test_NOC_init_with_labels(features, new_features):
     labels = np.arange(50)
 
@@ -31,6 +35,7 @@ def test_NOC_init_with_labels(features, new_features):
     noc.update(new_features, new_labels)
     noc.summary()
 
+
 def test_NOC_update_no_deleting(features, new_features):
     labels = np.arange(50)
 
@@ -38,6 +43,7 @@ def test_NOC_update_no_deleting(features, new_features):
     # Does not delete old rows
     noc.update(new_features, delete_old=False)
     noc.summary()
+
 
 def test_NOC_recalculate(features):
     labels = np.arange(50)
@@ -47,6 +53,7 @@ def test_NOC_recalculate(features):
     noc.update()
     noc.summary()
 
+
 def test_NOC_save(features, new_features):
     labels = np.arange(50)
 
@@ -54,8 +61,9 @@ def test_NOC_save(features, new_features):
     new_labels = ["a", "e", "i", "o", "u"]
     noc.update(new_features, new_labels)
 
-    noc.save(f"tests/nocs/{noc.name}.mat")
-    noc.write_csv('tests/nocs/noc_list.csv')
+    noc.save(f"tests/data/nocs/{noc.name}.mat")
+    noc.write_csv('tests/metadata/noc_list.csv')
+
 
 def test_NOC_time_labels():
     data = np.random.randn(7, 4)
@@ -101,7 +109,51 @@ def test_NOC_time_labels():
     noc.save(f"tests/data/nocs/{noc.name}")
     noc.write_csv('tests/metadata/noc_list.csv')
 
+
 def test_NOC_load():
     noc = NOC.load("tests/data/nocs/test_NOC")
     noc.update()
     noc.summary()
+
+
+def test_NOC_DQ_test():
+    # Create training data
+    data = np.random.randn(24, 4)
+    start = datetime(2025,1,1,0,0,0)
+    end = datetime(2025,1,1,0,4,0)
+    labels = list(pd.date_range(start, end, data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ'))[1:]  # Exclude the first label
+    print(labels)
+
+    assert data.shape[0] == len(labels)
+
+    noc = NOC('test_NOC', data, obs_labels=labels, preprocessing=1, n_components=2)
+
+    # Create test data
+    test_data = np.random.rand(6, 4)
+    start = datetime(2025,1,1,0,4,0)
+    end = datetime(2025,1,1,0,5,0)
+    test_labels = pd.date_range(start, end, test_data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ')[1:]  # Exclude the first label
+
+    assert test_data.shape[0] == len(test_labels)
+
+    # Calculate D and Q test values
+    noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
+    
+    assert noc.test_labels[0] == '2025-01-01T00:04:10Z'
+    assert len(noc.D_test) == test_data.shape[0]
+    assert len(noc.Q_test) == test_data.shape[0]
+
+    # Plot D and Q test values
+    noc.plot_DQ_test(start, end, plot_train = False)
+    plt.tight_layout()
+    plt.show()
+
+    noc.plot_DQ_test(start, end, plot_train = True)
+    plt.tight_layout()
+    plt.show()
+
+    # Delete test data from NOC
+    noc.delete_DQ_test()
+
+    assert len(noc.D_test) == 0
+    assert len(noc.Q_test) == 0
