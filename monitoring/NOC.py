@@ -246,9 +246,9 @@ class NOC:
                 self.test_missing_rates = []
             else:
                 if isinstance(stop_date, str):
-                    stop_date = datetime.strptime(stop_date, '%Y-%m-%dT%H:%M:%SZ')
+                    stop_date = datetime.strptime(stop_date, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 
-                time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in self.test_labels]
+                time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in self.test_labels]
                 self.D_test = [value for value, date in zip(self.D_test, time_labels) if date > stop_date]
                 self.Q_test = [value for value, date in zip(self.Q_test, time_labels) if date > stop_date]
                 self.test_labels = [label for label, date in zip(self.test_labels, time_labels) if date > stop_date]
@@ -326,11 +326,11 @@ class NOC:
         """
         # Convert start and end to datetime if they are strings
         if isinstance(starttime, str):
-            starttime = datetime.strptime(starttime, "%Y-%m-%dT%H:%M:%SZ")
+            starttime = datetime.strptime(starttime, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
         if isinstance(endtime, str):
-            endtime = datetime.strptime(endtime, "%Y-%m-%dT%H:%M:%SZ")
+            endtime = datetime.strptime(endtime, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
-        time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in self.test_labels]
+        time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in self.test_labels]
         # Assumes that labels refer to the end time of the window
         label_indices = [i for i, date in enumerate(time_labels) if starttime < date <= endtime]
 
@@ -353,17 +353,20 @@ class NOC:
                                event_index=event_index, opacity=opacity, ax=ax)
 
         # Format x-axis labels
-        xlabels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in plot_labels]
-        for i in range(len(xlabels)):
-            if i % 3 != 0:
-                xlabels[i] = ""
-            else:
-                xlabels[i] = xlabels[i].strftime('%H:%M:%S')
+        xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in plot_labels]
+        xlabels = []
+        xticks = []
+        tick_step = 30 if len(xtimes) > 100 else 6 
+        for i in range(len(xtimes)):
+            if i % tick_step == (tick_step-1):
+                xticks.append(i + 0.5)
+                xlabels.append(xtimes[i])
 
         day = datetime.strptime(plot_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
         for ax in axes:
-            ax.set_xlabel(day, loc='right')
-            ax.set_xticks(np.arange(len(plot_labels))+0.5)  # Center the ticks on the bars
+            ax.set_xlabel(str(day) + " (UTC Time)", loc='right')
+            ax.set_xticks(xticks)  # Center the ticks on the bars
+            ax.set_xticks(np.arange(len(plot_labels))+0.5, minor=True)  # Center the ticks on the bars
             ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility
 
         return fig, axes

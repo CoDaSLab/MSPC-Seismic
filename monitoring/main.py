@@ -29,7 +29,7 @@ def load_config(file_path):
     return config
 
 
-def start_and_end_times(now: datetime, update_frequency: int):
+def start_and_end_times(now: datetime, update_frequency: int, delay: int):
     """
     Returns the two most recent times aligned with an interval (in minutes)
     before the given datetime.
@@ -43,12 +43,12 @@ def start_and_end_times(now: datetime, update_frequency: int):
     if update_frequency <= 60:
         # Aligned to the current hour
         rounded_minutes = (now.minute // update_frequency) * update_frequency
-        endtime = now.replace(minute=rounded_minutes, second=0, microsecond=0)
+        endtime = now.replace(minute=rounded_minutes, second=0, microsecond=0) - timedelta(minutes=delay)
     else:
         # Aligned from midnight
         total_minutes = now.hour * 60 + now.minute
         rounded_total = (total_minutes // update_frequency) * update_frequency
-        endtime = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(minutes=rounded_total)
+        endtime = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(minutes=rounded_total - delay)
     
     starttime = endtime - timedelta(minutes=update_frequency)
     return starttime, endtime
@@ -85,11 +85,11 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
             except ValueError:
                 continue
             
-            stations.add(row['station'])
+            stations.add(row['sensor'])
 
             # Check availability
             if now - latest_pull_time > tolerance:
-                not_avail_stations.add(row['station'])
+                not_avail_stations.add(row['sensor'])
 
     avail_stations = stations - not_avail_stations
 
@@ -141,6 +141,7 @@ def monitoring(config_path = 'config.json'):
     config_str = json.dumps(config)  # config in string form
 
     update_frequency = config["update_frequency"]  # Frequency of update in minutes
+    delay = config["delay"]  # Delay in minutes of calculations with respect to the current time 
     data_path = config["data_path"]  # Path to the directory where seismic data files are saved.
     features_path = config["features_path"]  # Path to the directory where feature files are saved.
     nocs_path = config["nocs_path"]  # Path to the directory where NOC files are saved.
@@ -169,10 +170,10 @@ def monitoring(config_path = 'config.json'):
     
     # Set start and end times
     if config["starttime"] == 'auto' or config["endtime"] == 'auto':
-        starttime, endtime = start_and_end_times(datetime.now(timezone.utc), update_frequency)
+        starttime, endtime = start_and_end_times(datetime.now(timezone.utc), update_frequency, delay)
     else:
-        starttime = datetime.strptime(config["starttime"], '%Y-%m-%dT%H:%M:%SZ')
-        endtime = datetime.strptime(config["endtime"], '%Y-%m-%dT%H:%M:%SZ')
+        starttime = datetime.strptime(config["starttime"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+        endtime = datetime.strptime(config["endtime"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
@@ -219,7 +220,7 @@ def monitoring(config_path = 'config.json'):
 
         # Delete old features files
         delete_date = endtime - timedelta(days = days_before_delete)
-        delete_fft(features_path, station, datetime.min, delete_date)
+        delete_fft(features_path, station, datetime.min.replace(tzinfo=timezone.utc), delete_date)
 
         for noc in nocs[station]:
             # Save MSPC plot

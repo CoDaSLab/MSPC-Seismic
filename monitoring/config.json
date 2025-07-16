@@ -1,5 +1,6 @@
 {
   "update_frequency": 5,
+  "delay": 5,
   "data_path": "data/involcan/mseed",
   "features_path": "data/involcan/features",
   "nocs_path": "data/involcan/nocs",

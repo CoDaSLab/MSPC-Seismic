@@ -1,6 +1,6 @@
 import os
 from mspc_pca.mspc import plot_DQ
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
@@ -46,9 +46,9 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
     """
     
     if isinstance(starttime, str):
-        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     if isinstance(endtime, str):
-        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
     
@@ -178,9 +178,9 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     ----------
     noc (str)
         NOC instance.
-    starttime (str or datetime)
+    starttime (datetime)
         Start of the time range to plot
-    endtime(str or datetime)
+    endtime(datetime)
         End of the time range to plot
     save (bool)
         If True, saves the graph in `save_path` (default: True)
@@ -204,7 +204,7 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
         If True, shows graph (default: False).
     """
     # Obtain D and Q values to plot
-    time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ') for label in noc.test_labels]
+    time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in noc.test_labels]
     D_plot = [value for value, date in zip(noc.D_test, time_labels) if starttime < date <= endtime]
     Q_plot = [value for value, date in zip(noc.Q_test, time_labels) if starttime < date <= endtime]
 
@@ -217,8 +217,9 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
         anomaly_ids = [i + len(noc.D) for i in anomaly_ids]
 
     # Plot D and Q values and highlight anomalies
+    event_index = anomaly_ids if len(anomaly_ids) > 0 else None
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    fig, axes = noc.plot_DQ_test(starttime, endtime, plot_train=False, event_index=anomaly_ids, 
+    fig, axes = noc.plot_DQ_test(starttime, endtime, plot_train=False, event_index=event_index, 
                                  opacity=opacity)
     plt.tight_layout()
 
@@ -228,7 +229,3 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
         plt.show()
     
     return fig, axes
-
-    
-
-    

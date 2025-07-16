@@ -1,5 +1,6 @@
 {
     "update_frequency": 5,
+    "delay": 5,
     "data_path": "tests/data/mseed",
     "features_path": "tests/data/features",
     "nocs_path": "tests/data/nocs",

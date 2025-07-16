@@ -1,8 +1,8 @@
 import os
 import re
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import numpy as np
-from scipy.io import savemat, loadmat
+from scipy.io import savemat
 
 from preprocessing.SISMO import SISMO
 
@@ -52,9 +52,9 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
 
     """
     if isinstance(starttime, str):
-        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     if isinstance(endtime, str):
-        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
@@ -147,9 +147,9 @@ def delete_fft(path, station, starttime, endtime, verbose = False):
     """
     # Convert date strings to datetime objects for comparison
     if isinstance(starttime, str):
-        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     if isinstance(endtime, str):
-        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
     
@@ -169,8 +169,8 @@ def delete_fft(path, station, starttime, endtime, verbose = False):
 
                 try:
                     # Convert file dates to datetime objects
-                    file_starttime = datetime.strptime(file_starttime, '%Y-%m-%dT%H-%M-%SZ')
-                    file_endtime = datetime.strptime(file_endtime, '%Y-%m-%dT%H-%M-%SZ')
+                    file_starttime = datetime.strptime(file_starttime, '%Y-%m-%dT%H-%M-%SZ').replace(tzinfo=timezone.utc)
+                    file_endtime = datetime.strptime(file_endtime, '%Y-%m-%dT%H-%M-%SZ').replace(tzinfo=timezone.utc)
 
                     # Remove files in the time range
                     if file_starttime >= starttime and file_endtime <= endtime:
