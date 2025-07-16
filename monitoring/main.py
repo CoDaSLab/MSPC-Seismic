@@ -5,11 +5,12 @@ import numpy as np
 import numbers
 from datetime import datetime, timedelta, timezone
 from scipy.io import savemat, loadmat
+from collections import defaultdict
 
 from preprocessing.fft_rt import calculate_fft_rt, delete_fft, list_fft_files
 from monitoring.mspc_rt import mspc, plot_anomalies
 from monitoring.NOC import NOC
-from collections import defaultdict
+
 
 def load_config(file_path):
     """
@@ -256,3 +257,13 @@ def monitoring(config_path = 'config.json'):
             noc.delete_DQ_test(delete_date)
 
     print(f"Updated process control. Total time: {datetime.now() - time0}.")
+
+
+if __name__ == "__main__":
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Real-time monitoring using MSPC-PCA.")
+    parser.add_argument("--config", default="monitoring/config.json", help="Path to the JSON configuration file.")
+    args = parser.parse_args()
+
+    monitoring(args.config)
