@@ -1,5 +1,6 @@
 import json
 import os
+import re
 import csv
 import numpy as np
 import numbers
@@ -126,6 +127,50 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
     return noc_names
 
 
+def delete_old_files(directory_path: str, date_format: str, cutoff_date: str) -> None:
+    """
+    Deletes files in the given directory whose names end with a date in the specified format,
+    only if the date is earlier than the given cutoff date.
+
+    Parameters
+    ----------
+        directory_path (str): 
+            Path to the directory to scan.
+        date_format (str): 
+            Date format to match at the end of file names (e.g., '%Y-%m-%d').
+        cutoff_date_str (str): 
+            The cutoff date in the same format as date_format.
+    """
+    if not os.path.isdir(directory_path):
+        raise ValueError(f"Directory does not exist: {directory_path}")
+
+    if isinstance(cutoff_date, str):
+        cutoff_date = datetime.strptime(cutoff_date, date_format).replace(tzinfo=timezone.utc)
+
+    # Convert the date format to a regex pattern
+    regex_date = date_format \
+        .replace('%Y', r'\d{4}') \
+        .replace('%m', r'\d{2}') \
+        .replace('%d', r'\d{2}')
+    
+    pattern = re.compile(rf"^(.*)({regex_date})$")
+
+    for file_name in os.listdir(directory_path):
+        full_path = os.path.join(directory_path, file_name)
+
+        if os.path.isfile(full_path):
+            name_without_ext, _ = os.path.splitext(file_name)
+            match = pattern.match(name_without_ext)
+            if match:
+                date_str = match.group(2)
+                try:
+                    file_date = datetime.strptime(date_str, date_format).replace(tzinfo=timezone.utc)
+                    if file_date < cutoff_date:
+                        os.remove(full_path)
+                except ValueError:
+                    continue  # Skip files with invalid dates
+
+
 def monitoring(config_path = 'config.json'):
     """
     Main monitoring function. Calculates FFT coefficients and performs MSPC-PCA on all
@@ -199,6 +244,12 @@ def monitoring(config_path = 'config.json'):
         noc = NOC.load(noc_path)
         nocs[station].append(noc)
 
+    plot_start = endtime - timedelta(hours=num_hours_for_plot)
+    plot_start = plot_start.replace(tzinfo=timezone.utc)
+    update_start = endtime - timedelta(days=7)  # HARDCODED: dynamic NOCs update at the start of the week
+    update_start = update_start.replace(tzinfo=timezone.utc)
+    delete_date = endtime - timedelta(days = days_before_delete)  # files from before this date will be deleted
+
     # Calculate features
     for station in avail_stations:
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
@@ -219,12 +270,10 @@ def monitoring(config_path = 'config.json'):
              anomaly_log_path=anomaly_log_path, nocs_path=nocs_path, verbose=verbose)
 
         # Delete old features files
-        delete_date = endtime - timedelta(days = days_before_delete)
         delete_fft(features_path, station, datetime.min.replace(tzinfo=timezone.utc), delete_date)
 
         for noc in nocs[station]:
             # Save MSPC plot
-            plot_start = endtime - timedelta(hours=num_hours_for_plot)
             plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + endtime.strftime('%Y%m%dT%H%M%SZ')
             plot_filepath = os.path.join(plots_path, plot_filename)
             plot_anomalies(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
@@ -234,8 +283,6 @@ def monitoring(config_path = 'config.json'):
             if update_nocs and noc.type == 'dynamic':                
                 noc.type = 'inactive'
                 noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
-
-                update_start = endtime - timedelta(days=7)  # HARDCODED: 1 week
 
                 # Get paths of the feature files to update NOCs
                 filenames = list_fft_files(features_path, station, update_start, endtime, verbose=verbose)
@@ -256,6 +303,12 @@ def monitoring(config_path = 'config.json'):
 
             # Delete old D and Q-statistic test values
             noc.delete_DQ_test(delete_date)
+
+    # Delete old NOCs
+    delete_old_files(nocs_path, '%Y-%m-%d', delete_date)
+
+    # Delete old plots
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
 
     print(f"Updated process control. Total time: {datetime.now() - time0}.")
 

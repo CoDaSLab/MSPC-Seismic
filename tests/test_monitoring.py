@@ -1,8 +1,11 @@
 import pytest
 from scipy.io import loadmat
 import pandas as pd
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 import json
+import os
+import shutil
+import tempfile
 
 from monitoring.NOC import NOC
 from monitoring.main import monitoring
@@ -29,6 +32,27 @@ def noc_ppma2(ppma_data):
               type='static', preprocessing=1, n_components=3, alpha=0.05, percentile_threshold=True, 
               csv_path='tests/metadata/noc_list.csv')
     return noc
+
+@pytest.fixture
+def temp_dir_with_files():
+    test_dir = tempfile.mkdtemp()
+
+    files = [
+        "report_2024-01-01.txt",     # Should be deleted
+        "summary_2025-01-01.log",    # Should not be deleted
+        "data_2023-12-31.txt",       # Should be deleted
+        "notes_2025-07-16.txt",      # Same as cutoff
+        "badfile_2025-13-01.txt",    # Invalid date
+        "otherfile.txt"              # No date
+    ]
+
+    for filename in files:
+        with open(os.path.join(test_dir, filename), 'w') as f:
+            f.write("Test content")
+
+    yield test_dir
+
+    shutil.rmtree(test_dir)
 
 def empty_csv(path):
     file = pd.read_csv(path, nrows=0)
@@ -90,3 +114,18 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     assert len(noc_ppma1.Q_test) == 10
     assert len(noc_ppma2.D_test) == 10
     assert len(noc_ppma2.Q_test) == 10
+
+
+def test_delete_old_files(temp_dir_with_files):
+    from monitoring.main import delete_old_files
+
+    delete_old_files(temp_dir_with_files, "%Y-%m-%d", "2025-07-16")
+
+    remaining = set(os.listdir(temp_dir_with_files))
+    expected = {
+        "notes_2025-07-16.txt",
+        "badfile_2025-13-01.txt",
+        "otherfile.txt"
+    }
+
+    assert remaining == expected

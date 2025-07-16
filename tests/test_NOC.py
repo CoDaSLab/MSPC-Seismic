@@ -3,7 +3,7 @@ from monitoring.NOC import NOC
 import numpy as np
 import pytest
 import pandas as pd
-from datetime import datetime
+from datetime import datetime, timezone
 import matplotlib.pyplot as plt
 
 @pytest.fixture
@@ -119,10 +119,9 @@ def test_NOC_load():
 def test_NOC_DQ_test():
     # Create training data
     data = np.random.randn(24, 4)
-    start = datetime(2025,1,1,0,0,0)
-    end = datetime(2025,1,1,0,4,0)
+    start = datetime(2025,1,1,0,0,0, tzinfo=timezone.utc)
+    end = datetime(2025,1,1,0,4,0, tzinfo=timezone.utc)
     labels = list(pd.date_range(start, end, data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ'))[1:]  # Exclude the first label
-    print(labels)
 
     assert data.shape[0] == len(labels)
 
@@ -130,8 +129,8 @@ def test_NOC_DQ_test():
 
     # Create test data
     test_data = np.random.rand(6, 4)
-    start = datetime(2025,1,1,0,4,0)
-    end = datetime(2025,1,1,0,5,0)
+    start = datetime(2025,1,1,0,4,0, tzinfo=timezone.utc)
+    end = datetime(2025,1,1,0,5,0, tzinfo=timezone.utc)
     test_labels = pd.date_range(start, end, test_data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ')[1:]  # Exclude the first label
 
     assert test_data.shape[0] == len(test_labels)
