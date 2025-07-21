@@ -1,3 +1,4 @@
 name,network,station,type,n_windows,n_variables,n_components,D_threshold,Q_threshold,start_time,end_time,last_update_time
 ppma1,C7,PPMA,dynamic,20,1500,2,12.6149,839569831889.5414,2025-06-17T12:00:10Z,2025-06-17T12:03:20Z,2025-07-21T22:16:20Z
 ppma2,C7,PPMA,static,20,1500,3,10.6804,750686147290.5101,2025-06-17T12:00:10Z,2025-06-17T12:03:20Z,2025-07-21T22:16:20Z
+test_NOC,,,,7,4,2,3.8036,1.4354,2023-01-01T17:00:00Z,2023-01-02T02:30:00Z,2025-07-21T22:43:36Z

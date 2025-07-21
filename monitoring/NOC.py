@@ -537,9 +537,13 @@ class NOC:
             
             starttime = ""
             endtime = ""
-            if len(self.time_range) > 0 and isinstance(self.time_range[0], str):
-                starttime = self.time_range[0]
-                endtime = self.time_range[1]
+            if len(self.time_range) > 0:
+                if isinstance(self.time_range[0], str):
+                    starttime = self.time_range[0]
+                    endtime = self.time_range[1]
+                else:
+                    starttime = self.time_range[0][0]
+                    endtime = self.time_range[-1][1]
                     
             # Create new row
             row = {
