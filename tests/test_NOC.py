@@ -156,3 +156,56 @@ def test_NOC_DQ_test():
 
     assert len(noc.D_test) == 0
     assert len(noc.Q_test) == 0
+
+
+def test_NOC_DQ_test_unordered_labels():
+    # Create training data
+    data = np.random.randn(24, 4)
+    start = datetime(2025,1,1,0,0,0, tzinfo=timezone.utc)
+    end = datetime(2025,1,1,0,4,0, tzinfo=timezone.utc)
+    labels = list(pd.date_range(start, end, data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ'))[1:]  # Exclude the first label
+
+    assert data.shape[0] == len(labels)
+
+    noc = NOC('test_NOC', data, obs_labels=labels, preprocessing=1, n_components=2)
+
+    # Create test data
+    test_data = np.random.rand(6, 4)
+    start = datetime(2025,1,1,0,4,0, tzinfo=timezone.utc)
+    end = datetime(2025,1,1,0,5,0, tzinfo=timezone.utc)
+    test_labels = pd.date_range(start, end, test_data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ')[1:]  # Exclude the first label
+
+    assert test_data.shape[0] == len(test_labels)
+
+    # Calculate D and Q test values
+    noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
+    D1 = noc.D_test
+    Q1 = noc.Q_test
+    
+    assert noc.test_labels[0] == '2025-01-01T00:04:10Z'
+    assert len(D1) == test_data.shape[0]
+    assert len(Q1) == test_data.shape[0]
+
+    # Test data part 2
+    test_data2 = 2 * np.random.rand(6, 4)
+    start = datetime(2024,12,31,23,50,0, tzinfo=timezone.utc)
+    end = datetime(2024,12,31,23,55,0, tzinfo=timezone.utc)
+    test_labels2 = list(pd.date_range(start, end, test_data2.shape[0]).strftime('%Y-%m-%dT%H:%M:%SZ')[1:])  # Exclude the first label
+    test_labels2.append('2025-01-01T00:04:30Z')  # Add a duplicate label
+
+    # Calculate D and Q test values
+    noc.calculate_DQ_test(test_data2, test_labels2, store_dq=True)
+    
+    assert noc.test_labels[0] == test_labels2[0]
+    assert noc.test_labels[-1] == test_labels[-1]
+    assert len(noc.D_test) == len(test_data) + len(test_data2) - 1  # sum of lengths minus the duplicate
+    assert len(noc.Q_test) == len(test_data) + len(test_data2) - 1
+
+    # Plot D and Q test values
+    noc.plot_DQ_test(start, end, plot_train = False)
+    plt.tight_layout()
+    plt.show()
+
+    noc.plot_DQ_test(start, end, plot_train = True)
+    plt.tight_layout()
+    plt.show()

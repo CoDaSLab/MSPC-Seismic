@@ -4,6 +4,7 @@
   "data_path": "data/involcan/mseed",
   "features_path": "data/involcan/features",
   "nocs_path": "data/involcan/nocs",
+  "save_plots": true,
   "plots_path": "data/involcan/nocs/plots",
   "latest_pulls_log_path": "data/involcan/metadata/latest_pulls.csv",
   "noc_log_path": "data/involcan/metadata/noc_list.csv",

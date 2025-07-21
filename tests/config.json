@@ -4,6 +4,7 @@
     "data_path": "tests/data/mseed",
     "features_path": "tests/data/features",
     "nocs_path": "tests/data/nocs",
+    "save_plots": true,
     "plots_path": "tests/data/nocs/plots",
     "latest_pulls_log_path": "tests/metadata/latest_pulls.csv",
     "noc_log_path": "tests/metadata/noc_list.csv",

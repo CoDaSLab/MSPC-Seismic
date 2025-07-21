@@ -190,6 +190,7 @@ def monitoring(config_path = 'config.json'):
     data_path = config["data_path"]  # Path to the directory where seismic data files are saved.
     features_path = config["features_path"]  # Path to the directory where feature files are saved.
     nocs_path = config["nocs_path"]  # Path to the directory where NOC files are saved.
+    save_plots = config["save_plots"]  # Whether to save plots
     plots_path = config["plots_path"]  # Path to the directory where MSPC plots are saved.
     latest_pulls_log_path = config["latest_pulls_log_path"]  # Path to a CSV with information on the latest data downloads
     noc_log_path = config["noc_log_path"]  # Path to a CSV for saving NOC information
@@ -223,12 +224,6 @@ def monitoring(config_path = 'config.json'):
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
-    # Update NOCs once a week
-    if starttime.weekday() == 0 and starttime.hour == 0 and starttime.minute == 0:  # Monday at 00:00 UTC
-        update_nocs = True
-    else:
-        update_nocs = False
-
     # Check available stations
     try:
         avail_stations = get_available_stations(latest_pulls_log_path, 1.5 * update_frequency)
@@ -248,7 +243,7 @@ def monitoring(config_path = 'config.json'):
     # Dates for plots and updates
     plot_start = endtime - timedelta(hours=num_hours_for_plot)
     plot_start = plot_start.replace(tzinfo=timezone.utc)
-    update_start = endtime - timedelta(days=num_days_for_noc_update)  # HARDCODED: dynamic NOCs update at the start of the week
+    update_start = endtime - timedelta(days=num_days_for_noc_update)  # Dynamic NOCs created before this date will be updated
     update_start = update_start.replace(tzinfo=timezone.utc)
     delete_date = endtime - timedelta(days = days_before_delete)  # files from before this date will be deleted
 
@@ -275,33 +270,39 @@ def monitoring(config_path = 'config.json'):
         delete_fft(features_path, station, datetime.min.replace(tzinfo=timezone.utc), delete_date)
 
         for noc in nocs[station]:
-            # Save MSPC plot
-            plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + endtime.strftime('%Y%m%dT%H%M%SZ')
-            plot_filepath = os.path.join(plots_path, plot_filename)
-            plot_anomalies(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
-                           save_path=plot_filepath, show=False)
+            if save_plots:
+                # Save MSPC plot
+                plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + endtime.strftime('%Y%m%dT%H%M%SZ')
+                plot_filepath = os.path.join(plots_path, plot_filename)
+                plot_anomalies(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
+                            save_path=plot_filepath, show=False)
             
             # Update dynamic NOCs
-            if update_nocs and noc.type == 'dynamic':                
-                noc.type = 'inactive'
-                noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
+            if noc.type == 'dynamic':  
+                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+                if update_start > last_noc_update:
+                    # Get paths of the feature files to update NOCs
+                    filenames = list_fft_files(features_path, station, update_start, endtime, verbose=verbose)
+                    filepaths = [os.path.join(features_path, filename).replace('\\', '/') for filename in filenames]
+                    files = [loadmat(filepath) for filepath in filepaths]
+                    new_features = np.vstack([np.hstack([f[key] for key in feature_types]) for f in files])
+                    new_labels = []
+                    for file in files:
+                        new_labels.extend(file['obs_labels'])
 
-                # Get paths of the feature files to update NOCs
-                filenames = list_fft_files(features_path, station, update_start, endtime, verbose=verbose)
-                filepaths = [os.path.join(features_path, filename).replace('\\', '/') for filename in filenames]
-                files = [loadmat(filepath) for filepath in filepaths]
-                new_features = np.vstack([np.hstack([f[key] for key in feature_types]) for f in files])
-                new_labels = []
-                for file in files:
-                    new_labels.extend(file['obs_labels'])
-
-                # Create new NOC for the new week
-                new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
-                new_noc = NOC(new_name, new_features, new_labels, network=network, station=station,
-                              type='dynamic', preprocessing=noc.preprocessing, n_components=noc.n_components, 
-                              alpha=noc.alpha, percentile_threshold=noc.percentile_threshold, 
-                              q_method = noc.q_method, csv_path = noc_log_path)
-                new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
+                    # Create new NOC for the new week
+                    new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
+                    new_noc = NOC(new_name, new_features, new_labels, network=network, station=station,
+                                type='dynamic', preprocessing=noc.preprocessing, n_components=noc.n_components, 
+                                alpha=noc.alpha, percentile_threshold=noc.percentile_threshold, 
+                                q_method = noc.q_method, csv_path = noc_log_path)
+                    new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
+                    new_noc.write_csv(noc_log_path)
+                    
+                    # Make previous NOC inactive
+                    noc.type = 'inactive'
+                    noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
+                    noc.write_csv(noc_log_path)
 
             # Delete old D and Q-statistic test values
             noc.delete_DQ_test(delete_date)

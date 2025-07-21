@@ -249,4 +249,4 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
     except Exception as e:
         print(f"An unexpected error occurred: {e}")
 
-    return matching_files
+    return sorted(matching_files)

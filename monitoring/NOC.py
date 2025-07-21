@@ -1,5 +1,5 @@
 """
-Last update: 04/07/2025
+Last update: 21/07/2025
 
 file name: NOC.py
 
@@ -200,7 +200,7 @@ class NOC:
         test (numpy array)
             Features to be used as test for D and Q calculation.
         test_labels (list)
-            Labels (times) for all observations in test data.
+            Labels (UTC times) for all observations in test data.
         missing_rates (list or None)
             Rate of missing values for each observation in test data. Defaults to
             no missing values (None).
@@ -214,16 +214,54 @@ class NOC:
         Q_test (list)
             Q-statistic values for test data.
         """
-        _, _, D_test, Q_test, _, _ = DQ_tt(self.features, test, n_components=self.n_components, 
-                                            preprocessing=self.preprocessing, alpha=self.alpha, 
-                                            percentile_threshold=self.percentile_threshold, 
+        # Ensure missing_rates is a list of appropriate length if None
+        if missing_rates is None:
+            missing_rates = [0.0] * len(test_labels)
+
+        # Calculate D and Q
+        _, _, D_test, Q_test, _, _ = DQ_tt(self.features, test, n_components=self.n_components,
+                                            preprocessing=self.preprocessing, alpha=self.alpha,
+                                            percentile_threshold=self.percentile_threshold,
                                             type_q=self.q_method, plot=False)
-        
+
         if store_dq:
-            self.D_test.extend(D_test)
-            self.Q_test.extend(Q_test)
-            self.test_labels.extend(test_labels)
-            self.test_missing_rates.extend(missing_rates if missing_rates is not None else [0] * len(D_test))
+            # Create a list of tuples: (label, D_value, Q_value, missing_rate)
+            current_data = []
+            for i, label in enumerate(test_labels):
+                current_data.append((label, D_test[i], Q_test[i], missing_rates[i]))
+
+            # Create a set of existing labels
+            existing_labels_set = set(self.test_labels)
+
+            # Filter out entries with duplicate labels and add new unique ones
+            new_entries = []
+            for entry in current_data:
+                label = entry[0]
+                if label not in existing_labels_set:
+                    new_entries.append(entry)
+                    existing_labels_set.add(label) # Add to the set to prevent future duplicates in this batch
+
+            # Combine existing stored data with new unique entries
+            combined_data = []
+            for i, label in enumerate(self.test_labels):
+                combined_data.append((label, self.D_test[i], self.Q_test[i], self.test_missing_rates[i]))
+            
+            combined_data.extend(new_entries)
+
+            # Sort all combined data chronologically by label
+            combined_data.sort(key=lambda x: x[0])
+
+            # Clear existing attributes and repopulate with sorted, unique data
+            self.D_test.clear()
+            self.Q_test.clear()
+            self.test_labels.clear()
+            self.test_missing_rates.clear()
+
+            for label, d_val, q_val, mr_val in combined_data:
+                self.test_labels.append(label)
+                self.D_test.append(d_val)
+                self.Q_test.append(q_val)
+                self.test_missing_rates.append(mr_val)
         else:
             return D_test, Q_test
     
@@ -235,7 +273,7 @@ class NOC:
         Parameters
         ----------
         stop_date (str or datetime)
-            Date from when to keep values. Values corresponding to previous dates will be deleted.
+            UTC date from when to keep values. Values corresponding to previous dates will be deleted.
             Default is None (delete all values).
         """
         if self.D_test and self.Q_test and self.test_labels:
@@ -301,9 +339,9 @@ class NOC:
         Parameters
         ----------
         starttime (str or datetime)
-            Start of the time range depicted in the plot.
+            Start of the time range (UTC) depicted in the plot.
         endtime (str or datetime)
-            End of the time range depicted in the plot.
+            End of the time range (UTC) depicted in the plot.
         logscale (bool) 
             If True, plots the statistics on a logarithmic scale (default: False)
         event_index (list)
