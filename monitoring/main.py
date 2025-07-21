@@ -3,7 +3,6 @@ import os
 import re
 import csv
 import numpy as np
-import numbers
 from datetime import datetime, timedelta, timezone
 from scipy.io import savemat, loadmat
 from collections import defaultdict
@@ -70,7 +69,7 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
     -------
         list: List of available station names.
     """
-    if isinstance(tolerance, numbers.Number):
+    if not isinstance(tolerance, timedelta):
         tolerance = timedelta(minutes=tolerance)
 
     stations = set()
@@ -249,6 +248,18 @@ def monitoring(config_path = 'config.json'):
 
     # Calculate features
     for station in avail_stations:
+        # Check previous features files
+        previous_starttime = starttime - timedelta(minutes=update_frequency)
+        previous_filename = station + '_' + previous_starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
+        if os.path.isfile(os.path.join(features_path, previous_filename).replace('\\', '/')):
+            previous_features = loadmat(os.path.join(features_path, previous_filename).replace('\\', '/'))
+            previous_missing_rates = previous_features['missing_rates']
+            if np.mean(previous_missing_rates) > 0.1:
+                if verbose:
+                    print(f"Warning: High missing rates in previous features for station {station}. Recalculating features...")
+                # If previous features have high missing rates, recalculate them
+                starttime = previous_starttime.replace(tzinfo=timezone.utc)
+
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
                                     window_size, window_shift, detrend=detrend, fft_points=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,

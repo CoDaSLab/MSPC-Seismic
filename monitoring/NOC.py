@@ -225,39 +225,29 @@ class NOC:
                                             type_q=self.q_method, plot=False)
 
         if store_dq:
-            # Create a list of tuples: (label, D_value, Q_value, missing_rate)
-            current_data = []
-            for i, label in enumerate(test_labels):
-                current_data.append((label, D_test[i], Q_test[i], missing_rates[i]))
-
-            # Create a set of existing labels
-            existing_labels_set = set(self.test_labels)
-
-            # Filter out entries with duplicate labels and add new unique ones
-            new_entries = []
-            for entry in current_data:
-                label = entry[0]
-                if label not in existing_labels_set:
-                    new_entries.append(entry)
-                    existing_labels_set.add(label) # Add to the set to prevent future duplicates in this batch
-
-            # Combine existing stored data with new unique entries
-            combined_data = []
+            # Load existing test data into a map
+            combined_data_map = {}
             for i, label in enumerate(self.test_labels):
-                combined_data.append((label, self.D_test[i], self.Q_test[i], self.test_missing_rates[i]))
-            
-            combined_data.extend(new_entries)
+                combined_data_map[label] = (self.D_test[i], self.Q_test[i], self.test_missing_rates[i])
 
-            # Sort all combined data chronologically by label
-            combined_data.sort(key=lambda x: x[0])
+            # Add new values. Rewrite existing values if the label already exists
+            for i, label in enumerate(test_labels):
+                combined_data_map[label] = (D_test[i], Q_test[i], missing_rates[i])
 
-            # Clear existing attributes and repopulate with sorted, unique data
+            # Convert the map to a list of tuples for easier manipulation
+            # (label, D_value, Q_value, missing_rate)
+            combined_data_list = [(label, *values) for label, values in combined_data_map.items()]
+
+            # Order chronologically
+            combined_data_list.sort(key=lambda x: x[0])
+
+            # Clear existing attributes and update with ordered values
             self.D_test.clear()
             self.Q_test.clear()
             self.test_labels.clear()
             self.test_missing_rates.clear()
 
-            for label, d_val, q_val, mr_val in combined_data:
+            for label, d_val, q_val, mr_val in combined_data_list:
                 self.test_labels.append(label)
                 self.D_test.append(d_val)
                 self.Q_test.append(q_val)
