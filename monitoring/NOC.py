@@ -433,6 +433,7 @@ class NOC:
         print(f"    Network: {self.network}")
         print(f"    Station: {self.station}")
         print(f"    NOC type: {self.type}")
+        print(f"    Updated on: {self.last_update_time}")
         
         print("Parameters:")
         print(f"    Features shape: {self.features.shape}")

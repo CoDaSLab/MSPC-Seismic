@@ -26,6 +26,7 @@
   "verbose": false,
   "days_before_delete": 10,
   "num_hours_for_plot": 1,
+  "num_days_for_noc_update": 7,
   "metadata": {
     "max_frequency": 50
   }

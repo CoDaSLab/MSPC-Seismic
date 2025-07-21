@@ -17,8 +17,8 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
 
     Parameters
     ----------
-        starttime (datetime): Start time for data extraction.
-        endtime (datetime): End time for data extraction.
+        starttime (datetime): Start time for data extraction (UTC).
+        endtime (datetime): End time for data extraction (UTC).
         network (str): Seismic network identifier.
         station (str): Station codes.
         channels (list of str): List of channels (default: ['HHE', 'HHN', 'HHZ']).
@@ -142,8 +142,8 @@ def delete_fft(path, station, starttime, endtime, verbose = False):
     ----------
         path (str): Path to the directory containing the files.
         station (str): Name of the station.
-        starttime (str or datetime): The start date of the range.
-        endtime (str or datetime): The end date of the range.
+        starttime (str or datetime): The start date of the range (UTC).
+        endtime (str or datetime): The end date of the range (UTC).
     """
     # Convert date strings to datetime objects for comparison
     if isinstance(starttime, str):
@@ -203,8 +203,8 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
     ----------
         path (str): Path to the directory containing the files.
         station (str): Name of the station.
-        starttime (str or datetime): The start date of the range.
-        endtime (str or datetime): The end date of the range.
+        starttime (str or datetime): The start date of the range (UTC).
+        endtime (str or datetime): The end date of the range (UTC).
         verbose (bool): Whether to print information about matched files.
 
     Returns
@@ -212,9 +212,9 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
         list: List of matching filenames.
     """
     if isinstance(starttime, str):
-        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     if isinstance(endtime, str):
-        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S')
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
@@ -229,8 +229,8 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
                 file_end_str = match.group(2)
 
                 try:
-                    file_start = datetime.strptime(file_start_str, '%Y-%m-%dT%H-%M-%SZ')
-                    file_end = datetime.strptime(file_end_str, '%Y-%m-%dT%H-%M-%SZ')
+                    file_start = datetime.strptime(file_start_str, '%Y-%m-%dT%H-%M-%SZ').replace(tzinfo=timezone.utc)
+                    file_end = datetime.strptime(file_end_str, '%Y-%m-%dT%H-%M-%SZ').replace(tzinfo=timezone.utc)
 
                     if file_start >= starttime and file_end <= endtime:
                         matching_files.append(filename)

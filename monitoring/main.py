@@ -210,6 +210,7 @@ def monitoring(config_path = 'config.json'):
     verbose = config["verbose"]  # Whether to print extra messages.
     days_before_delete = config["days_before_delete"]  # Number of days to keep saved features.
     num_hours_for_plot = config["num_hours_for_plot"]  # Length in hours of the time range shown in MSPC plots
+    num_days_for_noc_update = config["num_days_for_noc_update"]  # Number of days between dynamic NOC updates
 
     time0 = datetime.now()
     
@@ -244,9 +245,10 @@ def monitoring(config_path = 'config.json'):
         noc = NOC.load(noc_path)
         nocs[station].append(noc)
 
+    # Dates for plots and updates
     plot_start = endtime - timedelta(hours=num_hours_for_plot)
     plot_start = plot_start.replace(tzinfo=timezone.utc)
-    update_start = endtime - timedelta(days=7)  # HARDCODED: dynamic NOCs update at the start of the week
+    update_start = endtime - timedelta(days=num_days_for_noc_update)  # HARDCODED: dynamic NOCs update at the start of the week
     update_start = update_start.replace(tzinfo=timezone.utc)
     delete_date = endtime - timedelta(days = days_before_delete)  # files from before this date will be deleted
 
@@ -294,7 +296,7 @@ def monitoring(config_path = 'config.json'):
                     new_labels.extend(file['obs_labels'])
 
                 # Create new NOC for the new week
-                new_name = noc.station + '_' + 'd' + '_' + endtime.strftime('%Y-%m-%d')
+                new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
                 new_noc = NOC(new_name, new_features, new_labels, network=network, station=station,
                               type='dynamic', preprocessing=noc.preprocessing, n_components=noc.n_components, 
                               alpha=noc.alpha, percentile_threshold=noc.percentile_threshold, 

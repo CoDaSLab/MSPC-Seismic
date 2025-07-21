@@ -20,9 +20,9 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
         test (numpy array)
             Test data
         starttime (datetime)
-            Start time of the first window.
+            Start time of the first window (UTC).
         endtime (datetime)
-            End time of the last window.
+            End time of the last window (UTC).
         window_size (int)
             Time window size in seconds. Used for calculating anomaly times.
         window_shift (int)
@@ -85,7 +85,7 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
         for i in range(len(anomaly_ids)):
             rows.append({'network':noc.network, 'station':noc.station, 
                         'anomaly_start_time':anomaly_start_times[i], 'anomaly_end_time':anomaly_end_times[i],
-                        'control_start_time':starttime, 'control_end_time':endtime,
+                        'control_start_time':starttime.strftime('%Y-%m-%dT%H:%M:%SZ'), 'control_end_time':endtime.strftime('%Y-%m-%dT%H:%M:%SZ'),
                         'D_anomaly':noc.D_test[i], 'Q_anomaly':noc.Q_test[i], 
                         'D_threshold':round(noc.D_threshold,4), 'Q_threshold':round(noc.Q_threshold,4),
                         'NOC':noc.name})
@@ -179,9 +179,9 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     noc (str)
         NOC instance.
     starttime (datetime)
-        Start of the time range to plot
+        Start of the time range to plot (UTC)
     endtime(datetime)
-        End of the time range to plot
+        End of the time range to plot (UTC)
     save (bool)
         If True, saves the graph in `save_path` (default: True)
     save_path (str)
