@@ -202,3 +202,21 @@ def test_NOC_DQ_test_unordered_labels():
     assert len(noc.Q_test) == len(test_data) + len(test_data2) - 1
     assert noc.D_test[-2] == D1[-2]
     assert noc.D_test[-1] != D1[-1]  # Ensure the duplicate value was replaced
+
+
+def test_compare_NOCs(features, new_features):
+    from monitoring.NOC import compare_nocs
+    
+    new_features[:, 3] = 1.5 * np.abs(features[:len(new_features), 3]) + 1
+
+    noc1 = NOC('test_NOC', features, preprocessing=1, n_components=2)
+    noc2 = NOC('test_NOC2', new_features, preprocessing=1, n_components=2)
+
+    omeda_vec, fig, ax = compare_nocs(noc2, noc1)
+
+    assert len(omeda_vec) == features.shape[1]
+    assert omeda_vec[3] > 0
+
+    ax.set_ylabel("Changed label", loc="top")
+    plt.tight_layout()
+    plt.show()

@@ -585,3 +585,64 @@ class NOC:
 
     def __str__(self):
         return f"NOC class. Name: {self.name}."
+
+
+# Additional functions
+from mspc_pca.omeda import omeda
+
+def compare_nocs(noc1, noc2, preprocessing=1, n_components=None, var_labels=None, var_classes=None, ax=None):
+    """
+    Compares two NOCs using oMEDA.
+
+    Parameters
+    ----------
+    noc1 (NOC)
+        First NOC.
+    noc2 (NOC)
+        Second NOC.
+    preprocessing (int)
+        Preprocessing for NOC features:
+        - 1: mean-centering (default)
+        - 2: autoscaling
+    n_components (int)
+        Number of principal components (PCs). By default, all PCs are used.
+    var_labels (list)
+        Labels for the variables (x-axis).
+    var_classes (list)
+        Classes for coloring
+    ax (Axis)
+        Axis where the oMEDA vector will be plotted (optional, default: None).
+
+    Returns
+    -------
+    omeda_vec (array)
+        oMEDA results.
+    fig (Figure)
+        Plot figure.
+    ax (Axis)
+        Axis with plotted oMEDA vector.
+    """
+    # Check that the NOCs are comparable
+    assert noc1.features.shape[1] == noc2.features.shape[1], f"Error: NOCs should have the same number of columns ({noc1.features.shape[1]} != {noc2.features.shape[1]})."
+    
+    features_all = np.vstack((noc1.features, noc2.features))
+
+    # Dummy variable for omeda
+    dummy = np.ones(len(features_all))
+    dummy[len(noc1.features):] = -1
+    
+    if preprocessing == 1:
+        scaler = StandardScaler(with_std=False)
+    elif preprocessing == 2:
+        scaler = StandardScaler(with_std=True)
+    
+    features_all = scaler.fit_transform(features_all)
+
+    pca_model = PCA(n_components=n_components)
+    scores = pca_model.fit_transform(features_all)
+    loadings = pca_model.components_.T
+
+    omeda_vec, fig, ax = omeda(features_all, dummy=dummy, R=loadings, plot=True, var_labels=var_labels, var_classes=var_classes,
+                                title=f"{noc1.name} (+) vs. {noc2.name} (-)")
+    
+    return omeda_vec, fig, ax
