@@ -33,3 +33,7 @@ def plot_fft(S, window_id, ylim, interactive):
         components.html(fig_html, height=600)
     else:
         st.pyplot(fig)
+
+def plot_signals():
+    
+    return
