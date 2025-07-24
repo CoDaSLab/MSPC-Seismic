@@ -21,4 +21,7 @@ def load_events():
     
     return events
 
+def load_sensors(filepath = "data/involcan/metadata/stations_all.dat", column_names=["station", "lat", "lon", "height"] ):
+    sensors = pd.read_csv(filepath, sep=r"\s+",names=column_names)
+    return sensors
 

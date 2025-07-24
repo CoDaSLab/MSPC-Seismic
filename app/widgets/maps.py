@@ -88,7 +88,7 @@ def choose_events(events, display_events, starttime, endtime):
     else: plot_events = []
     return plot_events
 
-def show_map(peak, sensors, events, event_color, center = [28.612778, -17.866111] ):
+def show_map_old(peak, sensors, events, event_color, center = [28.612778, -17.866111] ):
     if peak:
         peak = [-17.866111, 28.612778] # Tajogaite Peak coordinates
         peak.append(marker_colors['Volcano peak'])
@@ -149,9 +149,40 @@ def show_map(peak, sensors, events, event_color, center = [28.612778, -17.866111
 
 
 
-def draw_map(m):
+def draw_map(map= None):
+    if map is None:
+        map = folium.Map(location=[28.653788, -17.866111], zoom_start=11, tiles="CartoDB positron")
+        Draw(export=False).add_to(map)
+    output = st_folium(map, use_container_width=True)
+    return map, output
 
-    m = folium.Map(location=[39.949610, -75.150282], zoom_start=5)
-    Draw(export=True).add_to(m)
 
-    return output
+from shapely.geometry import Point, Polygon
+def is_inside(row, polygon, lon_label = 'lon', lat_label='lat'):
+    point = Point(row[lon_label], row[lat_label]) 
+    return polygon.contains(point)
+
+def sensor_selector(drawings, sensors):
+    if drawings is not None:
+
+        polygon_coords = []
+        polygons = []
+        circles = []
+        for drawing in drawings:
+            if drawing["geometry"]["type"] == "Polygon":
+                polygon_coords.append(drawing["geometry"]["coordinates"][0])
+        for coords in polygon_coords:
+            polygons.append( Polygon(coords))
+
+        aux = [False]*len(sensors)
+        for polygon in polygons:
+            aux = aux | sensors.apply(is_inside, axis=1, args = (polygon,))
+
+        return sensors[aux]
+
+
+def show_map(m, use_container_width=True):
+    try:
+        st_folium(m, use_container_width=use_container_width)
+    except: pass
+    return m

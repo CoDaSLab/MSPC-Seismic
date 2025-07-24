@@ -11,3 +11,4 @@ streamlit-folium
 branca
 paramiko
 git+https://github.com/CoDaSLab/MSPC_PCA-based.git#egg=mspc-pca
+git+https://github.com/JesusGarSan/MESA#

@@ -39,6 +39,13 @@ def init_page(title = None, icon="🌋", layout="wide", sidebar="collapsed"):
 
 def init_session_state():
     import streamlit as st
+    if 'map' not in st.session_state: st.session_state.map = None
+    if 'map_markers' not in st.session_state: st.session_state.map_markers = None
+    if 'sensors' not in st.session_state: st.session_state.sensors = None
+    if 'channels' not in st.session_state: st.session_state.channels = None
+    if 'starttime' not in st.session_state: st.session_state.starttime = None
+    if 'endtime' not in st.session_state: st.session_state.endtime = None
+
     if 'sensor' not in st.session_state: st.session_state.sensor = 'PPMA'
     if 'channel' not in st.session_state: st.session_state.channel = 'HHE'
     from datetime import datetime, time
