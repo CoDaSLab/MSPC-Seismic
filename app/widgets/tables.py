@@ -44,13 +44,13 @@ def check_availability(av_file_path, av_time_path):
 
 def available_sensors():
     # Load sensor location data
-    sensors = pd.read_csv("data/stations_lp.dat", sep='\s+')
+    sensors = pd.read_csv("data/involcan/metadata/stations_lp.dat", sep='\s+')
     sensors.columns = ["sensor", "latitude", "longitude", "altitude (m)"]
     sensors['available'] = False
     sensors.loc[sensors['sensor'].isin(['PPMA', 'PLPI']), 'available'] = True
     sensors = sensors.sort_values('available', ignore_index=True, ascending=False)
 
-    st.dataframe(sensors, use_container_width = True)
+    sensors = st.data_editor(sensors, use_container_width = True)
     st.write("Source: INVOLCÁN")
 
     return sensors

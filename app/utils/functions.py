@@ -5,7 +5,7 @@ def load_data(filepath, sep=',', header='infer'):
 
 def load_events():
     # Load registered events data
-    events = pd.read_csv("data/ivc.dat", header=None)
+    events = pd.read_csv("data/involcan/metadata/ivc.dat", header=None)
     # Name the columns
     events.columns =  ['year', 'month', 'day', 'hour', 'minute', 'second', 'magnitude', 'longitude', 'latitude','depth (km)','*1','*2']
     events = events.drop(["*1","*2"], axis = 1)

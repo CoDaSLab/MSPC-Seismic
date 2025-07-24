@@ -12,10 +12,10 @@ st.title('Digivolcan database dashboard')
 
 # csv files to load
 csv_files = {
-    "Available Files":      "data/metadata/Available_files.csv",
+    "Available Files":      "data/involcan/metadata/available_files.csv",
     # "Available Time":       "data/metadata/Available_times.csv",
     # "Available Events":     "data/metadata/ivc_available_data.csv",
-    "Feature Log":          "data/metadata/feature_log.csv",
+    "Feature Log":          "data/involcan/metadata/feature_log.csv",
 }
 names = list(csv_files.keys())
 paths = list(csv_files.values())

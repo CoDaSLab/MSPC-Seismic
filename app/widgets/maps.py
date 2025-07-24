@@ -1,5 +1,6 @@
 import streamlit as st
 import folium
+from folium.plugins import Draw
 from streamlit_folium import st_folium 
 import branca.colormap as bcm
 from matplotlib import cm, colors
@@ -146,3 +147,11 @@ def show_map(peak, sensors, events, event_color, center = [28.612778, -17.866111
 
     return  
 
+
+
+def draw_map(m):
+
+    m = folium.Map(location=[39.949610, -75.150282], zoom_start=5)
+    Draw(export=True).add_to(m)
+
+    return output
