@@ -5,7 +5,7 @@ from streamlit_folium import st_folium
 import branca.colormap as bcm
 from matplotlib import cm, colors
 import pandas as pd
-
+import copy
 
 # -- Define colors for markers --
 colormap = colors.LinearSegmentedColormap.from_list("yellow_to_red", ["#55ff00", "#fff700", "#FF0000"])
@@ -186,3 +186,12 @@ def show_map(m, use_container_width=True):
         st_folium(m, use_container_width=use_container_width)
     except: pass
     return m
+
+def update_stations(m, stations):
+    marked_map = copy.deepcopy(m)
+    for i in range(len(stations)):
+        folium.Marker(
+        location=[stations.iloc[i]['lat'], stations.iloc[i]['lon']],
+        popup=stations.iloc[i]['station'],
+        ).add_to(marked_map)
+    return marked_map
