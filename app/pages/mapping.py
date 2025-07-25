@@ -127,7 +127,7 @@ if submitted_time and not submitted_selection:
 # -----------------------------------
 
 if submitted_selection:
-    data_path = "data/involcan/mseed/"
+    # data_path = "data/involcan/mseed"
     sensors = st.session_state.sensors['station'].to_list()
     starttime = st.session_state.starttime
     endtime = st.session_state.endtime

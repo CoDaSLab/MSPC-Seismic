@@ -51,6 +51,7 @@ def available_sensors():
     sensors = sensors.sort_values('available', ignore_index=True, ascending=False)
 
     sensors = st.data_editor(sensors, use_container_width = True)
+    
     st.write("Source: INVOLCÁN")
 
     return sensors
