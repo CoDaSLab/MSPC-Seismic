@@ -150,7 +150,10 @@ def delete_old_files(directory_path: str, date_format: str, cutoff_date: str) ->
     regex_date = date_format \
         .replace('%Y', r'\d{4}') \
         .replace('%m', r'\d{2}') \
-        .replace('%d', r'\d{2}')
+        .replace('%d', r'\d{2}') \
+        .replace('%H', r'\d{2}') \
+        .replace('%M', r'\d{2}') \
+        .replace('%S', r'\d{2}')
     
     pattern = re.compile(rf"^(.*)({regex_date})$")
 
@@ -246,15 +249,18 @@ def monitoring(config_path = 'config.json'):
     update_start = update_start.replace(tzinfo=timezone.utc)
     delete_date = endtime - timedelta(days = days_before_delete)  # files from before this date will be deleted
 
-    # Calculate features
+    starttime_original = starttime
+    endtime_original = endtime
+
     for station in avail_stations:
         # If previous runs failed, attempt to recalculate features. Only attempts to recalculate up to 10 failed runs
-        i = 0
+        max_failed_runs = 10
+        previous_files = list_fft_files(features_path, station, 
+                                        starttime - timedelta(minutes=max_failed_runs * update_frequency), starttime)
+        i = 1
         previous_success = False
-        previous_endtime = starttime
-        while i < 10 and not previous_success:
-            previous_starttime = previous_endtime - timedelta(minutes=update_frequency)
-            previous_filename = station + '_' + previous_starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + previous_endtime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
+        while i <= len(previous_files) and not previous_success:
+            previous_filename = previous_files[-i]
             if os.path.isfile(os.path.join(features_path, previous_filename).replace('\\', '/')):
                 previous_features = loadmat(os.path.join(features_path, previous_filename).replace('\\', '/'))
                 previous_missing_rates = previous_features['missing_rates']
@@ -262,14 +268,14 @@ def monitoring(config_path = 'config.json'):
                     if verbose:
                         print(f"Warning: High missing rates in previous features for station {station}. Recalculating features...")
                     # If previous features have high missing rates, recalculate them
-                    starttime = previous_starttime.replace(tzinfo=timezone.utc)
+                    starttime = starttime - timedelta(minutes=update_frequency)
                 else:
                     previous_success = True
             else:
-                starttime = previous_starttime.replace(tzinfo=timezone.utc)
-            previous_endtime = previous_starttime
+                starttime = starttime - timedelta(minutes=update_frequency)
             i += 1
-
+        
+        # Calculate features
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
                                     window_size, window_shift, detrend=detrend, fft_points=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,
@@ -299,8 +305,8 @@ def monitoring(config_path = 'config.json'):
                             save_path=plot_filepath, show=False)
             
             # Update dynamic NOCs
-            if noc.type == 'dynamic':  
-                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+            last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+            if noc.type == 'dynamic':
                 if update_start > last_noc_update:
                     # Get paths of the feature files to update NOCs
                     filenames = list_fft_files(features_path, station, update_start, endtime, verbose=verbose)
@@ -322,11 +328,17 @@ def monitoring(config_path = 'config.json'):
                     
                     # Make previous NOC inactive
                     noc.type = 'inactive'
-                    noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
-                    noc.write_csv(noc_log_path)
 
-            # Delete old D and Q-statistic test values
+            if delete_date > last_noc_update:
+                noc.type = 'unavailable'
+
+            # Delete old D and Q-statistic test values and save changes
             noc.delete_DQ_test(delete_date)
+            noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
+            noc.write_csv(noc_log_path)
+    
+        starttime = starttime_original
+        endtime = endtime_original
 
     # Delete old NOCs
     delete_old_files(nocs_path, '%Y-%m-%d', delete_date)

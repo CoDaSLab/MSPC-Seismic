@@ -125,23 +125,42 @@ if submitted_time and not submitted_selection:
             st.rerun()
 
 # -----------------------------------
-
+from folium.plugins import Fullscreen
 if submitted_selection:
-    # data_path = "data/involcan/mseed"
-    sensors = st.session_state.sensors['station'].to_list()
-    starttime = st.session_state.starttime
-    endtime = st.session_state.endtime
-    ST = st.session_state.ST
 
-    if st.session_state.ST == None:
-        ST = read_streams(sensors, starttime, endtime)
-        st.session_state.ST = ST
+    tajogaite_lat = 28.612778
+    tajogaite_lon = -17.866111
 
-    if col[0].checkbox("Plot seismograms"):
-        with col[1].expander("Seismogram plots"):
-            for stream in ST:
-                fig = stream.plot();
-                st.pyplot(fig)
+    sensors = st.session_state.sensors
+    marked_map = maps.update_stations(st.session_state.map, sensors)
+    Fullscreen(position="topleft").add_to(marked_map)
+    
+    folium.Marker(
+    location=[tajogaite_lat, tajogaite_lon],
+    popup="Tajogaite Peak", # Text that appears when you click the marker
+    tooltip="Tajogaite Peak", # Text that appears when you hover over the marker
+    icon=folium.Icon(color='red', icon='fire', prefix='fa') # Optional: Customize the icon
+    ).add_to(marked_map)
+
+    maps.show_map(marked_map)
+
+
+# if submitted_selection:
+#     # data_path = "data/involcan/mseed"
+#     sensors = st.session_state.sensors['station'].to_list()
+#     starttime = st.session_state.starttime
+#     endtime = st.session_state.endtime
+#     ST = st.session_state.ST
+
+#     if st.session_state.ST == None:
+#         ST = read_streams(sensors, starttime, endtime)
+#         st.session_state.ST = ST
+
+#     if col[0].checkbox("Plot seismograms"):
+#         with col[1].expander("Seismogram plots"):
+#             for stream in ST:
+#                 fig = stream.plot();
+#                 st.pyplot(fig)
 
 
 
