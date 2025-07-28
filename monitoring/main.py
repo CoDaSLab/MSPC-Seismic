@@ -248,17 +248,27 @@ def monitoring(config_path = 'config.json'):
 
     # Calculate features
     for station in avail_stations:
-        # Check previous features files
-        previous_starttime = starttime - timedelta(minutes=update_frequency)
-        previous_filename = station + '_' + previous_starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
-        if os.path.isfile(os.path.join(features_path, previous_filename).replace('\\', '/')):
-            previous_features = loadmat(os.path.join(features_path, previous_filename).replace('\\', '/'))
-            previous_missing_rates = previous_features['missing_rates']
-            if np.mean(previous_missing_rates) > 0.1:
-                if verbose:
-                    print(f"Warning: High missing rates in previous features for station {station}. Recalculating features...")
-                # If previous features have high missing rates, recalculate them
+        # If previous runs failed, attempt to recalculate features. Only attempts to recalculate up to 10 failed runs
+        i = 0
+        previous_success = False
+        previous_endtime = starttime
+        while i < 10 and not previous_success:
+            previous_starttime = previous_endtime - timedelta(minutes=update_frequency)
+            previous_filename = station + '_' + previous_starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + previous_endtime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
+            if os.path.isfile(os.path.join(features_path, previous_filename).replace('\\', '/')):
+                previous_features = loadmat(os.path.join(features_path, previous_filename).replace('\\', '/'))
+                previous_missing_rates = previous_features['missing_rates']
+                if np.mean(previous_missing_rates) > 0.1:
+                    if verbose:
+                        print(f"Warning: High missing rates in previous features for station {station}. Recalculating features...")
+                    # If previous features have high missing rates, recalculate them
+                    starttime = previous_starttime.replace(tzinfo=timezone.utc)
+                else:
+                    previous_success = True
+            else:
                 starttime = previous_starttime.replace(tzinfo=timezone.utc)
+            previous_endtime = previous_starttime
+            i += 1
 
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
                                     window_size, window_shift, detrend=detrend, fft_points=fft_points, 
@@ -301,7 +311,7 @@ def monitoring(config_path = 'config.json'):
                     for file in files:
                         new_labels.extend(file['obs_labels'])
 
-                    # Create new NOC for the new week
+                    # Create new NOC
                     new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
                     new_noc = NOC(new_name, new_features, new_labels, network=network, station=station,
                                 type='dynamic', preprocessing=noc.preprocessing, n_components=noc.n_components, 
