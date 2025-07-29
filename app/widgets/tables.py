@@ -27,14 +27,14 @@ def show_table(data):
 
 def check_availability(av_file_path, av_time_path):
     from widgets.forms import select_time
-    from preprocessing.functions.data_check import check_sensors
+    from data.scripts.data_check import check_stations
     COL = st.columns(2)
     with COL[0]:
         start, end = select_time('check_availability')
 
     tol = COL[1].number_input('Tolerance (s)', min_value = 0.0, value=0.0)
 
-    result = check_sensors(start, end, tol = tol, pathfile=av_time_path,
+    result = check_stations(start, end, tol = tol, pathfile=av_time_path,
                            filenames_path=av_file_path)
     df = pd.DataFrame(result)
 
@@ -42,20 +42,68 @@ def check_availability(av_file_path, av_time_path):
     return
 
 
-def available_sensors():
-    # Load sensor location data
-    sensors = pd.read_csv("data/involcan/metadata/stations_lp.dat", sep='\s+')
-    sensors.columns = ["sensor", "latitude", "longitude", "altitude (m)"]
-    sensors['available'] = False
-    sensors.loc[sensors['sensor'].isin(['PPMA', 'PLPI']), 'available'] = True
-    sensors = sensors.sort_values('available', ignore_index=True, ascending=False)
+def check_interruptions(data_path):
+    from widgets.forms import select_time
+    from data.scripts.data_check import check_stations
+    COL = st.columns(2)
+    with COL[0]:
+        start, end = select_time('check_availability')
 
-    sensors = st.data_editor(sensors, use_container_width = True)
+    tol = COL[1].number_input('Tolerance (s)', min_value = 0.0, value=0.0)
+
+    result = check_stations(start, end, tol = tol, pathfile=av_time_path,
+                           filenames_path=av_file_path)
+    df = pd.DataFrame(result)
+
+    st.dataframe(df, use_container_width = True)
+    return
+
+
+def available_stations():
+    # Load station location data
+    stations = pd.read_csv("data/involcan/metadata/stations_lp.dat", sep='\s+')
+    stations.columns = ["station", "latitude", "longitude", "altitude (m)"]
+    stations['available'] = False
+    stations.loc[stations['station'].isin(['PPMA', 'PLPI']), 'available'] = True
+    stations = stations.sort_values('available', ignore_index=True, ascending=False)
+
+    stations = st.data_editor(stations, use_container_width = True)
     
     st.write("Source: INVOLCÁN")
 
-    return sensors
+    return stations
 
+
+def noc_summary(noc_name, nocs_path="data/involcan/nocs"):
+    """
+    Displays a NOC's relevant attributes.
+    """
+    import os
+    from monitoring.NOC import NOC
+    
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
+    with st.expander("NOC details"):
+        st.markdown("##### :orange[**Information**]")
+        st.markdown(f"**Name:** {noc.name}")
+        st.markdown(f"**Network:** {noc.network}")
+        st.markdown(f"**Station:** {noc.station}")
+        st.markdown(f"**NOC type:** {noc.type}")
+        st.markdown(f"**Updated on:** {noc.last_update_time}")
+        
+        st.markdown("##### :orange[**Parameters**]")
+        st.markdown(f"**Features shape:** {noc.features.shape}")
+        st.markdown(f"**Preprocessing:** {'mean-centering' if noc.preprocessing == 1 else 'autoscaling'}")
+        st.markdown(f"**Number of principal components:** {noc.n_components}")
+
+        if noc.percentile_threshold == True:
+            st.markdown(f"**Percentile:** {(1 - noc.alpha) * 100}")
+        else:
+            st.markdown(f"**Significance level:** {noc.alpha}")
+            st.markdown(f"**Q threshold method:** {noc.q_method}")
+
+        st.markdown("##### :orange[**Control limits**]")
+        st.markdown(f"**D threshold:** {noc.D_threshold:.4f}")
+        st.markdown(f"**Q threshold:** {noc.Q_threshold:.4f}")
 
 
 def filter_dataframe(df: pd.DataFrame) -> pd.DataFrame:

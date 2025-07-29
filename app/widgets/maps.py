@@ -11,7 +11,7 @@ import copy
 colormap = colors.LinearSegmentedColormap.from_list("yellow_to_red", ["#55ff00", "#fff700", "#FF0000"])
 colormap.set_extremes = [0, 0, 1]
 marker_colors = {
-    'sensors': '#1bffe3', # Cyan
+    'stations': '#1bffe3', # Cyan
     'Volcano peak': '#000000', # black
     'missing_magnitude': "#b2b2b2",
     'magnitudes': colormap,
@@ -44,11 +44,11 @@ def get_popup(row):
             datetime: {row['datetime']}"""
         iframe = folium.IFrame(html, width=150, height=150)
         
-    elif 'sensor' in row:
+    elif 'station' in row:
         html = f"""
         <center>
         <p style="font-family: sans-serif">
-            sensor: {row['sensor']}<br>
+            station: {row['station']}<br>
             lat: {row['latitude']}º<br>
             lon: {row['longitude']}º"""
         iframe = folium.IFrame(html, width=150, height=70)
@@ -63,17 +63,17 @@ def get_popup(row):
 
     return folium.Popup(iframe, max_width=500)
 
-def choose_sensors(sensors, display_available_sensors, display_all_sensors):
-    plot_sensors = []
-    if display_all_sensors:
-        plot_sensors = sensors
-    elif display_available_sensors:
-        plot_sensors = sensors[sensors['available']  == True]
+def choose_stations(stations, display_available_stations, display_all_stations):
+    plot_stations = []
+    if display_all_stations:
+        plot_stations = stations
+    elif display_available_stations:
+        plot_stations = stations[stations['available']  == True]
 
-    if len(plot_sensors)>0:
-        plot_sensors['color'] = [marker_colors['sensors']] * len(plot_sensors)
+    if len(plot_stations)>0:
+        plot_stations['color'] = [marker_colors['stations']] * len(plot_stations)
 
-    return plot_sensors
+    return plot_stations
 
 def choose_events(events, display_events, starttime, endtime):
     if display_events:
@@ -88,14 +88,14 @@ def choose_events(events, display_events, starttime, endtime):
     else: plot_events = []
     return plot_events
 
-def show_map_old(peak, sensors, events, event_color, center = [28.612778, -17.866111] ):
+def show_map_old(peak, stations, events, event_color, center = [28.612778, -17.866111] ):
     if peak:
         peak = [-17.866111, 28.612778] # Tajogaite Peak coordinates
         peak.append(marker_colors['Volcano peak'])
         peak = pd.DataFrame([peak], columns = ['longitude', 'latitude', 'color'])
     else: peak = pd.DataFrame([])
 
-    sensors = pd.DataFrame(sensors)
+    stations = pd.DataFrame(stations)
     events = pd.DataFrame(events)
     if event_color == 'time':
         min_time    = events['datetime'].min()
@@ -132,7 +132,7 @@ def show_map_old(peak, sensors, events, event_color, center = [28.612778, -17.86
     folium_map = folium.Map(location=center, zoom_start=11,  tiles="CartoDB positron")
     folium_map = plot_folium_points(folium_map, events)
     folium_map = plot_folium_points(folium_map, peak)
-    folium_map = plot_folium_points(folium_map, sensors)
+    folium_map = plot_folium_points(folium_map, stations)
 
     if len(events) > 1:
         norm = colors.Normalize(vmin=min_value, vmax=max_value)
@@ -162,7 +162,7 @@ def is_inside(row, polygon, lon_label = 'lon', lat_label='lat'):
     point = Point(row[lon_label], row[lat_label]) 
     return polygon.contains(point)
 
-def sensor_selector(drawings, sensors):
+def station_selector(drawings, stations):
     if drawings is not None:
 
         polygon_coords = []
@@ -174,11 +174,11 @@ def sensor_selector(drawings, sensors):
         for coords in polygon_coords:
             polygons.append( Polygon(coords))
 
-        aux = [False]*len(sensors)
+        aux = pd.Series([False]*len(stations), index=stations.index)
         for polygon in polygons:
-            aux = aux | sensors.apply(is_inside, axis=1, args = (polygon,))
+            aux = aux | stations.apply(is_inside, axis=1, args = (polygon,))
 
-        return sensors[aux]
+        return stations[aux]
 
 
 def show_map(m, use_container_width=True):

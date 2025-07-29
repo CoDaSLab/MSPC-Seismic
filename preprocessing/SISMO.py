@@ -21,17 +21,17 @@ import warnings
 
 class SISMO(HDAS):
 
-    def __init__(self, network, sensor, channel, starttime, endtime,
+    def __init__(self, network, station, channel, starttime, endtime,
                  detrend = False, windowing = False, merge_method = 0, merge_fill_value = None, 
                  pad_fill_value = False, cpus = 2, data_path = "data/involcan/mseed", verbose=False):
         """
-        Reads seismic data corresponding to a sensor, channel and time range, and extracts features.
+        Reads seismic data corresponding to a station, channel and time range, and extracts features.
 
         Parameters
         ----------
         network (str): 
             Seismic network identifier.
-        sensor (str): 
+        station (str): 
             Station code.
         channels (str):
             Channel code.
@@ -65,7 +65,7 @@ class SISMO(HDAS):
             start_day = starttime.replace(hour=0, minute=0, second=0) - timedelta(days=1)
         else:
             start_day = starttime.replace(hour=0, minute=0, second=0)
-        filenames = [data_path.rstrip('/') + '/' + file for file in get_filenames(network, sensor, channel, start_day, endtime)]
+        filenames = [data_path.rstrip('/') + '/' + file for file in get_filenames(network, station, channel, start_day, endtime)]
 
         assert len(filenames) > 0, "No data files in the selected time period"
         
@@ -121,7 +121,7 @@ class SISMO(HDAS):
 
         # Extra info
         self.network = self.tr.stats.network
-        self.sensor = self.tr.stats.station
+        self.station = self.tr.stats.station
         self.channel = self.tr.stats.channel
 
     def process_file(self, filename):
@@ -229,7 +229,7 @@ class SISMO(HDAS):
         ax.xaxis.set_major_locator(locator)
         ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
 
-        plt.title(self.sensor)
+        plt.title(self.station)
         plt.legend(loc='upper left')
         if save:
             plt.savefig(outfile)
@@ -256,7 +256,7 @@ class SISMO(HDAS):
         ax.set_xlabel("Frequency (Hz)")
         ax.set_xlim(x[0]-1, x[-1]+1)
 
-        plt.title(self.sensor)
+        plt.title(self.station)
         plt.legend(loc='upper right')
         if save:
             plt.savefig(outfile)
@@ -288,13 +288,13 @@ class SISMO(HDAS):
 if __name__=='__main__':
 
     network = 'C7'
-    sensor  = 'PPMA'
+    station  = 'PPMA'
     channel = 'HHE'
 
     starttime  = datetime(2021, 9, 14, 0, 0, 0)
     endtime    = datetime(2021, 9, 15, 0, 0, 0)
 
-    S = SISMO(network, sensor, channel, starttime, endtime,
+    S = SISMO(network, station, channel, starttime, endtime,
               verbose=False, detrend=None, windowing = False)
 
     S.set_windows(3600)
@@ -306,7 +306,7 @@ if __name__=='__main__':
     starttime  = datetime(2021, 9, 19, 0, 0, 0)
     endtime    = datetime(2021, 9, 20, 0, 0, 0)
 
-    S = SISMO(network, sensor, channel, starttime, endtime,
+    S = SISMO(network, station, channel, starttime, endtime,
             verbose=False, detrend=None, windowing = False)
 
     S.set_windows(3600)

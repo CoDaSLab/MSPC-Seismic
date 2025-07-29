@@ -323,7 +323,7 @@ def _save_features(H, features, feature_type,
     # Fraction of missing data in the whole signal
     missing_mean = np.mean(missing).round(4)
     row = pd.DataFrame(
-        [[id, H.network, H.sensor, H.channel, feature_type,
+        [[id, H.network, H.station, H.channel, feature_type,
           H.stime.strftime("%Y-%m-%d %H:%M:%S.%f"), H.etime.strftime("%Y-%m-%d %H:%M:%S.%f"),
           H.window_size, H.window_size - H.window_shift, window_name,
           H.n_windows, n_variables,
@@ -406,7 +406,7 @@ if __name__ == '__main__':
     endtime   = datetime(2021, 9, 20, 0, 0)
 
     networks = ["C7"]
-    sensors = ["PPMA"]
+    stations = ["PPMA"]
     channels = ["HHE"]
 
     # window = 1.0*60*60 # 1 hour
@@ -428,20 +428,20 @@ if __name__ == '__main__':
     # SISMO extraction
     if True:
         for network in networks:
-            for sensor in sensors:
+            for station in stations:
                 for channel in channels:
                     print(f"""
                     Extracting SISMO features 
-                        network: {network}, sensor: {sensor}, channel: {channel}
+                        network: {network}, station: {station}, channel: {channel}
                         from {starttime}
                         to {endtime}
                         window: {window} s
                         overlap: {overlap} s
                         windowing: {windowing}
                         """)
-                    print(f"\nRunning for {sensor} sensor and {channel} channel ...")
+                    print(f"\nRunning for {station} station and {channel} channel ...")
 
-                    S = SISMO(network, sensor, channel, starttime, endtime,
+                    S = SISMO(network, station, channel, starttime, endtime,
                               detrend, windowing, cpus=10)
                     S.resampling_factor = 50
                     S.check()
@@ -487,21 +487,21 @@ if __name__ == '__main__':
             stime = etime
             etime = stime + t_delta
 
-            for sensor in ["PLPI", "PPMA"][:]:
+            for station in ["PLPI", "PPMA"][:]:
                 for channel in ["HHN", "HHE", "HHZ"][:]:
                     print(f"""
                     Extracting SISMO features 
-                        sensor: {sensor}, channel: {channel}
+                        station: {station}, channel: {channel}
                         from {stime}
                         to {etime}
                         window: {window} s
                         overlap: {overlap} s
                         windowing: {windowing}
                         """)
-                    print(f"\nRunning for {sensor} sensor and {channel} channel ...")
-                    filepaths, _,_ = get_filenames(stime, etime, sensor, channel)
+                    print(f"\nRunning for {station} station and {channel} channel ...")
+                    filepaths, _,_ = get_filenames(stime, etime, station, channel)
 
-                    S = SISMO(sensor, channel, stime, etime,
+                    S = SISMO(station, channel, stime, etime,
                             detrend, decimation, windowing, interpolate)
                     S.check()
 

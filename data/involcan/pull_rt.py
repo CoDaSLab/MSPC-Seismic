@@ -1,8 +1,8 @@
 """
 pull_rt.py
 
-This script connects to SFTP servers, filters seismic files based on a specified date range, sensor, and channel, and downloads 
-the corresponding files to a local directory structure. It also keeps track of the latest download times for each channel-sensor
+This script connects to SFTP servers, filters seismic files based on a specified date range, station, and channel, and downloads 
+the corresponding files to a local directory structure. It also keeps track of the latest download times for each channel-station
 combination in a CSV file. It is intended for downloading data for real-time monitoring. Unlike pull.py, this script 
 does not make use of the list of available files created by fetch.py.
 
@@ -11,10 +11,10 @@ Main functionalities:
 - Try to connect to the host using an SSH key.
 - If an SSH key is not found, attempt connection with username and password.
 - Connect to the INVOLCAN server and download the filtered files to a local directory structure.
-- Saves the latest pull times for each sensor-channel combination in another CSV file.
+- Saves the latest pull times for each station-channel combination in another CSV file.
 
 Usage:
-    python pull_rt.py <starttime> <endtime> <server> <user> [-s <sensor1> <sensor2> ...] [-c <channel1> <channel2> ...] 
+    python pull_rt.py <starttime> <endtime> <server> <user> [-s <station1> <station2> ...] [-c <channel1> <channel2> ...] 
         [-pw <password>] [-pp <passphrase>] [-dp <data_path>] [-lp <log_path] [-kp <key_path>] [-p <port>] [-v]
 
 Arguments:
@@ -23,7 +23,7 @@ Arguments:
     server                  - IP address of the remote server.
     user                    - Remote server username.
     network,                - Network name.
-    -s, --sensors           - Sensor names.
+    -s, --stations           - Station names.
     -c, --channels          - Channel names.
     -dp, --data_path        - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
     -lp, --log_path         - Local directory path where the pull times log is saved (optional, default is 
@@ -45,11 +45,11 @@ import os
 import getpass
 from data.scripts.get_filenames import get_filenames
 
-def download_files_rt(starttime, endtime, server, user, network, sensors, channels, 
+def download_files_rt(starttime, endtime, server, user, network, stations, channels, 
                              data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/latest_pulls.csv',
                              key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, port=22, verbose=False):
     """
-    Downloads seismic files filtered by date, sensor, and channel from SFTP server.
+    Downloads seismic files filtered by date, station, and channel from SFTP server.
     Performs a single SSH connection to download all corresponding files.
     """
 
@@ -61,9 +61,9 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
 
     assert starttime <= endtime, "Start date cannot be later than end date."
 
-    # Allows for single sensor and single channel input
-    if isinstance(sensors, str):
-        sensors = [sensors]
+    # Allows for single station and single channel input
+    if isinstance(stations, str):
+        stations = [stations]
     if isinstance(channels, str):
         channels = [channels]
 
@@ -106,12 +106,12 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
         # Create local directory structure
         os.makedirs(data_path, exist_ok=True)
 
-        file_list = pd.DataFrame(columns=["network", "sensor", "channel", "latest_file", "start_time", "latest_pull_time"])
+        file_list = pd.DataFrame(columns=["network", "station", "channel", "latest_file", "start_time", "latest_pull_time"])
         total_files = 0
         if not verbose: print("Downloading files...")
-        for sensor in sensors:
+        for station in stations:
             for channel in channels:
-                filenames = get_filenames(network, sensor, channel, starttime, endtime) 
+                filenames = get_filenames(network, station, channel, starttime, endtime) 
                 total_files += len(filenames)
 
                 for filename in filenames:
@@ -122,7 +122,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
                     stime = datetime(int(year), 1, 1) + timedelta(days = int(parts[6]) - 1)
                     stime = stime.strftime('%Y-%m-%dT%H:%M:%SZ')
 
-                    path = os.path.join('/involcan/mseed/', year, network, sensor, channel + ".D").replace('\\', '/')
+                    path = os.path.join('/involcan/mseed/', year, network, station, channel + ".D").replace('\\', '/')
                     filepath = os.path.join(path, filename).replace('\\', '/')
                     local_filepath = os.path.join(data_path, filename).replace('\\', '/')
 
@@ -135,7 +135,7 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
                     except Exception as e:
                         print(f"Error downloading {filepath}: {e}")
                     else:
-                        row = pd.DataFrame({'network' : [network], 'sensor' : [sensor], 'channel' : [channel], 'latest_file' : [filename],
+                        row = pd.DataFrame({'network' : [network], 'station' : [station], 'channel' : [channel], 'latest_file' : [filename],
                                             'start_time' : [stime], 'latest_pull_time' : [pull_time.strftime('%Y-%m-%dT%H:%M:%SZ')]})
                         file_list = pd.concat([file_list, row])
         
@@ -147,12 +147,12 @@ def download_files_rt(starttime, endtime, server, user, network, sensors, channe
     if os.path.exists(log_path) and os.stat(log_path).st_size != 0:
         log = pd.read_csv(log_path)
     else:
-        log = pd.DataFrame(columns=["network", "sensor", "channel", "latest_file", "start_time", "latest_pull_time"])
+        log = pd.DataFrame(columns=["network", "station", "channel", "latest_file", "start_time", "latest_pull_time"])
 
     # Find latest download times
     log = pd.concat([log, file_list], ignore_index=True)
     log['latest_pull_time'] = pd.to_datetime(log['latest_pull_time'], format='%Y-%m-%dT%H:%M:%SZ')
-    latest_rows = log.groupby(['sensor', 'channel'])['latest_pull_time'].idxmax()
+    latest_rows = log.groupby(['station', 'channel'])['latest_pull_time'].idxmax()
     latest_files = log.loc[latest_rows].reset_index(drop=True)
     # Save CSV
     latest_files.to_csv(log_path, header=True, index=False, date_format='%Y-%m-%dT%H:%M:%SZ')
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     parser.add_argument("server", help="Server address")
     parser.add_argument("user", type=str, help="Remote server username")
     parser.add_argument("network", type=str, help="Network name.")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Sensor names.")
+    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', required=True, help="Channel names.")
     parser.add_argument("-dp", "--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
     parser.add_argument("-lp", "--log_path", default='data/involcan/metadata/latest_pulls.csv', help="Path to the pull times log")
@@ -185,5 +185,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.sensors, args.channels, args.data_path,
+    download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.stations, args.channels, args.data_path,
                    args.log_path, args.key_path, args.passphrase, args.pasw, args.port, args.verbose)

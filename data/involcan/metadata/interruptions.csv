@@ -1,4 +1,4 @@
-network,sensor,channel,gap_start,gap_end,delta,n_samples,gap_type
+network,station,channel,gap_start,gap_end,delta,n_samples,gap_type
 C7,PA00,HHE,2021-09-16 14:42:52.22,2021-09-18 15:23:52.37,175260.14,17526014,empty
 C7,PA00,HHN,2021-09-16 14:42:52.22,2021-09-18 15:23:52.67,175260.44,17526044,empty
 C7,PLPI,HHE,2021-01-15 11:32:50.47,2021-01-15 11:33:14.35,23.87,2387,empty

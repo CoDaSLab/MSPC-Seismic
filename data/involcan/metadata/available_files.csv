@@ -1,4 +1,4 @@
-network,sensor,channel,start_time,end_time,server,path,filename
+network,station,channel,start_time,end_time,server,path,filename
 C7,PFUE,HHE,2017-10-11T00:00:00Z,2017-10-12T00:00:00Z,193.147.109.7,/involcan/mseed/2017/C7/PFUE/HHE.D,C7.PFUE..HHE.D.2017.284
 C7,PFUE,HHE,2017-10-12T00:00:00Z,2017-10-13T00:00:00Z,193.147.109.7,/involcan/mseed/2017/C7/PFUE/HHE.D,C7.PFUE..HHE.D.2017.285
 C7,PFUE,HHE,2017-10-13T00:00:00Z,2017-10-14T00:00:00Z,193.147.109.7,/involcan/mseed/2017/C7/PFUE/HHE.D,C7.PFUE..HHE.D.2017.286

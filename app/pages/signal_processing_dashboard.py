@@ -2,7 +2,7 @@ from config import *
 
 from widgets.forms import *
 from widgets.plots import *
-from preprocessing.functions.SISMO import SISMO
+from preprocessing.SISMO import SISMO
 
 # -------------------------
 # --- Application start ---
@@ -26,7 +26,7 @@ with tabs[0]:
 
     with COL[0]:
         st.subheader('Data selection')
-        sensor, channel = select_sensor(key)
+        station, channel = select_station(key)
         starttime, endtime = select_time(key)
 
         st.subheader('Pre-processing')
@@ -48,7 +48,7 @@ with tabs[0]:
     if plot_trend:
         with loading_space, st.spinner('Creating object'):
                     
-            S = SISMO(sensor, channel, starttime, endtime,
+            S = SISMO(station, channel, starttime, endtime,
                         detrend,
                         None, # windowing
                         2, # cpus
@@ -70,7 +70,7 @@ with tabs[1]:
     
     with COL[0]:
         st.subheader('Data selection')
-        sensor, channel = select_sensor(key)
+        station, channel = select_station(key)
         starttime, endtime = select_time(key)
 
         st.subheader('Pre-processing')
@@ -101,7 +101,7 @@ with tabs[1]:
 
     if plot_freq:
         with loading_space, st.spinner('Creating object'):  
-            S = SISMO(sensor, channel, starttime, endtime,
+            S = SISMO(station, channel, starttime, endtime,
                         detrend,
                         windowing,
                         2, # cpus

@@ -170,7 +170,7 @@ def get_anomalies(D_test, Q_test, D_threshold, Q_threshold,
 
 def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecutive=3, 
                    save=True, save_path="data/involcan/nocs/plots", opacity=None,
-                   plot_train=True, show=False):
+                   plot_train=True, logscale=False, show=False):
     """
     Plots D and Q-statistics and highlights anomalies (according to a criterion) in a different color.
 
@@ -200,6 +200,8 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     plot_train (bool)
         If True, plots D and Q values for both training and test data. 
         If False, only plots D and Q for test data.
+    logscale (bool)
+        If True, uses a logarithmic scale (default: False).
     show (bool)
         If True, shows graph (default: False).
     """
@@ -219,8 +221,8 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     # Plot D and Q values and highlight anomalies
     event_index = anomaly_ids if len(anomaly_ids) > 0 else None
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
-    fig, axes = noc.plot_DQ_test(starttime, endtime, plot_train=False, event_index=event_index, 
-                                 opacity=opacity)
+    fig, axes = noc.plot_DQ_test(starttime, endtime, plot_train=False, logscale=logscale, 
+                                 event_index=event_index, opacity=opacity)
     plt.tight_layout()
 
     if save:

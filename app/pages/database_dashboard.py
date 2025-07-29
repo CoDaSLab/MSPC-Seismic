@@ -1,7 +1,7 @@
 from config import *
 
 from utils.functions import load_data
-from widgets.tables import show_table, check_availability, filter_dataframe
+from widgets.tables import show_table, check_availability, filter_dataframe, check_interruptions
 from widgets.forms import select_time
 
 # --- Application start ---
@@ -12,10 +12,12 @@ st.title('Digivolcan database dashboard')
 
 # csv files to load
 csv_files = {
-    "Available Files":      "data/involcan/metadata/available_files.csv",
-    # "Available Time":       "data/metadata/Available_times.csv",
-    # "Available Events":     "data/metadata/ivc_available_data.csv",
-    "Feature Log":          "data/involcan/metadata/feature_log.csv",
+    "Available Files":         "data/involcan/metadata/available_files.csv",
+    # "Available Times":          "data/involcan/metadata/Available_times.csv",
+    # "Available Events":      "data/involcan/metadata/ivc_available_data.csv",
+    "Feature Log":             "data/involcan/metadata/feature_log.csv",
+    "Scans for interruptions": "data/involcan/metadata/scans.csv",
+    "Interruptions":           "data/involcan/metadata/interruptions.csv"
 }
 names = list(csv_files.keys())
 paths = list(csv_files.values())
@@ -30,6 +32,6 @@ for id, tab in enumerate(tabs[:-1]):
         data = filter_dataframe(data)
         show_table(data)
 
-# Check data availability
-with tabs[-1]:
-    check_availability(paths[0], paths[1])
+# Check availability
+# with tabs[-1]:
+#     check_availability(paths[0], paths[1])

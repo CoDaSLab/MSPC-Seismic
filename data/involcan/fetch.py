@@ -9,7 +9,7 @@ Main functionalities:
 - Filter files based on the following conditions:
   - The file name must end with ".{julian_day}".
   - The system of the file must be "C7" (temporary condition).
-  - The sensor of the file must be from "La Palma" (hard-coded).
+  - The station of the file must be from "La Palma" (hard-coded).
   - The channel of the file must start with "HH" followed by any character.
 - Write the information of the found files to a CSV file in the `data/involcan/metadata/` directory.
 - Operation mode "overwrite" or "append" for the CSV file:
@@ -54,21 +54,21 @@ def is_seismic(file_name):
     """
     return re.match(r'.*\.\d{3}$', file_name) is not None
 
-def find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_sensors, found_sensors, verbose):
+def find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_stations, found_stations, verbose):
     """
     Find seismic files in the specified path on the SFTP server.
     For each seismic file found, write its details to the CSV file.
-    Also, keep track of sensors for which new files are found.
+    Also, keep track of stations for which new files are found.
     """
     with ThreadPoolExecutor() as executor:
-        futures = [executor.submit(process_directory, root, files, writer, server, existing_files, expected_sensors, found_sensors) 
+        futures = [executor.submit(process_directory, root, files, writer, server, existing_files, expected_stations, found_stations) 
                    for root, dirs, files in sftp_walk(sftp, remote_path, verbose)]
         for future in as_completed(futures):
             future.result()
 
-def process_directory(root, files, writer, server, existing_files, expected_sensors, found_sensors):
+def process_directory(root, files, writer, server, existing_files, expected_stations, found_stations):
     """
-    Process files within a given directory, writing seismic file details and tracking found sensors.
+    Process files within a given directory, writing seismic file details and tracking found stations.
     """
     # List of La Palma stations (temporary condition remains)
 
@@ -79,7 +79,7 @@ def process_directory(root, files, writer, server, existing_files, expected_sens
             
             # Only process if the file does not already exist in the CSV
             if file_name not in existing_files:
-                network, sensor, channel, starttime = parse_filename(file_name)
+                network, station, channel, starttime = parse_filename(file_name)
                 endtime = starttime + timedelta(days=1)
 
                 # Format dates as strings
@@ -87,10 +87,10 @@ def process_directory(root, files, writer, server, existing_files, expected_sens
                 endtime_str = endtime.strftime('%Y-%m-%dT%H:%M:%SZ')
 
                 # Apply filtering conditions
-                if network == "C7" and (sensor in expected_sensors) and re.match(r'^HH.', channel):
-                    writer.writerow([network, sensor, channel, starttime_str, endtime_str, server, root.replace('\\', '/'), file_name])
-                    # Add the sensor to the set of sensors with new files
-                    found_sensors.add(sensor)
+                if network == "C7" and (station in expected_stations) and re.match(r'^HH.', channel):
+                    writer.writerow([network, station, channel, starttime_str, endtime_str, server, root.replace('\\', '/'), file_name])
+                    # Add the station to the set of stations with new files
+                    found_stations.add(station)
 
 def sftp_walk(sftp, remotepath, verbose):
     """
@@ -126,11 +126,11 @@ def julian_to_date(year, julian_day):
 
 def parse_filename(file_name):
     """
-    Parse the filename to extract system, sensor, channel, and UTC datetime as a string.
+    Parse the filename to extract system, station, channel, and UTC datetime as a string.
     """
     parts = file_name.split('.')
     network = parts[0]
-    sensor = parts[1]
+    station = parts[1]
     channel = parts[3]
     year = int(parts[5])
     julian_day = int(parts[6])
@@ -138,7 +138,7 @@ def parse_filename(file_name):
     # UTC date
     date = datetime(year, 1, 1) + timedelta(days=julian_day - 1)
 
-    return network, sensor, channel, date
+    return network, station, channel, date
 
 def fetch_files(server, port, remote_path, user, password=None, key_path='~/.ssh/id_rsa', passphrase=None, 
                 log_path='data/involcan/metadata/available_files.csv', mode='append', verbose=False):
@@ -146,18 +146,18 @@ def fetch_files(server, port, remote_path, user, password=None, key_path='~/.ssh
     Main function to connect to the SFTP server, find seismic files,
     and write their details to a CSV file. The mode parameter determines
     whether to overwrite the CSV file or append to it.
-    It also checks for sensors without new files and alerts accordingly.
+    It also checks for stations without new files and alerts accordingly.
     """
     start_time = time.time()
     
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     
-    # Set to store sensors for which new files were found
-    found_sensors = set()
+    # Set to store stations for which new files were found
+    found_stations = set()
 
-    # Sensors expected to have files (hard-coded). La Palma Stations
-    expected_sensors = {
+    # Stations expected to have files (hard-coded). La Palma Stations
+    expected_stations = {
         "PA00","PA01","PA02","PA03","PA04","PA05","PA06","PA07","PA08","PA09","PAB",
         "PBB2","PBBA","PCOR","PFUE","PFVI","PGAR","PLPI","PML2","PMLU","PMOZ","PN01",
         "PN02","PN03","PN04","PPAS","PPMA","PSAB","PTAB","TC13"
@@ -198,21 +198,21 @@ def fetch_files(server, port, remote_path, user, password=None, key_path='~/.ssh
         with open(log_path, mode=write_mode, newline='') as file:
             writer = csv.writer(file)
             if mode == 'overwrite' or write_mode == 'w':
-                writer.writerow(['network', 'sensor', 'channel', 'start_time', 'end_time', 'server', 'path', 'filename'])
+                writer.writerow(['network', 'station', 'channel', 'start_time', 'end_time', 'server', 'path', 'filename'])
             
-            # Pass the found_sensors set to the search function
-            find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_sensors, found_sensors, verbose)
+            # Pass the found_stations set to the search function
+            find_seismic_files(sftp, remote_path, writer, server, existing_files, expected_stations, found_stations, verbose)
 
-        # Check which expected sensors did not have new files
-        missing_sensors = expected_sensors - found_sensors
-        if missing_sensors:
+        # Check which expected stations did not have new files
+        missing_stations = expected_stations - found_stations
+        if missing_stations:
             print("\n--- WARNING ---")
-            print("No new files were found for the following sensors:")
-            for sensor in sorted(list(missing_sensors)):
-                print(f"- {sensor}")
+            print("No new files were found for the following stations:")
+            for station in sorted(list(missing_stations)):
+                print(f"- {station}")
             print("-----------------\n")
         else:
-            print("\nNew files were found for all expected sensors.")
+            print("\nNew files were found for all expected stations.")
 
     except paramiko.AuthenticationException as e:
         print(f"Authentication failed for {server}: {e}")

@@ -5,19 +5,19 @@ This script deletes the mseed files downloaded by pull.py from the local directo
 
 Main functionalities:
 - Convert start and end time strings to datetime objects.
-- Identify the local files based on the provided network, sensor, channel, and date range.
+- Identify the local files based on the provided network, station, channel, and date range.
 - Delete the identified files.
 - Check for and delete any empty directories within the specified path.
 
 Usage:
-    python clear.py <starttime> <endtime> [-n <network1> <network2> ...] [-s <sensor1> <sensor2> ...] 
+    python clear.py <starttime> <endtime> [-n <network1> <network2> ...] [-s <station1> <station2> ...] 
         [-c <channel1> <channel2> ...] [-p <path>]
 
 Arguments:
     starttime       - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     endtime         - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     -n, --networks  - Network names.
-    -s, --sensors   - Sensor names.
+    -s, --stations   - Station names.
     -c, --channels  - Channel names.
     -p, --path      - Local directory path where the files are saved (optional, default is 'data/involcan/mseed/').
 
@@ -29,7 +29,7 @@ import os
 from datetime import datetime, timedelta
 from get_filenames import get_filenames
 
-def delete_files(starttime, endtime, networks, sensors, channels, path='data/involcan/mseed/'):
+def delete_files(starttime, endtime, networks, stations, channels, path='data/involcan/mseed/'):
     # Convert starttime and endtime to datetime objects
     if isinstance(starttime, str):
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S')
@@ -38,11 +38,11 @@ def delete_files(starttime, endtime, networks, sensors, channels, path='data/inv
 
     assert starttime < endtime, "Start date cannot be later than end date."
 
-    # Allows for single sensor and single channel input
+    # Allows for single station and single channel input
     if isinstance(networks, str):
         networks = [networks]
-    if isinstance(sensors, str):
-        sensors = [sensors]
+    if isinstance(stations, str):
+        stations = [stations]
     if isinstance(channels, str):
         channels = [channels]
 
@@ -53,9 +53,9 @@ def delete_files(starttime, endtime, networks, sensors, channels, path='data/inv
         end_day = endtime.replace(hour=0, minute=0, second=0)
 
         for network in networks:
-            for sensor in sensors:
+            for station in stations:
                 for channel in channels:
-                    file_list.extend(get_filenames(network, sensor, channel, start_day, end_day))
+                    file_list.extend(get_filenames(network, station, channel, start_day, end_day))
 
         for file in file_list:
             file_path = os.path.join(path, file)
@@ -87,9 +87,9 @@ if __name__ == "__main__":
     parser.add_argument("starttime", help="Start date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("endtime", help="End date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("-n", "--networks", nargs='+', help="Network names.")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', help="Sensor names.")
+    parser.add_argument("-s", "--sensors", "--stations", nargs='+', help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', help="Channel names.")
     parser.add_argument("-p", "--path", default='data/involcan/mseed/', help="Local directory path where the files are stored")
 
     args = parser.parse_args()
-    delete_files(args.starttime, args.endtime, args.networks, args.sensors, args.channels, args.path)
+    delete_files(args.starttime, args.endtime, args.networks, args.stations, args.channels, args.path)

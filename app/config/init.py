@@ -12,7 +12,7 @@ def init_app():
     import os, sys
     path = os.getcwd()
     sys.path.insert(0, path)
-    sys.path.insert(0, f"{path}/preprocessing/functions")
+    sys.path.insert(0, f"{path}/preprocessing")
 
     st.session_state.app_start = True
     print("Application initialized correctly")
@@ -41,12 +41,12 @@ def init_session_state():
     import streamlit as st
     if 'map' not in st.session_state: st.session_state.map = None
     if 'map_markers' not in st.session_state: st.session_state.map_markers = None
-    if 'sensors' not in st.session_state: st.session_state.sensors = None
+    if 'stations' not in st.session_state: st.session_state.stations = None
     if 'channels' not in st.session_state: st.session_state.channels = None
     if 'starttime' not in st.session_state: st.session_state.starttime = None
     if 'endtime' not in st.session_state: st.session_state.endtime = None
 
-    if 'sensor' not in st.session_state: st.session_state.sensor = 'PPMA'
+    if 'station' not in st.session_state: st.session_state.station = 'PPMA'
     if 'channel' not in st.session_state: st.session_state.channel = 'HHE'
     from datetime import datetime, time
     if 'start_date' not in st.session_state: st.session_state.start_date = datetime(2021, 9, 19)

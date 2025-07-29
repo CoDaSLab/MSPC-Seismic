@@ -5,7 +5,7 @@ file name: data_check.py
 
 Description:
 This file contains functions that go through the raw data files in order to register data availability.
-Things like whether or not there is an interruption in the information, see what sensors have or don't have data,
+Things like whether or not there is an interruption in the information, see what stations have or don't have data,
 as well as get the names of the files that cointain a certain subset of data.
 """
 
@@ -59,13 +59,13 @@ def get_interruptions(df_time, query):
     return  n_interruptions, missing_data_periods, q0_exists, q1_exists
 
 """
-function: get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/Available_files.csv")
+function: get_filenames(start, end, station, channel, path = "data/involcan/metadata/Available_files.csv")
 Find the names of the files that include the data that the user desires.
 
 Inputs
 start:      datetime. Start of the time period of the data the user wants
 end:        datetime. End of the time period of the data the user wants
-sensor:     string. Name of the sensor whose data the user wants (DAS, PLPI, PPMA)
+station:     string. Name of the station whose data the user wants (DAS, PLPI, PPMA)
 channel:    string. Channel of the data the user wants (None, HHE, HHN, HHZ)
 path:       string. Path to Available_files.csv, the table containing the information on availability of file availability
 local:      logical. Whether or not the file names the user wants are stored locally.
@@ -77,7 +77,7 @@ paths:      list of strings containing all of the file paths
 
 """
 
-def get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/available_files.csv", local = True):
+def get_filenames(start, end, station, channel, path = "data/involcan/metadata/available_files.csv", local = True):
     data_files = pd.read_csv(path)
     data_files['channel'] = data_files['channel'].fillna('')
     
@@ -88,11 +88,11 @@ def get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/av
     lp_stations = ["PA00","PA01","PA02","PA03","PA04","PA05","PA06","PA07","PA08","PA09","PAB",
                     "PBB2","PBBA","PCOR","PFUE","PFVI","PGAR","PLPI","PML2","PMLU","PMOZ","PN01",
                     "PN02","PN03","PN04","PPAS","PPMA","PSAB","PTAB","TC13"]
-    if sensor == "DAS":       diff = timedelta(minutes = 1)
-    if sensor in lp_stations: diff = timedelta(days = 1)
+    if station == "DAS":       diff = timedelta(minutes = 1)
+    if station in lp_stations: diff = timedelta(days = 1)
 
     subset = data_files[
-        (data_files["sensor"]== sensor) &
+        (data_files["station"]== station) &
         (data_files["channel"]== channel) &
 
         (data_files["datetime"] >= start - diff) &
@@ -101,7 +101,7 @@ def get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/av
     
     filenames = subset.filename.to_list()
     if local == True:
-        paths = ["data/seismic/" + sensor + "/" + str(year) + "_" + channel for year in subset.year.to_list()]
+        paths = ["data/seismic/" + station + "/" + str(year) + "_" + channel for year in subset.year.to_list()]
     else:    
         paths = subset.path.to_list()
     
@@ -110,9 +110,9 @@ def get_filenames(start, end, sensor, channel, path = "data/involcan/metadata/av
     return filepaths, filenames, paths
     
 """
-function: check_sensors(start, end, tol = 0, pathfile = "data/involcan/metadata/Available_times.csv",
-                    sensors = ['DAS', 'PLPI_HHE', 'PLPI_HHN', 'PLPI_HHZ', 'PPMA_HHE', 'PPMA_HHN', 'PPMA_HHZ'])
-Check the data availability and files containing the data of a time period of a sensor or set of sensors.
+function: check_stations(start, end, tol = 0, pathfile = "data/involcan/metadata/Available_times.csv",
+                    stations = ['DAS', 'PLPI_HHE', 'PLPI_HHN', 'PLPI_HHZ', 'PPMA_HHE', 'PPMA_HHN', 'PPMA_HHZ'])
+Check the data availability and files containing the data of a time period of a station or set of stations.
 
 Inputs
 start:  datetime. Start of the time period of the data the user wants
@@ -121,11 +121,11 @@ tol:    float. Set the tolerance for peridod of missing data. If the duration of
 
 Outputs
 result: Dictionary containing the elements:
-        'available_starttime','available_endtime','sensor','n_interruptions','missing_data_periods','files'
+        'available_starttime','available_endtime','station','n_interruptions','missing_data_periods','files'
 
 """
-def check_sensors(start, end, tol = 0, pathfile = "data/involcan/metadata/Available_times.csv",
-                  sensors = ['DAS', 'PLPI_HHE', 'PLPI_HHN', 'PLPI_HHZ', 'PPMA_HHE', 'PPMA_HHN', 'PPMA_HHZ'],
+def check_stations(start, end, tol = 0, pathfile = "data/involcan/metadata/Available_times.csv",
+                  stations = ['DAS', 'PLPI_HHE', 'PLPI_HHN', 'PLPI_HHZ', 'PPMA_HHE', 'PPMA_HHN', 'PPMA_HHZ'],
                   filenames_path = False):
 
     data_times = pd.read_csv(pathfile)
@@ -136,21 +136,21 @@ def check_sensors(start, end, tol = 0, pathfile = "data/involcan/metadata/Availa
     result = {
         'available_starttime': [],
         'available_endtime': [],
-        'sensor': [],
+        'station': [],
         'n_interruptions': [],
         'missing_data_periods': [],
         'files': [],
     }
 
-    for sensor in sensors:
-        if sensor =='DAS':
-            df_time = data_times[data_times['sensor']==sensor]
+    for station in stations:
+        if station =='DAS':
+            df_time = data_times[data_times['station']==station]
             channel = ''
 
-        if sensor[:4] in ['PLPI', 'PPMA']:
-            df_time = data_times[data_times['sensor']==sensor[:4]]
-            df_time = df_time[df_time['channel'] == sensor[-3:]]
-            channel=sensor[-3:]
+        if station[:4] in ['PLPI', 'PPMA']:
+            df_time = data_times[data_times['station']==station[:4]]
+            df_time = df_time[df_time['channel'] == station[-3:]]
+            channel=station[-3:]
 
 
         n_interruptions, missing_data_periods, q0, q1 = get_interruptions(df_time, query)
@@ -161,21 +161,21 @@ def check_sensors(start, end, tol = 0, pathfile = "data/involcan/metadata/Availa
                     n_interruptions = 0
                     missing_data_periods = []
 
-        result['sensor'].append(sensor)
+        result['station'].append(station)
         result['available_starttime'].append(q0)
         result['available_endtime'].append(q1)
         result['n_interruptions'].append(n_interruptions)
         result['missing_data_periods'].append(missing_data_periods)
         
         if filenames_path == False:
-            _, files, _ = get_filenames(start, end, sensor, channel)
+            _, files, _ = get_filenames(start, end, station, channel)
         else:
-            _, files, _ = get_filenames(start, end, sensor, channel, path=filenames_path)
+            _, files, _ = get_filenames(start, end, station, channel, path=filenames_path)
             
         result['files'].append(files)
         # try:
         #     if (q0) & (q1):
-        #         files = get_filenames(start, end, sensor, channel)
+        #         files = get_filenames(start, end, station, channel)
         #         result['files'].append(files)
         #     else:
         #         result['files'].append([])
@@ -235,10 +235,10 @@ starttime: {start}
 endtime:   {end}
     """)
 
-    # check_sensors health check
-    result = check_sensors(start, end, tol=0.0)
+    # check_stations health check
+    result = check_stations(start, end, tol=0.0)
     df = pd.DataFrame(result)
-    print("check_sensors:")
+    print("check_stations:")
     print(df)
 
     # quit()
@@ -268,23 +268,23 @@ endtime:   {end}
 
 
         fig, ax = plt.subplots(figsize = (10,8))
-        for id, row in df[['sensor', 'missing_data_periods']].iterrows():
-            sensor = row['sensor'][:4]
+        for id, row in df[['station', 'missing_data_periods']].iterrows():
+            station = row['station'][:4]
 
-            if sensor =='DAS' and type(row['missing_data_periods']) != int: 
+            if station =='DAS' and type(row['missing_data_periods']) != int: 
                 fig_DAS, ax_DAS = plt.subplots(figsize=(10,8))
                 ax_DAS.set_xlabel('DAS', fontsize = 16)
                 plot_availability(ax_DAS, (start, end), row['missing_data_periods'], axis ='X', alpha = 0.3)
-                plt.savefig(f'Analysis/DAS_sensor_data_availability.png')
+                plt.savefig(f'Analysis/DAS_station_data_availability.png')
                 plt.clf()
                 fig, ax = plt.subplots(figsize = (10,8))
 
-            if sensor == 'PLPI':
-                ax.set_xlabel(sensor, fontsize = 16)
+            if station == 'PLPI':
+                ax.set_xlabel(station, fontsize = 16)
                 plot_availability(ax, (start, end), row['missing_data_periods'], axis ='X', alpha = 0.1)
 
-            if sensor == 'PPMA':
-                ax.set_ylabel(sensor, fontsize = 16)
+            if station == 'PPMA':
+                ax.set_ylabel(station, fontsize = 16)
                 plot_availability(ax, (start, end), row['missing_data_periods'], axis ='Y', alpha = 0.1)
 
         ax.set_xlim(start, end)
@@ -305,7 +305,7 @@ endtime:   {end}
         ax.yaxis.set_minor_formatter(mdates.DateFormatter('%d'))     # Formateador para el día
         ax.yaxis.set_major_locator(MaxNLocator(nbins=6))  # Máximo 6 ticks mayores
         ax.yaxis.set_minor_locator(MaxNLocator(nbins=30))  # Máximo 30 ticks menores
-        plt.savefig(f'digivolcan/figures/seismic_sensor_data_availability.png')
+        plt.savefig(f'digivolcan/figures/seismic_station_data_availability.png')
 
 
 

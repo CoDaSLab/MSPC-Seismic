@@ -10,7 +10,7 @@
   "noc_log_path": "data/involcan/metadata/noc_list.csv",
   "anomaly_log_path": "data/involcan/metadata/anomaly_log.csv",
   "network": "C7",
-  "stations": ["PPMA"],
+  "stations": ["PPMA", "PSAB"],
   "channels": ["HHE", "HHN", "HHZ"],
   "starttime": "auto",
   "endtime": "auto",

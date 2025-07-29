@@ -73,7 +73,7 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
 
     # Edit available stations file to make PPMA and PSAB available
     latest_pulls = pd.read_csv("tests/metadata/latest_pulls.csv")
-    filtered_pulls = latest_pulls[latest_pulls['sensor'].isin(["PPMA", "PSAB"])]
+    filtered_pulls = latest_pulls[latest_pulls['station'].isin(["PPMA", "PSAB"])]
     filtered_pulls["latest_pull_time"] = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     filtered_pulls.to_csv("tests/metadata/latest_pulls.csv", index=False)
 

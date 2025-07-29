@@ -1,29 +1,43 @@
 import streamlit as st
 
-def select_sensor(key):
-    sensors =  ['PPMA', 'PLPI']
+def select_station(key):
+    stations =  ['PPMA', 'PLPI']
     channels = ['HHE', 'HHN', 'HHZ']
     col = st.columns(2)
-    sensor = col[0].selectbox('Sensor', sensors, key=f"sensor_{key}",
-                              index = sensors.index(st.session_state.sensor))
+    station = col[0].selectbox('Station', stations, key=f"station_{key}",
+                              index = stations.index(st.session_state.station))
     channel = col[1].selectbox('Channel', channels, key=f"channel_{key}",
                                index = channels.index(st.session_state.channel))
 
-    st.session_state.sensor = sensor
+    st.session_state.station = station
     st.session_state.channel = channel
 
-    return sensor, channel
+    return station, channel
 
-def multi_select_sensor(key):
-    sensors =  ['PPMA', 'PLPI']
+def multi_select_station(key):
+    stations =  ['PPMA', 'PLPI']
     channels = ['HHE', 'HHN', 'HHZ']
     col = st.columns(2)
-    sensors = col[0].multiselect('Sensors', sensors, key=f"sensor_{key}",
-                                default=sensors)
+    stations = col[0].multiselect('Stations', stations, key=f"station_{key}",
+                                default=stations)
     channels = col[1].multiselect('Channels', channels, key=f"channel_{key}",
                                  default=channels)
 
-    return sensors, channels
+    return stations, channels
+
+def select_noc(key, stations, noc_log_path = "data/involcan/metadata/noc_list.csv"):
+    from monitoring.main import get_noc_names
+    
+    col = st.columns(2)
+    station = col[0].selectbox('Station', stations, key=f"station_{key}",
+                              index = stations.index(st.session_state.station))
+    nocs = [noc for noc, _ in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))]
+    noc = col[1].selectbox('NOC', reversed(nocs), key=f"noc_{key}")
+
+    st.session_state.station = station
+    st.session_state.noc = noc
+
+    return station, noc
 
 
 def select_time(key):

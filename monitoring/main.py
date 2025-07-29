@@ -85,11 +85,11 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
             except ValueError:
                 continue
             
-            stations.add(row['sensor'])
+            stations.add(row['station'])
 
             # Check availability
             if now - latest_pull_time > tolerance:
-                not_avail_stations.add(row['sensor'])
+                not_avail_stations.add(row['station'])
 
     avail_stations = stations - not_avail_stations
 
@@ -99,7 +99,7 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
     return avail_stations
 
 
-def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = None):
+def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = None, noc_types=('static', 'dynamic')):
     """
     Finds the names of the NOCs in the list associated with the stations.
 
@@ -109,6 +109,8 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
         Path to the CSV file with the list of NOCs.
     stations (list)
         List of stations.
+    noc_types (list or tuple)
+        Types of NOC to look for. Default is 'static' and 'dynamic'.
 
     Returns
     -------
@@ -120,7 +122,7 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
         reader = csv.DictReader(csvfile)
         for row in reader:
             station = row['station']
-            if station in stations and row['type'] in ('static', 'dynamic'):
+            if station in stations and row['type'] in noc_types:
                 noc_names.append((row['name'], row['station']))
 
     return noc_names

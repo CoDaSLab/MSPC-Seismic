@@ -2,6 +2,7 @@
 /data/*/metadata/**
 !/data/involcan/metadata/**
 /data/*/features/**
+/data/*/nocs/**
 /data/involcan/metadata/ivc.dat
 /data/involcan/metadata/stations_lp.dat
 /data/*/mseed/**

@@ -32,24 +32,24 @@ Seismological data from INVOLCÁN.
 Data from the DAS.
 
 ### /involcan/mseed
-Contains data from the involcan seismic sensors. Each of the folders inside corresponds to a specific sensor, year and channel/component of the sensor, with the follwoing syntax:
+Contains data from the involcan seismic stations. Each of the folders inside corresponds to a specific station, year and channel/component of the station, with the follwoing syntax:
 
-**/[sensor]\_[year]\_[channel]** -> eg. /PLPI\_2021\_HHZ
+**/[station]\_[year]\_[channel]** -> eg. /PLPI\_2021\_HHZ
 
 Within these folders are the seismic data files, each corresponding to a specific day of measurements, specified by the day of the year. The syntax is as follows:
 
-**C7.[sensor]..[channel].D.[year].[day]** -> eg. C7.PA09..HHZ.D.2021.262
+**C7.[station]..[channel].D.[year].[day]** -> eg. C7.PA09..HHZ.D.2021.262
 
 ### /involcan/metadata
 Contains meta-information of the data. 
 
 **available_files.csv** is a registry of all the data files uploaded to the system.
 
-**Available_times.csv** is a registry of the time periods that cointain information for each of the sensors.
+**Available_times.csv** is a registry of the time periods that cointain information for each of the stations.
 
 **feature_log.csv** is a registry of the features extracted from the signals and the parameters used to do so.
 
-**interruptions.csv** is a registry of the interruptions present in the signals from seismic sensors.
+**interruptions.csv** is a registry of the interruptions present in the signals from seismic stations.
 
 **scans.csv** is a registry of all the times seismic data were scanned for interruptions.
 

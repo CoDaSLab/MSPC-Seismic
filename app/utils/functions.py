@@ -21,13 +21,19 @@ def load_events():
     
     return events
 
-def load_sensors(filepath = "data/involcan/metadata/stations_all.dat", column_names=["station", "lat", "lon", "height"] ):
-    sensors = pd.read_csv(filepath, sep=r"\s+",names=column_names)
-    return sensors
+def load_stations(filepath = "data/involcan/metadata/stations_all.dat", column_names=["station", "lat", "lon", "height"] ):
+    stations = pd.read_csv(filepath, sep=r"\s+",names=column_names)
+    return stations
 
 def load_files(filepath="data/involcan/metadata/available_files.csv"):
     files = pd.read_csv(filepath)
     return files
+
+def load_json(filepath="monitoring/config.json"):
+    import json
+    with open(filepath, 'r') as f:
+        config = json.load(f)
+    return config
 
 import streamlit as st
 import obspy
@@ -36,9 +42,17 @@ from obspy.core import UTCDateTime
 def read_streams(stations, starttime, endtime, channels="HHE", data_path = "data/involcan/mseed/"):
     ST = []
     for station in stations:
-        st.write(f"Reading 2021 data for sensor {station}...")
+        st.write(f"Reading 2021 data for station {station}...")
         stream = obspy.read(f"{data_path}/C7.{station}.*.HHE.*.2021.*",
                         starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime))
         stream.merge()
         ST.append(stream)
     return ST
+
+def read_noc(noc_name, nocs_path = "data/involcan/nocs/"):
+    from monitoring.NOC import NOC
+    import os
+    
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
+
+    return noc

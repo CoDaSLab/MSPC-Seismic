@@ -1,24 +1,24 @@
 """
 pull.py
 
-This script connects to SFTP servers, filters seismic files based on a specified date range, sensor, and channel, and downloads 
+This script connects to SFTP servers, filters seismic files based on a specified date range, station, and channel, and downloads 
 the corresponding files to a local directory structure. It makes use of a list of available files created by fetch.py.
 
 Main functionalities:
 - Convert start and end time strings to datetime objects.
-- Read a CSV file containing metadata of available files and filter the rows based on the provided sensor, channel, and date range.
+- Read a CSV file containing metadata of available files and filter the rows based on the provided station, channel, and date range.
 - Try to connect to the host using an SSH key.
 - If an SSH key is not found, attempt connection with username and password.
 - Connect to the SFTP servers and download the filtered files to a local directory structure.
 
 Usage:
-    python pull.py <starttime> <endtime> [-s <sensor1> <sensor2> ...] [-c <channel1> <channel2> ...] [-u <user>] [-pw <password>] 
+    python pull.py <starttime> <endtime> [-s <station1> <station2> ...] [-c <channel1> <channel2> ...] [-u <user>] [-pw <password>] 
         [-pp <passphrase>] [-dp <data_path>] [-l <file_log>] [-kp <key_path>] [-v] [--compress]
 
 Arguments:
     starttime         - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     endtime           - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
-    -s, --sensors     - Sensor names.
+    -s, --stations     - Station names.
     -c, --channels    - Channel names.
     -dp, --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
     -l, --file_log    - Local directory path where the file log is saved (optional, default is 'data/involcan/metadata/available_files.csv').
@@ -42,10 +42,10 @@ import getpass
 from collections import defaultdict
 import tarfile
 
-def download_files(starttime, endtime, sensors, channels, data_path='data/involcan/mseed/', file_log = 'data/involcan/metadata/available_files.csv',
+def download_files(starttime, endtime, stations, channels, data_path='data/involcan/mseed/', file_log = 'data/involcan/metadata/available_files.csv',
                     user=None, key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, verbose=False, compress=False):
     """
-    Downloads seismic files filtered by date, sensor, and channel from SFTP servers.
+    Downloads seismic files filtered by date, station, and channel from SFTP servers.
     Performs a single SSH connection per server to download all corresponding files.
     """
 
@@ -57,22 +57,22 @@ def download_files(starttime, endtime, sensors, channels, data_path='data/involc
 
     assert starttime < endtime, "Start date cannot be later than end date."
 
-    # Allows for single sensor and single channel input
-    if isinstance(sensors, str):
-        sensors = [sensors]
+    # Allows for single station and single channel input
+    if isinstance(stations, str):
+        stations = [stations]
     if isinstance(channels, str):
         channels = [channels]
 
-    # Read the CSV file and filter rows based on sensor, channel, and date range
+    # Read the CSV file and filter rows based on station, channel, and date range
     files_to_download = []
     with open(file_log, mode='r') as file:
         reader = csv.DictReader(file)
         for row in reader:
-            file_sensor = row['sensor']
+            file_station = row['station']
             file_channel = row['channel']
             file_date = datetime.strptime(row['start_time'], "%Y-%m-%dT%H:%M:%SZ")
 
-            if (file_sensor in sensors and file_channel in channels and
+            if (file_station in stations and file_channel in channels and
                 starttime.replace(hour=0, minute=0, second=0, microsecond=0) <= file_date <= endtime):
                 files_to_download.append(row)
 
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Downloads mseed files from a remote directory.")
     parser.add_argument("starttime", help="Start date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("endtime", help="End date and time in the format 'YYYY-MM-DD HH:MM:SS'")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Sensor names.")
+    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', required=True, help="Channel names.")
     parser.add_argument("-dp", "--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
     parser.add_argument("-l", "--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the available files log")
@@ -212,5 +212,5 @@ if __name__ == "__main__":
 
     args = parser.parse_args()
 
-    download_files(args.starttime, args.endtime, args.sensors, args.channels, args.data_path, args.file_log,
+    download_files(args.starttime, args.endtime, args.stations, args.channels, args.data_path, args.file_log,
                    args.user, args.key_path, args.passphrase, args.pasw, args.verbose, args.compress)

@@ -68,21 +68,21 @@ def test_delete_fft():
     if not os.path.exists(test_dir):
         os.makedirs(test_dir)
     
-    sensor_1 = "sensorX"
-    sensor_2 = "sensorY"
+    station_1 = "stationX"
+    station_2 = "stationY"
     
     base_dt = datetime(2025, 6, 1, 0, 1, 2)
     for i in range(10):
         file_start = base_dt + timedelta(days=i)
         file_end = file_start + timedelta(days=2)
         
-        # Files for sensorX
-        filename_1 = f"{sensor_1}_{file_start.strftime('%Y-%m-%dT%H-%M-%SZ')}_{file_end.strftime('%Y-%m-%dT%H-%M-%SZ')}.xyz"
+        # Files for stationX
+        filename_1 = f"{station_1}_{file_start.strftime('%Y-%m-%dT%H-%M-%SZ')}_{file_end.strftime('%Y-%m-%dT%H-%M-%SZ')}.xyz"
         with open(os.path.join(test_dir, filename_1), 'w') as f:
             f.write("dummy content")
         
-        # Files for sensorY
-        filename_2 = f"{sensor_2}_{file_start.strftime('%Y-%m-%dT%H-%M-%SZ')}_{file_end.strftime('%Y-%m-%dT%H-%M-%SZ')}.xyz"
+        # Files for stationY
+        filename_2 = f"{station_2}_{file_start.strftime('%Y-%m-%dT%H-%M-%SZ')}_{file_end.strftime('%Y-%m-%dT%H-%M-%SZ')}.xyz"
         with open(os.path.join(test_dir, filename_2), 'w') as f:
             f.write("dummy content")
     
@@ -90,7 +90,7 @@ def test_delete_fft():
 
     delete_fft(
         path=test_dir,
-        station="sensorX",
+        station="stationX",
         starttime="2025-06-05 00:00:00",
         endtime="2025-06-08 00:01:02",
         verbose=True
@@ -100,24 +100,24 @@ def test_delete_fft():
     
     assert all_files != remaining_files, "Some files should have been removed, but they were not."
     
-    expected_files = ["sensorX_2025-06-01T00-01-02Z_2025-06-03T00-01-02Z.xyz",
-                        "sensorX_2025-06-02T00-01-02Z_2025-06-04T00-01-02Z.xyz",
-                        "sensorX_2025-06-03T00-01-02Z_2025-06-05T00-01-02Z.xyz",
-                        "sensorX_2025-06-04T00-01-02Z_2025-06-06T00-01-02Z.xyz",
-                        "sensorX_2025-06-07T00-01-02Z_2025-06-09T00-01-02Z.xyz",
-                        "sensorX_2025-06-08T00-01-02Z_2025-06-10T00-01-02Z.xyz",
-                        "sensorX_2025-06-09T00-01-02Z_2025-06-11T00-01-02Z.xyz",
-                        "sensorX_2025-06-10T00-01-02Z_2025-06-12T00-01-02Z.xyz",
-                        "sensorY_2025-06-01T00-01-02Z_2025-06-03T00-01-02Z.xyz",
-                        "sensorY_2025-06-02T00-01-02Z_2025-06-04T00-01-02Z.xyz",
-                        "sensorY_2025-06-03T00-01-02Z_2025-06-05T00-01-02Z.xyz",
-                        "sensorY_2025-06-04T00-01-02Z_2025-06-06T00-01-02Z.xyz",
-                        "sensorY_2025-06-05T00-01-02Z_2025-06-07T00-01-02Z.xyz",
-                        "sensorY_2025-06-06T00-01-02Z_2025-06-08T00-01-02Z.xyz",
-                        "sensorY_2025-06-07T00-01-02Z_2025-06-09T00-01-02Z.xyz",
-                        "sensorY_2025-06-08T00-01-02Z_2025-06-10T00-01-02Z.xyz",
-                        "sensorY_2025-06-09T00-01-02Z_2025-06-11T00-01-02Z.xyz",
-                        "sensorY_2025-06-10T00-01-02Z_2025-06-12T00-01-02Z.xyz"]
+    expected_files = ["stationX_2025-06-01T00-01-02Z_2025-06-03T00-01-02Z.xyz",
+                        "stationX_2025-06-02T00-01-02Z_2025-06-04T00-01-02Z.xyz",
+                        "stationX_2025-06-03T00-01-02Z_2025-06-05T00-01-02Z.xyz",
+                        "stationX_2025-06-04T00-01-02Z_2025-06-06T00-01-02Z.xyz",
+                        "stationX_2025-06-07T00-01-02Z_2025-06-09T00-01-02Z.xyz",
+                        "stationX_2025-06-08T00-01-02Z_2025-06-10T00-01-02Z.xyz",
+                        "stationX_2025-06-09T00-01-02Z_2025-06-11T00-01-02Z.xyz",
+                        "stationX_2025-06-10T00-01-02Z_2025-06-12T00-01-02Z.xyz",
+                        "stationY_2025-06-01T00-01-02Z_2025-06-03T00-01-02Z.xyz",
+                        "stationY_2025-06-02T00-01-02Z_2025-06-04T00-01-02Z.xyz",
+                        "stationY_2025-06-03T00-01-02Z_2025-06-05T00-01-02Z.xyz",
+                        "stationY_2025-06-04T00-01-02Z_2025-06-06T00-01-02Z.xyz",
+                        "stationY_2025-06-05T00-01-02Z_2025-06-07T00-01-02Z.xyz",
+                        "stationY_2025-06-06T00-01-02Z_2025-06-08T00-01-02Z.xyz",
+                        "stationY_2025-06-07T00-01-02Z_2025-06-09T00-01-02Z.xyz",
+                        "stationY_2025-06-08T00-01-02Z_2025-06-10T00-01-02Z.xyz",
+                        "stationY_2025-06-09T00-01-02Z_2025-06-11T00-01-02Z.xyz",
+                        "stationY_2025-06-10T00-01-02Z_2025-06-12T00-01-02Z.xyz"]
     
     assert remaining_files == expected_files, "The remaining files are not the expected ones."
     

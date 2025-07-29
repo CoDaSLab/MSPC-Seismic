@@ -1,9 +1,9 @@
 from config import *
 from widgets.forms import select_time
 from widgets import maps
-from widgets.tables import available_sensors
+from widgets.tables import available_stations
 
-from utils.functions import load_events, load_sensors, load_files, read_streams
+from utils.functions import load_events, load_stations, load_files, read_streams
 
 # --- Application start ---
 init_page("Location Map")
@@ -24,7 +24,7 @@ submitted_selection = st.session_state.submitted_selection
 if "ST" not in st.session_state: st.session_state.ST = None
 # ------------------------
 # Read station data
-sensors = load_sensors()
+stations = load_stations()
 
 
 COL  = st.columns(2)
@@ -34,7 +34,7 @@ col  = st.columns(2)
 if submitted_map and not submitted_selection:
     with col[0]:
         marked_map = st.session_state.marked_map
-        sensors = st.session_state.sensors
+        stations = st.session_state.stations
         maps.draw_map(marked_map)
 
 if not submitted_map:
@@ -43,24 +43,24 @@ if not submitted_map:
         st.session_state.map = m
             
         drawings = output["all_drawings"]   
-        sensors = maps.sensor_selector(drawings, sensors)
+        stations = maps.station_selector(drawings, stations)
 
-        if sensors is not None:
-            marked_map = maps.update_stations(st.session_state.map, sensors)
+        if stations is not None:
+            marked_map = maps.update_stations(st.session_state.map, stations)
 
 
     with col[1]:
             if not submitted_map:
-                if sensors is not None and len(sensors)>1:
+                if stations is not None and len(stations)>1:
                     maps.show_map(marked_map)
-                    st.markdown("Sensors in area:")
-                    st.dataframe(sensors)
+                    st.markdown("Stations in area:")
+                    st.dataframe(stations)
                     # st.rerun()
     with COL[1]:
             if not submitted_map:
-                submit = st.button("Keep sensor selection", use_container_width=True, disabled = (drawings is None))
+                submit = st.button("Keep station selection", use_container_width=True, disabled = (drawings is None))
                 if submit:
-                    st.session_state.sensors = sensors
+                    st.session_state.stations = stations
                     st.session_state.marked_map = marked_map
                     st.session_state.submitted_map = True
                     st.rerun()
@@ -85,21 +85,21 @@ if submitted_map and not submitted_time and not submitted_selection:
 
 
         eruption_files = files[(files['start_time']==starttime) | (files['end_time']==endtime) ]
-        eruption_sensors = pd.unique(eruption_files['sensor']).tolist()
+        eruption_stations = pd.unique(eruption_files['station']).tolist()
 
-        sensors = st.session_state.sensors
-        sensors=sensors[sensors['station'].isin(eruption_sensors)]
+        stations = st.session_state.stations
+        stations=stations[stations['station'].isin(eruption_stations)]
 
-        marked_map = maps.update_stations(st.session_state.map, sensors)
+        marked_map = maps.update_stations(st.session_state.map, stations)
         maps.show_map(marked_map)
-        st.dataframe(sensors)
+        st.dataframe(stations)
 
 
     with COL[1]:
         if not submitted_time:
             submit = st.button("Keep time range selection", use_container_width=True)
             if submit:
-                st.session_state.sensors = sensors
+                st.session_state.stations = stations
                 st.session_state.starttime = starttime
                 st.session_state.endtime = endtime
                 st.session_state.marked_map = marked_map
@@ -108,15 +108,15 @@ if submitted_map and not submitted_time and not submitted_selection:
 
 if submitted_time and not submitted_selection:
     with col[1]:
-        sensors = st.session_state.sensors
-        sensors = st.data_editor(sensors)
-        sensors.dropna(inplace=True)
+        stations = st.session_state.stations
+        stations = st.data_editor(stations)
+        stations.dropna(inplace=True)
         
         starttime, endtime = select_time("confirm")
 
         submit = st.button("Confirm selection", use_container_width=True)
         if submit:
-            st.session_state.sensors = sensors
+            st.session_state.stations = stations
             st.session_state.starttime = starttime
             st.session_state.endtime = endtime
             st.session_state.marked_map = marked_map
@@ -131,8 +131,8 @@ if submitted_selection:
     tajogaite_lat = 28.612778
     tajogaite_lon = -17.866111
 
-    sensors = st.session_state.sensors
-    marked_map = maps.update_stations(st.session_state.map, sensors)
+    stations = st.session_state.stations
+    marked_map = maps.update_stations(st.session_state.map, stations)
     Fullscreen(position="topleft").add_to(marked_map)
     
     folium.Marker(
@@ -147,13 +147,13 @@ if submitted_selection:
 
 # if submitted_selection:
 #     # data_path = "data/involcan/mseed"
-#     sensors = st.session_state.sensors['station'].to_list()
+#     stations = st.session_state.stations['station'].to_list()
 #     starttime = st.session_state.starttime
 #     endtime = st.session_state.endtime
 #     ST = st.session_state.ST
 
 #     if st.session_state.ST == None:
-#         ST = read_streams(sensors, starttime, endtime)
+#         ST = read_streams(stations, starttime, endtime)
 #         st.session_state.ST = ST
 
 #     if col[0].checkbox("Plot seismograms"):
