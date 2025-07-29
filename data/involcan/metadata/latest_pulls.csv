@@ -1,4 +1,4 @@
-network,sensor,channel,latest_file,start_time,latest_pull_time
+network,station,channel,latest_file,start_time,latest_pull_time
 C7,PBB2,HHE,C7.PBB2..HHE.D.2025.197,2025-07-16T00:00:00Z,2025-07-16T07:30:07Z
 C7,PBB2,HHN,C7.PBB2..HHN.D.2025.197,2025-07-16T00:00:00Z,2025-07-16T07:30:07Z
 C7,PBB2,HHZ,C7.PBB2..HHZ.D.2025.197,2025-07-16T00:00:00Z,2025-07-16T07:30:08Z

@@ -1,4 +1,4 @@
-file_id,network,sensor,channel,type,starttime,endtime,window,overlap,windowing,n_windows,n_variables,missing_rate,low_filter,high_filter,nsamples,srate,trend_removed,coherent_noise_removed,save_time
+file_id,network,station,channel,type,starttime,endtime,window,overlap,windowing,n_windows,n_variables,missing_rate,low_filter,high_filter,nsamples,srate,trend_removed,coherent_noise_removed,save_time
 1,C7,PLPI,HHN,FFT,2021-09-12 00:00:00.00,2021-09-26 00:00:00.00,3600.0,0.0,False,336,5400,0.0,0,50.0,120960001,100.0,False,False,2024-11-11 15:55:07.00
 2,C7,PLPI,HHE,FFT,2021-09-12 00:00:00.00,2021-09-26 00:00:00.00,3600.0,0.0,False,336,5400,0.0,0,50.0,120960001,100.0,False,False,2024-11-11 15:56:47.00
 3,C7,PLPI,HHZ,FFT,2021-09-12 00:00:00.00,2021-09-26 00:00:00.00,3600.0,0.0,False,336,5400,0.0,0,50.0,120960001,100.0,False,False,2024-11-11 15:58:24.00
