@@ -51,7 +51,7 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
     test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
-    if starttime <= test_start <= endtime or starttime <= test_end <= endtime:
+    if test_start <= starttime and endtime <= test_end:
         fig, _ = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
                                 criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
 

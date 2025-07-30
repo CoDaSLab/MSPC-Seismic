@@ -4,9 +4,11 @@ from config.init import init_page, init_session_state
 from widgets import *
 from utils.functions import load_json, load_files
 
-from preprocessing.fft_rt import list_fft_files
-from monitoring.main import get_noc_names, start_and_end_times
+from preprocessing.fft_rt import calculate_fft_rt, list_fft_files
+from monitoring import NOC, main, mspc_rt
 
+import numpy as np
+import os
 from datetime import datetime, timezone, timedelta
 
 # --- Application start ---
@@ -29,10 +31,10 @@ noc_log_path = config["noc_log_path"]
 anomaly_log_path = config["anomaly_log_path"]
 stations = config["stations"]
 
-nocs = get_noc_names(noc_log_path, stations)
+nocs = main.get_noc_names(noc_log_path, stations)
 update_freq = timedelta(minutes=st.session_state.config["update_frequency"])
 
-starttime, endtime = start_and_end_times(datetime.now(), 
+starttime, endtime = main.start_and_end_times(datetime.now(timezone.utc), 
                                         update_frequency=st.session_state.config["update_frequency"],
                                         delay = st.session_state.config["delay"])
 
@@ -43,7 +45,7 @@ st.session_state.end_time = datetime.time(endtime)
 
 # Define fragments
 @st.fragment(run_every=update_freq)
-def real_time_visualization(noc, nocs_path):
+def real_time_visualization(nocs, nocs_path):
 
     col = st.columns(3)
     with col[0]:
@@ -85,19 +87,24 @@ def on_demand_visualization(stations, noc_log_path):
     col = st.columns(2)
 
     with col[1]:
+        st.write("##### Select a station and Normal Operation Conditions (NOC):")
         # Select NOC
-        st.markdown("Select a station and Normal Operation Conditions (NOC):")
+        station, noc_name = forms.select_noc("noc_selector_monitoring", stations=stations, noc_log_path=noc_log_path)
+
+        # Display NOC details
+        tables.noc_summary(noc_name, nocs_path)
+
         with st.form("on_demand_selector_monitoring"):
-            _, noc_name = forms.select_noc("noc_selector_monitoring", stations=stations, noc_log_path=noc_log_path)
-
-            # Display NOC details
-            tables.noc_summary(noc_name, nocs_path)
-
+            st.write("##### Select time range to plot:")
             # Select test time range
             starttime, endtime = forms.select_time("time_selector_monitoring")
-
+            
             subcol = st.columns(2)
             with subcol[0]:
+                calculate = st.checkbox("Run calculations", value=False,
+                                help="Calculates features and statistics using parameters from monitoring configuration. " \
+                                "If a previous calculation already exists, you can click on 'Plot' to plot the results directly.")
+                
                 logscale = st.checkbox("Log scale", value=False, key="logscale_monitoring",
                                     help="Display Y-axis using a logarithmic scale.")
             with subcol[1]:
@@ -106,14 +113,37 @@ def on_demand_visualization(stations, noc_log_path):
                                         help="When the number of consecutive windows over the threshold is greater or equal than this number, " \
                                         "the corresponding windows will be colored red in the graph.")
                 
-            submit = st.form_submit_button("Plot", type='primary', use_container_width=True)
-            
+            submit = st.form_submit_button("Plot", type = "primary", use_container_width=True,
+                                           help="Plot D and Q statistics. If no previous calculations exist, check the 'Run calculations' box and try again.")
+    
+    config = st.session_state.config
+
     with col[0]:
-        # Display D and Q statistics
+        # Calculate and display D and Q statistics
         if submit:
-            with st.spinner("Calculating..."):
-                plots.plot_dq(noc_name, starttime.replace(tzinfo=timezone.utc), endtime.replace(tzinfo=timezone.utc),
-                            logscale=logscale, n_consecutive=n_consecutive, nocs_path = nocs_path)
+            if starttime >= endtime:
+                st.error("Start time cannot be after end time")
+            else:
+                if calculate:
+                    with st.spinner("Calculating features..."):
+                        features = calculate_fft_rt(starttime, endtime, network=config["network"], station=station, 
+                                                    channels=config["channels"], window_size=config["window_size"],
+                                                    window_shift=config["window_shift"], detrend=config["detrend"], 
+                                                    fft_points=config["fft_points"], merge_method=config["merge_method"],
+                                                    merge_fill_value=config["merge_fill_value"], pad_fill_value=config["pad_fill_value"],
+                                                    data_path=config["data_path"], cpus=config["cpus"], verbose=False,
+                                                    save=False)
+
+                    with st.spinner("Perfoming MSPC..."):
+                        noc = NOC.NOC.load(os.path.join(config["nocs_path"], noc_name))
+                        test = np.hstack([features[key] for key in config["feature_types"]])
+                        mspc_rt.mspc([noc], test, starttime, endtime, window_size=config["window_size"],
+                                    window_shift=config["window_shift"], missing_rates=features["missing_rates"],
+                                    plot=False, update_log=False, nocs_path=config["nocs_path"], verbose=False)
+
+                with st.spinner("Plotting results..."):
+                    plots.plot_dq(noc_name, starttime.replace(tzinfo=timezone.utc), endtime.replace(tzinfo=timezone.utc),
+                                logscale=logscale, n_consecutive=n_consecutive, nocs_path = nocs_path)
         
 @st.fragment
 def noc_comparison(stations, noc_log_path, nocs_path):

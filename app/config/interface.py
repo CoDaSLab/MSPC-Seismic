@@ -19,4 +19,4 @@ def header():
     with col[4]:
         st.page_link("./pages/feature_extraction_dashboard.py", label="Feature extraction", icon="⛏️")
     with col[5]:
-        st.page_link("./pages/real_time_monitoring.py", label="Real time monitoring", icon="📡")
+        st.page_link("./pages/real_time_monitoring.py", label="Real-time monitoring", icon="📡")
