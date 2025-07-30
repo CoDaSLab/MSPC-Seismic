@@ -45,10 +45,49 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
     from monitoring.mspc_rt import plot_anomalies
     from monitoring.NOC import NOC
     import os
+    from datetime import datetime, timezone
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
-    fig, _ = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
+    test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
+    if starttime <= test_start <= endtime or starttime <= test_end <= endtime:
+        fig, _ = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
+                                criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
+
+        if interactive:
+            fig_html = mpld3.fig_to_html(fig)
+            components.html(fig_html, height=600)
+        else:
+            st.pyplot(fig)
+    else:
+        st.error("No calculation available for the given time range.")
+
+
+def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, criterion = 'consecutive', 
+               n_consecutive = 3, nocs_path="data/involcan/nocs", interactive=False):
+    import mpld3
+    import streamlit.components.v1 as components
+    from monitoring.mspc_rt import plot_anomalies
+    from monitoring.NOC import NOC
+    import os
+    from datetime import datetime, timedelta, timezone
+
+    if time_range is None:
+        time_range = timedelta(hours=st.session_state.config["num_hours_for_plot"])
+    
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
+
+    endtime = datetime.now(timezone.utc)
+    starttime = endtime - time_range
+    
+    fig, ax = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
                             criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
+    ax[0].set_title("")
+    ax[1].set_title("")
+    ax[0].set_ylabel("D-statistic")
+    ax[1].set_ylabel("Q-statistic")
+    fig.suptitle(noc.name)
 
     if interactive:
         fig_html = mpld3.fig_to_html(fig)
@@ -56,8 +95,10 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
     else:
         st.pyplot(fig)
 
+
 def plot_noc_omeda(noc1_name, noc2_name, preprocessing=1, n_components=None, var_labels=None, 
-                   var_classes=None, nocs_path="data/involcan/nocs", interactive=False):
+                   var_classes=None, nocs_path="data/involcan/nocs", 
+                   interactive=False):
     import mpld3
     import streamlit.components.v1 as components
     from monitoring.NOC import compare_nocs, NOC

@@ -314,7 +314,7 @@ def monitoring(config_path = 'config.json'):
                     filenames = list_fft_files(features_path, station, update_start, endtime, verbose=verbose)
                     filepaths = [os.path.join(features_path, filename).replace('\\', '/') for filename in filenames]
                     files = [loadmat(filepath) for filepath in filepaths]
-                    new_features = np.vstack([np.hstack([f[key] for key in feature_types]) for f in files])
+                    new_features = np.vstack([np.hstack([f[key] for key in feature_types]) for f in files if np.mean(f['missing_rates']) < 0.1])
                     new_labels = []
                     for file in files:
                         new_labels.extend(file['obs_labels'])

@@ -1,5 +1,6 @@
 import streamlit as st
 from config.interface import header, logo
+from utils.functions import load_json
 
 def init_app():
     if "app_start" not in st.session_state:
@@ -38,7 +39,6 @@ def init_page(title = None, icon="🌋", layout="wide", sidebar="collapsed"):
 
 
 def init_session_state():
-    import streamlit as st
     if 'map' not in st.session_state: st.session_state.map = None
     if 'map_markers' not in st.session_state: st.session_state.map_markers = None
     if 'stations' not in st.session_state: st.session_state.stations = None
@@ -53,3 +53,6 @@ def init_session_state():
     if 'start_time' not in st.session_state: st.session_state.start_time = time(0,0,0)
     if 'end_date' not in st.session_state: st.session_state.end_date = datetime(2021, 9, 20)
     if 'end_time' not in st.session_state: st.session_state.end_time = time(0,0,0)
+
+    config = load_json("jobs/automated/config.json")
+    if 'config' not in st.session_state: st.session_state.config = config

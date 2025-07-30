@@ -34,20 +34,18 @@ def select_noc(key, stations, noc_log_path = "data/involcan/metadata/noc_list.cs
     nocs = [noc for noc, _ in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))]
     noc = col[1].selectbox('NOC', reversed(nocs), key=f"noc_{key}")
 
-    st.session_state.station = station
-    st.session_state.noc = noc
-
     return station, noc
 
 
 def select_time(key):
-    from datetime import datetime, time
+    from datetime import datetime, timedelta
 
     col = st.columns(2)
     start_date = col[0].date_input("Select a start day", key=f'start_date_{key}',
                                    value=st.session_state.start_date)
     start_time = col[1].time_input("Select a start time", key=f'start_time_{key}',
-                                 value = st.session_state.start_time)
+                                    value = st.session_state.start_time,
+                                    step=timedelta(minutes=5))
 
     starttime = datetime.combine(start_date, start_time)
     st.session_state.start_date = start_date
@@ -56,13 +54,34 @@ def select_time(key):
     end_date = col[0].date_input("Select an end day", key=f'end_date_{key}',
                                 value=st.session_state.end_date)
     end_time = col[1].time_input("Select an end time", key=f'end_time_{key}', 
-                                 value = st.session_state.end_time)
+                                 value = st.session_state.end_time,
+                                 step=timedelta(minutes=5))
                                  
     endtime = datetime.combine(end_date, end_time)
     st.session_state.end_date = end_date
     st.session_state.end_time = end_time
 
     return starttime, endtime
+
+
+def select_time_rt(key):
+    from datetime import timedelta
+
+    col = st.columns(2)
+    with col[0]:
+        hour = st.number_input("Hours", key=f'hour_{key}',
+                                min_value=0,
+                                max_value=23,
+                                value = st.session_state.config["num_hours_for_plot"])
+    with col[1]:
+        minute = st.number_input("Minutes", key=f'minute_{key}',
+                                min_value=0,
+                                max_value=59,
+                                value = 0 if hour>0 else 1)
+    
+    time = timedelta(hours=hour, minutes=minute)
+    return time
+
 
 def select_detrend(key):
     detrend_options = [None, 'linear', 'simple', 'constant']
@@ -97,6 +116,12 @@ def select_FFT_points(key, window_size = 10, srate = 100):
     FFT_points = st.number_input('Number of frequencies for the FFT',
                                     value = int(window_size*srate),
                                     key = f"FFT_points_{key}")
-        
 
     return FFT_points
+
+def select_preprocessing(key):
+    prep_options = ['mean-centering', 'autoscaling']
+    prep = st.selectbox('Preprocessing', prep_options, key=f"preprocess_{key}", index=0)
+
+    prep_num = 1 if prep == 'mean-centering' else 2
+    return prep_num
