@@ -23,7 +23,7 @@ Arguments:
     server                  - IP address of the remote server.
     user                    - Remote server username.
     network,                - Network name.
-    -s, --stations           - Station names.
+    -s, --stations          - Station names.
     -c, --channels          - Channel names.
     -dp, --data_path        - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
     -lp, --log_path         - Local directory path where the pull times log is saved (optional, default is 
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     parser.add_argument("server", help="Server address")
     parser.add_argument("user", type=str, help="Remote server username")
     parser.add_argument("network", type=str, help="Network name.")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Station names.")
+    parser.add_argument("-s", "--stations", nargs='+', required=True, help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', required=True, help="Channel names.")
     parser.add_argument("-dp", "--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
     parser.add_argument("-lp", "--log_path", default='data/involcan/metadata/latest_pulls.csv', help="Path to the pull times log")

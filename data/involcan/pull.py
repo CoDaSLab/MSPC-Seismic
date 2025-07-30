@@ -18,7 +18,7 @@ Usage:
 Arguments:
     starttime         - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     endtime           - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
-    -s, --stations     - Station names.
+    -s, --stations    - Station names.
     -c, --channels    - Channel names.
     -dp, --data_path  - Local directory path where the files will be saved (optional, default is 'data/involcan/mseed/').
     -l, --file_log    - Local directory path where the file log is saved (optional, default is 'data/involcan/metadata/available_files.csv').
@@ -199,7 +199,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Downloads mseed files from a remote directory.")
     parser.add_argument("starttime", help="Start date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("endtime", help="End date and time in the format 'YYYY-MM-DD HH:MM:SS'")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', required=True, help="Station names.")
+    parser.add_argument("-s", "--stations", nargs='+', required=True, help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', required=True, help="Channel names.")
     parser.add_argument("-dp", "--data_path", default='data/involcan/mseed/', help="Path to store downloaded files")
     parser.add_argument("-l", "--file_log", default='data/involcan/metadata/available_files.csv', help="Path to the available files log")

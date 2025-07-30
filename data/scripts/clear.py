@@ -17,7 +17,7 @@ Arguments:
     starttime       - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     endtime         - End date and time in the format 'YYYY-MM-DD HH:MM:SS'.
     -n, --networks  - Network names.
-    -s, --stations   - Station names.
+    -s, --stations  - Station names.
     -c, --channels  - Channel names.
     -p, --path      - Local directory path where the files are saved (optional, default is 'data/involcan/mseed/').
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     parser.add_argument("starttime", help="Start date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("endtime", help="End date and time in the format 'YYYY-MM-DD HH:MM:SS'")
     parser.add_argument("-n", "--networks", nargs='+', help="Network names.")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', help="Station names.")
+    parser.add_argument("-s", "--stations", nargs='+', help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', help="Channel names.")
     parser.add_argument("-p", "--path", default='data/involcan/mseed/', help="Local directory path where the files are stored")
 

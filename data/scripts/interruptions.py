@@ -21,7 +21,7 @@ Arguments:
     starttime         - Start of the time interval to check.
     endtime           - End of the time interval to check.
     -n, --networks    - Names of the networks.
-    -s, --stations     - Names of the stations.
+    -s, --stations    - Names of the stations.
     -c, --channels    - Names of the channels.
     -dp, --data_path  - Path to the folder where data is stored. Defaults is 'data/involcan/mseed/'.
     -gp, --gaps_path  - Path to the file where interruptions are stored. Default is /metadata/interruptions.csv' 
@@ -304,7 +304,7 @@ if __name__ == "__main__":
     parser.add_argument("starttime", type=str, help="Start time in YYYY-MM-DD HH:MM:SS format.")
     parser.add_argument("endtime", type=str, help="End time in YYYY-MM-DD HH:MM:SS format.")
     parser.add_argument("-n", "--networks", nargs='+', help="Network names.")
-    parser.add_argument("-s", "--sensors", "--stations", nargs='+', help="Station names.")
+    parser.add_argument("-s", "--stations", nargs='+', help="Station names.")
     parser.add_argument("-c", "--channels", nargs='+', help="Channel names.")
     parser.add_argument("-dp", "--data_path", type=str, default="data/involcan/mseed/",
                         help="Path to data folder.")

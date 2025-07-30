@@ -396,6 +396,7 @@ class NOC:
             ax.set_xticks(xticks)  # Center the ticks on the bars
             ax.set_xticks(np.arange(len(plot_labels))+0.5, minor=True)  # Center the ticks on the bars
             ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility
+            ax.set_xlim(xticks[0]-tick_step-1, xticks[-1]+1)
 
         return fig, axes
 
