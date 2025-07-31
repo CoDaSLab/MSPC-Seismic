@@ -3,6 +3,8 @@ from config import *
 from widgets.forms import *
 from widgets.plots import *
 from preprocessing.SISMO import SISMO
+from utils.functions import read_streams, load_files
+import pandas as pd
 
 # -------------------------
 # --- Application start ---
@@ -12,11 +14,12 @@ init_session_state()
 st.title('SISMO Signal Processing')
 # -------------------------
 
-
-
-
 tab_names = ["SISMO Trend", "SISMO FFT"]
 tabs = st.tabs(tab_names)
+
+files = load_files()
+files['start_time'] = pd.to_datetime(files['start_time'], utc=True)
+files['end_time'] = pd.to_datetime(files['end_time'], utc=True)
 
 # ------------ SISMO Trace ------------
 with tabs[0]:
@@ -25,15 +28,27 @@ with tabs[0]:
     loading_space = COL[1].empty()
 
     with COL[0]:
+        starttime, endtime = select_time('time_selector_exploration')
+        starttime = pd.Timestamp(starttime, tz='UTC')
+        endtime = pd.Timestamp(endtime, tz='UTC')
+
+        filtered_files = files[(files['start_time']==starttime.replace(hour=0, minute=0, second=0)) 
+                               | (files['end_time']==endtime.replace(hour=0, minute=0, second=0)) ]
+        station_list = pd.unique(filtered_files['station']).tolist()
+
+        if len(station_list) == 0:
+            st.error("No data found for this time range.")
+        
+        network = filtered_files['network'].tolist()[0]
+
         st.subheader('Data selection')
-        station, channel = select_station(key)
-        starttime, endtime = select_time(key)
+        station, channels = select_station_multi_channel(key, station_list, ['HHE', 'HHN', 'HHZ'])
+        # starttime, endtime = select_time(key)
 
         st.subheader('Pre-processing')
         col = COL[0].columns(2)
         with col[0]:
             detrend = select_detrend(key)
-
 
         st.subheader('Trend plot')
         ylim = set_yaxis(key)
@@ -42,21 +57,24 @@ with tabs[0]:
             interactive = st.checkbox('Interactive plot (Breaks x ticks)', False,
                             help="This feature is only available for short time periods")
         with col[1]:
-            plot_trend = st.button('Plot trend')
+            plot_trend = st.button('Plot trend', use_container_width=True, type="primary")
 
     # Plotting area
     if plot_trend:
+        col = st.columns(2)
         with loading_space, st.spinner('Creating object'):
-                    
-            S = SISMO(station, channel, starttime, endtime,
-                        detrend,
-                        None, # windowing
-                        2, # cpus
+            sismos = []
+            for channel in channels:
+                S = SISMO(network, station, channel, starttime, endtime,
+                        detrend=detrend, windowing=None, merge_method=0,
+                        cpus=1, data_path=st.session_state.config["data_path"],
                         verbose = False)
+                sismos.append(S)
 
         with loading_space, st.spinner('Plotting trace'):
             with COL[1]:
-                plot_seismogram(S, ylim, interactive)
+                for i in range(len(channels)):
+                    plot_seismogram(sismos[i], ylim, interactive)
 
 
 
@@ -64,14 +82,27 @@ with tabs[0]:
 
 # ------------ SISMO FFT ------------
 with tabs[1]:
+        
     key = 'FFT'
     COL = st.columns(2)
     loading_space = COL[1].empty()
     
     with COL[0]:
+        starttime, endtime = select_time('time_selector_fft')
+        starttime = pd.Timestamp(starttime, tz='UTC')
+        endtime = pd.Timestamp(endtime, tz='UTC')
+
+        filtered_files = files[(files['start_time']==starttime.replace(hour=0, minute=0, second=0)) 
+                               | (files['end_time']==endtime.replace(hour=0, minute=0, second=0)) ]
+        station_list = pd.unique(filtered_files['station']).tolist()
+
+        if len(station_list) == 0:
+            st.error("No data found for this time range.")
+        
+        network = filtered_files['network'].tolist()[0]
+
         st.subheader('Data selection')
-        station, channel = select_station(key)
-        starttime, endtime = select_time(key)
+        station, channel = select_station(key, station_list)
 
         st.subheader('Pre-processing')
         col = COL[0].columns(2)
@@ -97,18 +128,17 @@ with tabs[1]:
                             help="This feature is only available for short time periods",
                             key=f"Interactive_{key}")
         with col[1]:
-            plot_freq = col[1].button('Plot FFT')
+            plot_freq = col[1].button('Plot FFT', use_container_width=True, type='primary')
 
     if plot_freq:
         with loading_space, st.spinner('Creating object'):  
-            S = SISMO(station, channel, starttime, endtime,
-                        detrend,
-                        windowing,
-                        2, # cpus
-                        verbose=False)
+            S = SISMO(network, station, channel, starttime, endtime,
+                        detrend=detrend, windowing=windowing, merge_method=0,
+                        cpus=1, data_path=st.session_state.config["data_path"],
+                        verbose = False)
 
         with loading_space, st.spinner('Calculating FFTs'):
-            S.set_windows(window_size, window_size-window_shift)
+            S.set_windows(window_size, window_shift)
             S.fft_bin(FFT_points)
         with loading_space, st.spinner('Plotting trace'):
             with COL[1]:

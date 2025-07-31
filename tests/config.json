@@ -23,6 +23,7 @@
     "window_size": 10,
     "window_shift": null,
     "detrend": false,
+    "windowing": false,
     "feature_types": [
         "ffts"
     ],

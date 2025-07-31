@@ -1,27 +1,38 @@
 import streamlit as st
 
-def select_station(key):
-    stations =  ['PPMA', 'PLPI']
-    channels = ['HHE', 'HHN', 'HHZ']
+def select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
     col = st.columns(2)
-    station = col[0].selectbox('Station', stations, key=f"station_{key}",
-                              index = stations.index(st.session_state.station))
-    channel = col[1].selectbox('Channel', channels, key=f"channel_{key}",
-                               index = channels.index(st.session_state.channel))
+    default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
+    station = col[0].selectbox('Station', station_list, key=f"station_{key}",
+                              index = default_station)
+    
+    default_station = channel_list.index(st.session_state.channel) if st.session_state.channel in channel_list else 0
+    channel = col[1].selectbox('Channel', channel_list, key=f"channel_{key}",
+                               index = channel_list.index(st.session_state.channel))
 
     st.session_state.station = station
     st.session_state.channel = channel
 
     return station, channel
 
-def multi_select_station(key):
-    stations =  ['PPMA', 'PLPI']
-    channels = ['HHE', 'HHN', 'HHZ']
+def select_station_multi_channel(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
     col = st.columns(2)
-    stations = col[0].multiselect('Stations', stations, key=f"station_{key}",
-                                default=stations)
-    channels = col[1].multiselect('Channels', channels, key=f"channel_{key}",
-                                 default=channels)
+    default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
+    station = col[0].selectbox('Station', station_list, key=f"station_{key}",
+                              index = default_station)
+    
+    channels = col[1].multiselect('Channels', channel_list, key=f"channel_{key}",
+                               default = channel_list)
+
+    return station, channels
+
+def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
+    col = st.columns(2)
+
+    stations = col[0].multiselect('Stations', station_list, key=f"station_{key}",
+                                default=station_list)
+    channels = col[1].multiselect('Channels', channel_list, key=f"channel_{key}",
+                                default=channel_list)
 
     return stations, channels
 
@@ -105,9 +116,9 @@ def select_windowing(key):
 
 def select_window(key):
     col = st.columns(2) 
-    window_size = col[0].number_input('Window length in seconds', value = 60.0,
+    window_size = col[0].number_input('Window length in seconds', value = st.session_state.config["window_size"],
                     key = f"window_size_{key}")
-    window_shift = col[1].number_input('Window overlap in seconds', value = 0.0,
+    window_shift = col[1].number_input('Window shift in seconds', value = st.session_state.config["window_shift"],
                     key = f"window_shift_{key}")
 
     return window_size, window_shift

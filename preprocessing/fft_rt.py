@@ -7,7 +7,7 @@ from scipy.io import savemat
 from preprocessing.SISMO import SISMO
 
 def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN', 'HHZ'], 
-                    window_size=10, window_shift=None, detrend=False, fft_points=256, 
+                    window_size=10, window_shift=None, detrend=False, windowing=False, fft_points=256, 
                     merge_method=0, merge_fill_value = None, pad_fill_value=False,
                     data_path="data/involcan/mseed", cpus=1, verbose=False, save=False, 
                     save_path="data/involcan/features"):
@@ -25,6 +25,7 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
         window_size (int): Time window size in seconds (default: 10).
         window_shift (int): Interval between the start of windows in seconds (default: window_size).
         detrend (bool): Whether to remove linear trend from signals (default: False).
+        windowing: Windowing function. If False, no function is applied (default: False).
         fft_points (int or 'auto'): Number of FFT points. If set to `'auto'`, uses the number of 
             points per window.
         merge_method (int): Method used for merging waveform segments (see documentation for the 
@@ -81,7 +82,7 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
 
         S = SISMO(
             network, station, channel, 
-            starttime, endtime, detrend=detrend,
+            starttime, endtime, detrend=detrend, windowing=windowing,
             merge_method=merge_method, merge_fill_value=merge_fill_value,
             pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
         )

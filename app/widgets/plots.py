@@ -40,8 +40,6 @@ def plot_signals():
 
 def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
             criterion = 'consecutive', n_consecutive = 3, nocs_path="data/involcan/nocs", interactive=False):
-    import mpld3
-    import streamlit.components.v1 as components
     from monitoring.mspc_rt import plot_anomalies
     from monitoring.NOC import NOC
     import os
@@ -56,6 +54,8 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
                                 criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
 
         if interactive:
+            import mpld3
+            import streamlit.components.v1 as components
             fig_html = mpld3.fig_to_html(fig)
             components.html(fig_html, height=600)
         else:
@@ -66,8 +66,6 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
 
 def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, criterion = 'consecutive', 
                n_consecutive = 3, nocs_path="data/involcan/nocs", interactive=False):
-    import mpld3
-    import streamlit.components.v1 as components
     from monitoring.mspc_rt import plot_anomalies
     from monitoring.NOC import NOC
     import os
@@ -91,6 +89,8 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
         fig.suptitle(noc.name)
 
         if interactive:
+            import mpld3
+            import streamlit.components.v1 as components
             fig_html = mpld3.fig_to_html(fig)
             components.html(fig_html, height=600)
         else:
@@ -100,11 +100,8 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
 
 
 def plot_dq_noc(noc_name, logscale=False, nocs_path="data/involcan/nocs", interactive=False):
-    import mpld3
-    import streamlit.components.v1 as components
     from monitoring.NOC import NOC
     import os
-    from datetime import datetime, timezone
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
 
@@ -116,6 +113,9 @@ def plot_dq_noc(noc_name, logscale=False, nocs_path="data/involcan/nocs", intera
     fig.suptitle(noc.name)
 
     if interactive:
+        import mpld3
+        import streamlit.components.v1 as components
+
         fig_html = mpld3.fig_to_html(fig)
         components.html(fig_html, height=600)
     else:
@@ -125,8 +125,6 @@ def plot_dq_noc(noc_name, logscale=False, nocs_path="data/involcan/nocs", intera
 def plot_noc_omeda(noc1_name, noc2_name, preprocessing=1, n_components=None, var_labels=None, 
                    var_classes=None, nocs_path="data/involcan/nocs", 
                    interactive=False):
-    import mpld3
-    import streamlit.components.v1 as components
     from monitoring.NOC import compare_nocs, NOC
     import os
 
@@ -137,6 +135,25 @@ def plot_noc_omeda(noc1_name, noc2_name, preprocessing=1, n_components=None, var
                              var_labels=var_labels, var_classes=var_classes)
 
     if interactive:
+        import mpld3
+        import streamlit.components.v1 as components
+        fig_html = mpld3.fig_to_html(fig)
+        components.html(fig_html, height=600)
+    else:
+        st.pyplot(fig)
+
+def plot_var_pca(data, max_components=None, preprocessing=1, interactive=False):
+    from mspc_pca.plot import var_pca
+
+    if max_components is None:
+        max_components = min(data.shape[0], data.shape[1], 20)
+
+    fig, _ = var_pca(data, max_components, with_ckf=True, 
+                    with_std=True if preprocessing == 2 else False)
+
+    if interactive:
+        import mpld3
+        import streamlit.components.v1 as components
         fig_html = mpld3.fig_to_html(fig)
         components.html(fig_html, height=600)
     else:

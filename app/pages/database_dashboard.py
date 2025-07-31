@@ -22,7 +22,7 @@ csv_files = {
 names = list(csv_files.keys())
 paths = list(csv_files.values())
 
-names.append('Check data availability')
+# names.append('Check data availability')
 tabs = st.tabs(names)
 
 # Show tables in each of the tabs

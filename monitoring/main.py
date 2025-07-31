@@ -205,6 +205,7 @@ def monitoring(config_path = 'config.json'):
     window_size = config["window_size"]  # Size in seconds of the windows
     window_shift = window_size if config["window_shift"] is None else config["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
     detrend = config["detrend"]  # Detrending method. False for no detrending.
+    windowing = config["windowing"]  # Windowing method.
     feature_types = config["feature_types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
     fft_points = config["fft_points"]  # Number of FFT points (spectral resolution)
     merge_method = config["merge_method"]  # Trace merging method (see ObsPy documentation)
@@ -282,7 +283,7 @@ def monitoring(config_path = 'config.json'):
         
         # Calculate features
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
-                                    window_size, window_shift, detrend=detrend, fft_points=fft_points, 
+                                    window_size, window_shift, detrend=detrend, windowing=windowing, fft_points=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,
                                     pad_fill_value = pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
 

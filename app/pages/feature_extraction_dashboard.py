@@ -2,6 +2,7 @@ from config import *
 
 from widgets.forms import *
 from preprocessing.feature_extraction import *
+from utils.functions import load_files
 
 import pandas as pd
 
@@ -12,6 +13,10 @@ init_session_state()
 
 tabs = st.tabs(['Feature Log', 'Extract new features'])
 
+files = load_files()
+files['start_time'] = pd.to_datetime(files['start_time'], utc=True)
+files['end_time'] = pd.to_datetime(files['end_time'], utc=True)
+
 with tabs[0]:
     log = pd.read_csv("data/involcan/metadata/feature_log.csv",)
     st.dataframe(log)
@@ -21,12 +26,23 @@ with tabs[1]:
     COL = st.columns(2)
     with COL[0]:
         st.subheader("Station and time period")
-        with st.expander("", expanded=True, ):
-            stations, channels = multi_select_station(key)
-            starttime, endtime = select_time(key)
+        starttime, endtime = select_time('time_selector_exploration')
+        starttime = pd.Timestamp(starttime, tz='UTC')
+        endtime = pd.Timestamp(endtime, tz='UTC')
+
+        filtered_files = files[(files['start_time']==starttime.replace(hour=0, minute=0, second=0)) 
+                            | (files['end_time']==endtime.replace(hour=0, minute=0, second=0)) ]
+        station_list = pd.unique(filtered_files['station']).tolist()
+
+        if len(station_list) == 0:
+            st.error("No data found for this time range.")
+        
+        network = filtered_files['network'].tolist()[0]
+
+        stations, channels = multi_select_station(key, station_list, channel_list=["HHE", "HHN", "HHZ"])
 
         st.subheader("Extraction parameters")
-        window, overlap = select_window(key)
+        window, shift = select_window(key)
 
         col = COL[0].columns(2)
         with col[0]:
@@ -40,7 +56,7 @@ with tabs[1]:
             get_FFTs = st.checkbox('FFTs', True)
             if get_FFTs: types.append('FFT')
         with col[1]:
-            get_feature_set = st.checkbox('feature set', disabled=True)
+            get_feature_set = st.checkbox('Feature set', disabled=True)
             if get_feature_set: types.append('feature')
         
         resampling_factor = st.number_input('Resampling factor (Temporary)', value=100)
@@ -49,20 +65,21 @@ with tabs[1]:
 
     with COL[1]:
 
-        extract_features = st.button('Extract Features', use_container_width=True)
+        extract_features = st.button('Extract Features', type="primary", use_container_width=True)
         log_list = []
         if extract_features:
             for station in stations:
                 for channel in channels:
                     for type in types:
                         query = {
+                            'network': network,
                             'station': station,
                             'channel': channel,
                             'type': type,
                             'starttime': starttime, 
                             'endtime': endtime,
                             'window': window,
-                            'overlap': overlap,
+                            'overlap': window-shift,
                             'windowing': windowing,
                             'n_variables': int(FFT_points/2/resampling_factor*3),
                             'channel': channel,
@@ -94,20 +111,19 @@ with tabs[1]:
                 for station in stations:
                     for channel in channels:
                         for type in types:
-                           with st.spinner(f'[{current_loop}/{total_loops}] Creating object for station {station} and channel {channel}'):
-                            S = SISMO(station, channel,
-                                        starttime, endtime,
-                                        False, # This is the detrend method,
-                                        windowing,
-                                        cpus = 10,)
-                            S.resampling_factor = resampling_factor
-                           with st.spinner(f'[{current_loop}/{total_loops}] Calculating {type}s for station {station} and channel {channel}'):
-                            get_features(S, window, window-overlap, FFT_points,
-                                    types,
-                                    verbose = True, timer = True)
+                            with st.spinner(f'[{current_loop}/{total_loops}] Creating object for station {station} and channel {channel}'):
+                                S = SISMO(network, station, channel, starttime, endtime,
+                                        detrend=False, windowing=windowing, merge_method=0,
+                                        cpus=1, data_path=st.session_state.config["data_path"],
+                                        verbose = False)
+                                S.resampling_factor = resampling_factor
+                            with st.spinner(f'[{current_loop}/{total_loops}] Calculating {type}s for station {station} and channel {channel}'):
+                                get_features(S, window, shift, FFT_points,
+                                        types,
+                                        verbose = True, timer = True)
 
-                            current_loop +=1
-                            my_bar.progress( (current_loop-1)/total_loops, text='Total progress:')
+                                current_loop +=1
+                                my_bar.progress( (current_loop-1)/total_loops, text='Total progress:')
 
                 my_bar.empty()
                 st.success('''The features have been extracted correctly.\n

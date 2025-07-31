@@ -39,13 +39,27 @@ import streamlit as st
 import obspy
 from obspy.core import UTCDateTime
 @st.cache_data
-def read_streams(stations, starttime, endtime, channels="HHE", data_path = "data/involcan/mseed/"):
+def read_streams(stations, starttime, endtime, channels=None, data_path = "data/involcan/mseed/"):
+    # Manage string inputs
+    if isinstance(stations, str):
+        stations = [stations]
+    if isinstance(channels, str):
+        stations = [channels]
+
     ST = []
     for station in stations:
         st.write(f"Reading 2021 data for station {station}...")
-        stream = obspy.read(f"{data_path}/C7.{station}.*.HHE.*.2021.*",
-                        starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime))
-        stream.merge()
+        st = obspy.Stream()
+        if channels is None:
+            # Read all channels
+            stream = obspy.read(f"{data_path}/C7.{station}.*.*.*.2021.*",
+                                    starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime))
+        else:
+            for channel in channels:
+                stream = obspy.read(f"{data_path}/C7.{station}.*.{channel}.*.2021.*",
+                                    starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime)[0])
+                stream = stream.merge()[0]
+        
         ST.append(stream)
     return ST
 
