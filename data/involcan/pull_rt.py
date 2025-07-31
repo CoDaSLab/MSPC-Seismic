@@ -15,7 +15,7 @@ Main functionalities:
 
 Usage:
     python pull_rt.py <starttime> <endtime> <server> <user> [-s <station1> <station2> ...] [-c <channel1> <channel2> ...] 
-        [-pw <password>] [-pp <passphrase>] [-dp <data_path>] [-lp <log_path] [-kp <key_path>] [-p <port>] [-v]
+        [-pw <password>] [-pp <passphrase>] [-dp <data_path>] [-lp <log_path] [-kp <key_path>] [-p <port>] [-i] [-v]
 
 Arguments:
     starttime               - Start date and time in the format 'YYYY-MM-DD HH:MM:SS'.
@@ -32,10 +32,11 @@ Arguments:
     -pp, --passphrase       - Passphrase for an SSH key (optional, default is None).
     -pw, --pasw             - Remote server password (optional, default is None).
     -p, --port              - Port number (optional, default is 22).
+    -i, --allow_input       - If present, allows the user to input credentials manually after a failed login attempt (optional, default is False)
     -v, --verbose           - Print extra messages (optional, default is False).
 
 Example:
-    python -m data.involcan.pull_rt '2021-09-17 00:10:00' '2021-09-20 19:59:59' 193.147.109.7 user C7 -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' -p 22 -v
+    python -m data.involcan.pull_rt '2021-09-17 00:10:00' '2021-09-20 19:59:59' 193.147.109.7 user C7 -s 'PPMA' 'PLPI' -c 'HHZ' 'HHN' -p 22 -i -v
 """
 
 import paramiko
@@ -46,8 +47,9 @@ import getpass
 from data.scripts.get_filenames import get_filenames
 
 def download_files_rt(starttime, endtime, server, user, network, stations, channels, 
-                             data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/latest_pulls.csv',
-                             key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, port=22, verbose=False):
+                      data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/latest_pulls.csv',
+                      key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, port=22, 
+                      allow_input=False, verbose=False):
     """
     Downloads seismic files filtered by date, station, and channel from SFTP server.
     Performs a single SSH connection to download all corresponding files.
@@ -81,26 +83,32 @@ def download_files_rt(starttime, endtime, server, user, network, stations, chann
     sftp = None
 
     # Attempt connection via SSH key first, then username and password
-    try:
-        key_path = os.path.expanduser(key_path).replace('\\', '/')
+    key_path = os.path.expanduser(key_path).replace('\\', '/')
+    if allow_input:
+        try:
+            client.connect(server, port=port, username=username, password=pasw, key_filename=key_path, passphrase=passphrase,
+                            disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
+            print(f"Connected to {server}.")
+            sftp = client.open_sftp()
+        except Exception as e:
+            input_start_time = datetime.now()
+            print(f"Connection to {server} via SSH key failed: {e}")
+            print(f"Please enter username and password.")
+            username = input(f"Username for {server}: ")
+            password = getpass.getpass(f"Password for {server}: ")
+            input_time += datetime.now() - input_start_time
+            
+            try:
+                client.connect(server, port=port, username=username, password=password)
+                print(f"Connected to {server} using username and password.")
+                sftp = client.open_sftp()
+            except Exception as e:
+                print(f"Error connecting to {server}: {e}")
+    else:
         client.connect(server, port=port, username=username, password=pasw, key_filename=key_path, passphrase=passphrase,
                         disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
         print(f"Connected to {server}.")
         sftp = client.open_sftp()
-    except Exception as e:
-        input_start_time = datetime.now()
-        print(f"Connection to {server} via SSH key failed: {e}")
-        print(f"Please enter username and password.")
-        username = input(f"Username for {server}: ")
-        password = getpass.getpass(f"Password for {server}: ")
-        input_time += datetime.now() - input_start_time
-        
-        try:
-            client.connect(server, port=port, username=username, password=password)
-            print(f"Connected to {server} using username and password.")
-            sftp = client.open_sftp()
-        except Exception as e:
-            print(f"Error connecting to {server}: {e}")
 
     if sftp:
         # Create local directory structure
@@ -181,9 +189,10 @@ if __name__ == "__main__":
     parser.add_argument("-pp", "--passphrase", type=str, default=None, help="SSH key passphrase")
     parser.add_argument("-pw", "--pasw", type=str, default=None, help="Remote server password")
     parser.add_argument("-p", "--port", type=int, default=22, help="Port number (default: 22)")
+    parser.add_argument("-i", "--allow_input", action='store_true', help="Allow user to enter credentials manually (off by default)")
     parser.add_argument("-v", "--verbose", action='store_true', help="Print extra messages (default: False)")
 
     args = parser.parse_args()
 
     download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.stations, args.channels, args.data_path,
-                   args.log_path, args.key_path, args.passphrase, args.pasw, args.port, args.verbose)
+                   args.log_path, args.key_path, args.passphrase, args.pasw, args.port, args.allow_input, args.verbose)

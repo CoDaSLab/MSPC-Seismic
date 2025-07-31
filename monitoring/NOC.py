@@ -252,8 +252,8 @@ class NOC:
                 self.D_test.append(d_val)
                 self.Q_test.append(q_val)
                 self.test_missing_rates.append(mr_val)
-        else:
-            return D_test, Q_test
+        
+        return D_test, Q_test
     
 
     def delete_DQ_test(self, stop_date = None):
@@ -308,16 +308,36 @@ class NOC:
         fig, axes = plot_DQ(self.D, self.Q, self.D_threshold, self.Q_threshold, labels = self.obs_labels,
                             logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
         
-        if len(self.time_range) > 0:
-            # Format labels
-            for ax in axes:
-                ax.set_xlabel("UTC Time")
+        # Format x-axis labels
+        start_day = datetime.strptime(self.obs_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        end_day = datetime.strptime(self.obs_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        if start_day == end_day:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in self.obs_labels]
+        else:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').strftime('%m-%d %H:%M:%S') for label in self.obs_labels]
+        xlabels = []
+        xticks = []
+        if len(xtimes) < 100:
+            tick_step = 6
+        else:
+            n = np.floor(np.log10(len(xtimes) / 100))
+            tick_step = 6 * (5 ** (n + 1))
 
-                locator = mdates.AutoDateLocator()
-                ax.xaxis.set_major_locator(locator)
-                ax.xaxis.set_major_formatter(mdates.ConciseDateFormatter(locator))
-            fig.autofmt_xdate()
-        
+        for i in range(len(xtimes)):
+            if i % tick_step == (tick_step-1):
+                xticks.append(i + 0.5)
+                xlabels.append(xtimes[i])
+
+        for ax in axes:
+            if start_day == end_day:
+                ax.set_xlabel(str(end_day) + " (UTC Time)", loc='right')
+            else:
+                ax.set_xlabel("UTC Time", loc='right')
+            ax.set_xticks(xticks)  # Center the ticks on the bars
+            ax.set_xticks(np.arange(len(self.obs_labels))+0.5, minor=True)  # Center the ticks on the bars
+            ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility
+            ax.set_xlim(-1, len(xtimes))
+
         return fig, axes
 
 
@@ -381,18 +401,30 @@ class NOC:
                                event_index=event_index, opacity=opacity, ax=ax)
 
         # Format x-axis labels
-        xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in plot_labels]
+        start_day = datetime.strptime(plot_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        end_day = datetime.strptime(plot_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        if start_day == end_day:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in plot_labels]
+        else:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').strftime('%m-%d %H:%M:%S') for label in plot_labels]
         xlabels = []
         xticks = []
-        tick_step = 30 if len(xtimes) > 100 else 6 
+        if len(xtimes) < 100:
+            tick_step = 6
+        else:
+            n = np.floor(np.log10(len(xtimes) / 100))
+            tick_step = 6 * (5 ** (n + 1))
+
         for i in range(len(xtimes)):
             if i % tick_step == (tick_step-1):
                 xticks.append(i + 0.5)
                 xlabels.append(xtimes[i])
 
-        day = datetime.strptime(plot_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
         for ax in axes:
-            ax.set_xlabel(str(day) + " (UTC Time)", loc='right')
+            if start_day == end_day:
+                ax.set_xlabel(str(end_day) + " (UTC Time)", loc='right')
+            else:
+                ax.set_xlabel("UTC Time", loc='right')
             ax.set_xticks(xticks)  # Center the ticks on the bars
             ax.set_xticks(np.arange(len(plot_labels))+0.5, minor=True)  # Center the ticks on the bars
             ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility

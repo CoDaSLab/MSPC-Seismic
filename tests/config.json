@@ -33,11 +33,13 @@
     "cpus": 4,
     "anomaly_criterion": "consecutive",
     "verbose": false,
-    "days_before_delete": 10,
-    "num_hours_for_plot": 1,
-    "num_days_for_noc_update": 7,
+    "num_days_before_delete": 10,
+    "num_hours_plot": 1,
+    "num_days_noc_update_frequency": 7,
+    "num_days_noc_length": 7,
     "metadata": {
-        "max_frequency": 50,
-        "sampling_rate": 100
+        "sampling_rate": 100,
+        "min_frequency": 0,
+        "max_frequency": 50
     }
 }

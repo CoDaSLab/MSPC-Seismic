@@ -72,7 +72,7 @@ def select_time_rt(key):
         hour = st.number_input("Hours", key=f'hour_{key}',
                                 min_value=0,
                                 max_value=23,
-                                value = st.session_state.config["num_hours_for_plot"])
+                                value = st.session_state.config["num_hours_plot"])
     with col[1]:
         minute = st.number_input("Minutes", key=f'minute_{key}',
                                 min_value=0,

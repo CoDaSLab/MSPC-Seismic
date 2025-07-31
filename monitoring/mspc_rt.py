@@ -69,14 +69,14 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
             print(f"Calculating for NOC {noc.name}...")
 
         # Calculate D and Q statistics
-        noc.calculate_DQ_test(test, end_times, missing_rates=missing_rates,
+        D_test, Q_test = noc.calculate_DQ_test(test, end_times, missing_rates=missing_rates,
                               store_dq=True)
         noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
         
         # Indices of anomalous windows (surpass the threshold)
         anomaly_D_ids = set([i for i, value in enumerate(noc.D_test[-test.shape[0]:]) if value > noc.D_threshold])
         anomaly_Q_ids = set([i for i, value in enumerate(noc.Q_test[-test.shape[0]:]) if value > noc.Q_threshold])
-        anomaly_ids = list(anomaly_D_ids.union(anomaly_Q_ids))
+        anomaly_ids = sorted(list(anomaly_D_ids.union(anomaly_Q_ids)))
 
         # Times for the start and end of the anomalous windows
         anomaly_start_times = [start_times[i] for i in anomaly_ids]
@@ -86,13 +86,13 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
             rows.append({'network':noc.network, 'station':noc.station, 
                         'anomaly_start_time':anomaly_start_times[i], 'anomaly_end_time':anomaly_end_times[i],
                         'control_start_time':starttime.strftime('%Y-%m-%dT%H:%M:%SZ'), 'control_end_time':endtime.strftime('%Y-%m-%dT%H:%M:%SZ'),
-                        'D_anomaly':noc.D_test[i], 'Q_anomaly':noc.Q_test[i], 
+                        'D_anomaly':D_test[i], 'Q_anomaly':Q_test[i], 
                         'D_threshold':round(noc.D_threshold,4), 'Q_threshold':round(noc.Q_threshold,4),
                         'NOC':noc.name})
 
         # Plot D and Q statistics with threshold
         if plot:
-            plot_DQ(noc.D_test, noc.Q_test, noc.D_threshold, noc.Q_threshold, event_index=anomaly_ids)
+            plot_DQ(D_test, Q_test, noc.D_threshold, noc.Q_threshold, event_index=anomaly_ids)
     
     # Save anomaly data in CSV file
     if update_log:
@@ -213,7 +213,7 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     # Get anomalies according to the new criterion
     anomaly_D_ids, anomaly_Q_ids = get_anomalies(D_plot, Q_plot, noc.D_threshold, noc.Q_threshold,
                                                  criterion = criterion, n_consecutive = n_consecutive)
-    anomaly_ids = list(anomaly_D_ids.union(anomaly_Q_ids))
+    anomaly_ids = sorted(list(anomaly_D_ids.union(anomaly_Q_ids)))
     
     if plot_train:
         anomaly_ids = [i + len(noc.D) for i in anomaly_ids]

@@ -19,25 +19,18 @@ st.title("Real-time monitoring")
 
 tab1, tab2, tab3, tab4 = st.tabs(['Real time', 'On demand', 'NOC comparison', 'Configuration'])
 
-# Read configuration file
-config_path = "jobs/automated/config.json"
-config = load_json(config_path)
+# Configuration file
+config = st.session_state.config
 
 # Read paths from configuration
-data_path = config["data_path"]
-features_path = config["features_path"]
-nocs_path = config["nocs_path"]
-noc_log_path = config["noc_log_path"]
-anomaly_log_path = config["anomaly_log_path"]
-stations = config["stations"]
 
-nocs = main.get_noc_names(noc_log_path, stations)
-update_freq = timedelta(minutes=st.session_state.config["update_frequency"])
+update_freq = timedelta(minutes=config["update_frequency"])
 
 starttime, endtime = main.start_and_end_times(datetime.now(timezone.utc), 
-                                        update_frequency=st.session_state.config["update_frequency"],
-                                        delay = st.session_state.config["delay"])
+                                        update_frequency=config["update_frequency"],
+                                        delay = config["delay"])
 
+nocs = main.get_noc_names(config["noc_log_path"], config["stations"])
 st.session_state.start_date = datetime.date(starttime)
 st.session_state.start_time = datetime.time(starttime)
 st.session_state.end_date = datetime.date(endtime)
@@ -45,24 +38,24 @@ st.session_state.end_time = datetime.time(endtime)
 
 # Define fragments
 @st.fragment(run_every=update_freq)
-def real_time_visualization(nocs, nocs_path):
+def real_time_visualization(config):
 
-    col = st.columns(3)
-    with col[0]:
-        st.markdown("Time range for graphs:", help="Select a duration to view data from that many hours and minutes ago until now.")
-        plot_time = forms.select_time_rt("plot_time_selector")
-    
-    with col[1]:
-        logscale_rt = st.checkbox("Log scale", value=False, key="logscale_monitoring_rt",
-                                    help="Display Y-axis using a logarithmic scale.")
+    with st.form("selector_monitoring_rt"):
+        col = st.columns(3)
+        with col[0]:
+            st.markdown("Time range for graphs:", help="Select a duration to view data from that many hours and minutes ago until now.")
+            plot_time = forms.select_time_rt("plot_time_selector")
+        
+        with col[1]:
+            n_consecutive_rt = st.number_input("Number of minimum consecutive windows over threshold", min_value=1, value=3,
+                                        key = "consecutive_windows_monitoring_rt", 
+                                        help="When the number of consecutive windows over the threshold is greater or equal than this number, " \
+                                        "the corresponding windows will be colored red in the graph.")
+            logscale_rt = st.checkbox("Log scale", value=False, key="logscale_monitoring_rt",
+                                        help="Display Y-axis using a logarithmic scale.")
 
-        n_consecutive_rt = st.number_input("Number of minimum consecutive windows over threshold", min_value=1, value=3,
-                                    key = "consecutive_windows_monitoring_rt", 
-                                    help="When the number of consecutive windows over the threshold is greater or equal than this number, " \
-                                    "the corresponding windows will be colored red in the graph.")
-
-    with col[2]:
-        st.button("Refresh", type='primary', use_container_width=True)
+        with col[2]:
+            st.form_submit_button("Refresh", type='primary', use_container_width=True)
 
     # Arrange graphs (2 per row)
     for i, noc in enumerate(nocs):
@@ -72,27 +65,29 @@ def real_time_visualization(nocs, nocs_path):
             # Left column
             with col1:
                 with st.spinner("Loading graph..."):
-                    plots.plot_dq_rt(noc[0], time_range=plot_time, logscale=logscale_rt, n_consecutive=n_consecutive_rt, nocs_path = nocs_path)
-                tables.noc_summary(noc[0], nocs_path)
+                    plots.plot_dq_rt(noc[0], time_range=plot_time, logscale=logscale_rt, n_consecutive=n_consecutive_rt, 
+                                     nocs_path = config["nocs_path"])
+                tables.noc_summary(noc[0], config["nocs_path"])
         else:
             # Right column
             with col2:
                 with st.spinner("Loading graph..."):
-                    plots.plot_dq_rt(noc[0], time_range=plot_time, logscale=logscale_rt, n_consecutive=n_consecutive_rt, nocs_path = nocs_path)
-                tables.noc_summary(noc[0], nocs_path)
+                    plots.plot_dq_rt(noc[0], time_range=plot_time, logscale=logscale_rt, n_consecutive=n_consecutive_rt, 
+                                     nocs_path = config["nocs_path"])
+                tables.noc_summary(noc[0], config["nocs_path"])
 
 
 @st.fragment
-def on_demand_visualization(stations, noc_log_path):
+def on_demand_visualization(config):
     col = st.columns(2)
 
     with col[1]:
         st.write("##### Select a station and Normal Operation Conditions (NOC):")
         # Select NOC
-        station, noc_name = forms.select_noc("noc_selector_monitoring", stations=stations, noc_log_path=noc_log_path)
+        station, noc_name = forms.select_noc("noc_selector_monitoring", stations=config["stations"], noc_log_path=config["noc_log_path"])
 
         # Display NOC details
-        tables.noc_summary(noc_name, nocs_path)
+        tables.noc_summary(noc_name, config["nocs_path"])
 
         with st.form("on_demand_selector_monitoring"):
             st.write("##### Select time range to plot:")
@@ -115,8 +110,6 @@ def on_demand_visualization(stations, noc_log_path):
                 
             submit = st.form_submit_button("Plot", type = "primary", use_container_width=True,
                                            help="Plot D and Q statistics. If no previous calculations exist, check the 'Run calculations' box and try again.")
-    
-    config = st.session_state.config
 
     with col[0]:
         # Calculate and display D and Q statistics
@@ -143,23 +136,23 @@ def on_demand_visualization(stations, noc_log_path):
 
                 with st.spinner("Plotting results..."):
                     plots.plot_dq(noc_name, starttime.replace(tzinfo=timezone.utc), endtime.replace(tzinfo=timezone.utc),
-                                logscale=logscale, n_consecutive=n_consecutive, nocs_path = nocs_path)
+                                logscale=logscale, n_consecutive=n_consecutive, nocs_path = config["nocs_path"])
         
 @st.fragment
-def noc_comparison(stations, noc_log_path, nocs_path):
-    col = st.columns(2)
+def noc_comparison(config):
+    col1 = st.columns(2)
 
-    with col[0]:
+    with col1[0]:
         # Select NOCs to compare
-        st.write("#### Select first NOC:")
-        _, noc1 = forms.select_noc("noc_selector_comparison1", stations, noc_log_path)
-        tables.noc_summary(noc1, nocs_path)
-        st.write("#### Select second NOC:")
-        _, noc2 = forms.select_noc("noc_selector_comparison2", stations, noc_log_path)
-        tables.noc_summary(noc2, nocs_path)
+        st.write("##### Select first NOC:")
+        _, noc1 = forms.select_noc("noc_selector_comparison1", config["stations"], config["noc_log_path"])
+        tables.noc_summary(noc1, config["nocs_path"])
+        st.write("##### Select second NOC:")
+        _, noc2 = forms.select_noc("noc_selector_comparison2", config["stations"], config["noc_log_path"])
+        tables.noc_summary(noc2, config["nocs_path"])
         
         with st.form(key="pca_selector_comparison"):
-            st.write("#### PCA parameters:")
+            st.write("##### PCA parameters:")
             subcol = st.columns(2)
             with subcol[0]:
                 preprocessing = forms.select_preprocessing("prep_selector_noc_comparison")
@@ -167,25 +160,45 @@ def noc_comparison(stations, noc_log_path, nocs_path):
                 n_components = st.number_input("Number of principal components", min_value=1, value='min')
 
             submit = st.form_submit_button("Plot oMEDA comparison", type='primary', use_container_width=True)
+        
+        with st.form("dq_noc_selector_comparison"):
+            st.write("##### Plot D and Q statistics for each NOC:")
+            col2 = st.columns(2)
+            with col2[0]:
+                logscale = st.checkbox("Log scale", value=False, key="logscale_noc_dq_monitoring",
+                                                help="Display Y-axis using a logarithmic scale.")
+            with col2[1]:
+                submit_dq = st.form_submit_button("Plot D and Q statistics", use_container_width=True)
 
-    with col[1]:
+    with col1[1]:
         if submit:
             # Plot oMEDA
             with st.spinner("Calculating oMEDA..."):
                 plots.plot_noc_omeda(noc1, noc2, preprocessing=preprocessing, n_components=n_components, 
-                                    nocs_path=nocs_path)
+                                    nocs_path=config["nocs_path"])
+    
+    if submit_dq:
+        col3 = st.columns(2)
+        with col3[0]:
+            with st.spinner("Plotting results..."):
+                plots.plot_dq_noc(noc1, nocs_path=config["nocs_path"], logscale=logscale)
+        
+        with col3[1]:
+            with st.spinner("Plotting results.."):
+                plots.plot_dq_noc(noc2, nocs_path=config["nocs_path"], logscale=logscale)
+
 
 # ---------- Real-time Visualization tab ----------
 with tab1:    
-    real_time_visualization(nocs, nocs_path)
+    real_time_visualization(config)
 
 # ---------- On-demand Visualization tab ----------
 with tab2:
-    on_demand_visualization(stations, noc_log_path)
+    on_demand_visualization(config)
 
 # --------------- NOC comparison (oMEDA) tab -----------------
 with tab3:
-    noc_comparison(stations, noc_log_path, nocs_path)
+    noc_comparison(config)
 
 # ------- Configuration tab: Display JSON configuration file --------
 with tab4:

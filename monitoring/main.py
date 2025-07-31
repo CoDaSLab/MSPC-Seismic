@@ -213,9 +213,10 @@ def monitoring(config_path = 'config.json'):
     cpus = config["cpus"]  # Number of CPUs used for FFT calculation
     anomaly_criterion = config["anomaly_criterion"]  # Criterion for anomaly detection
     verbose = config["verbose"]  # Whether to print extra messages.
-    days_before_delete = config["days_before_delete"]  # Number of days to keep saved features.
-    num_hours_for_plot = config["num_hours_for_plot"]  # Length in hours of the time range shown in MSPC plots
-    num_days_for_noc_update = config["num_days_for_noc_update"]  # Number of days between dynamic NOC updates
+    num_days_before_delete = config["num_days_before_delete"]  # Number of days to keep saved features.
+    num_hours_plot = config["num_hours_plot"]  # Length in hours of the time range shown in MSPC plots
+    num_days_noc_update_frequency = config["num_days_noc_update_frequency"]  # Number of days between dynamic NOC updates
+    num_days_noc_length = config["num_days_noc_length"]  # Number of days used as training data
 
     time0 = datetime.now()
     
@@ -245,11 +246,11 @@ def monitoring(config_path = 'config.json'):
         nocs[station].append(noc)
 
     # Dates for plots and updates
-    plot_start = endtime - timedelta(hours=num_hours_for_plot)
+    plot_start = endtime - timedelta(hours=num_hours_plot)
     plot_start = plot_start.replace(tzinfo=timezone.utc)
-    update_start = endtime - timedelta(days=num_days_for_noc_update)  # Dynamic NOCs created before this date will be updated
+    update_start = endtime - timedelta(days=num_days_noc_update_frequency)  # Dynamic NOCs created before this date will be updated
     update_start = update_start.replace(tzinfo=timezone.utc)
-    delete_date = endtime - timedelta(days = days_before_delete)  # files from before this date will be deleted
+    delete_date = endtime - timedelta(days = num_days_before_delete)  # files from before this date will be deleted
 
     starttime_original = starttime
     endtime_original = endtime
@@ -263,14 +264,16 @@ def monitoring(config_path = 'config.json'):
         previous_success = False
         while i <= len(previous_files) and not previous_success:
             previous_filename = previous_files[-i]
-            if os.path.isfile(os.path.join(features_path, previous_filename).replace('\\', '/')):
-                previous_features = loadmat(os.path.join(features_path, previous_filename).replace('\\', '/'))
+            previous_filepath = os.path.join(features_path, previous_filename).replace('\\', '/')
+            if os.path.isfile(previous_filepath):
+                previous_features = loadmat(previous_filepath)
                 previous_missing_rates = previous_features['missing_rates']
                 if np.mean(previous_missing_rates) > 0.1:
                     if verbose:
                         print(f"Warning: High missing rates in previous features for station {station}. Recalculating features...")
-                    # If previous features have high missing rates, recalculate them
+                    # If previous features have high missing rates, recalculate them and delete previous file
                     starttime = starttime - timedelta(minutes=update_frequency)
+                    os.remove(previous_filepath)
                 else:
                     previous_success = True
             else:
@@ -311,13 +314,14 @@ def monitoring(config_path = 'config.json'):
             if noc.type == 'dynamic':
                 if update_start > last_noc_update:
                     # Get paths of the feature files to update NOCs
-                    filenames = list_fft_files(features_path, station, update_start, endtime, verbose=verbose)
+                    filenames = list_fft_files(features_path, station, endtime-timedelta(days=num_days_noc_length), endtime, verbose=verbose)
                     filepaths = [os.path.join(features_path, filename).replace('\\', '/') for filename in filenames]
                     files = [loadmat(filepath) for filepath in filepaths]
                     new_features = np.vstack([np.hstack([f[key] for key in feature_types]) for f in files if np.mean(f['missing_rates']) < 0.1])
                     new_labels = []
                     for file in files:
-                        new_labels.extend(file['obs_labels'])
+                        if np.mean(file['missing_rates']) < 0.1:
+                            new_labels.extend(file['obs_labels'])
 
                     # Create new NOC
                     new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')

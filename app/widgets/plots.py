@@ -74,15 +74,41 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
     from datetime import datetime, timedelta, timezone
 
     if time_range is None:
-        time_range = timedelta(hours=st.session_state.config["num_hours_for_plot"])
+        time_range = timedelta(hours=st.session_state.config["num_hours_plot"])
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
 
     endtime = datetime.now(timezone.utc)
     starttime = endtime - time_range
     
-    fig, ax = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
-                            criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
+    try:
+        fig, ax = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
+                                criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
+        ax[0].set_title("")
+        ax[1].set_title("")
+        ax[0].set_ylabel("D-statistic")
+        ax[1].set_ylabel("Q-statistic")
+        fig.suptitle(noc.name)
+
+        if interactive:
+            fig_html = mpld3.fig_to_html(fig)
+            components.html(fig_html, height=600)
+        else:
+            st.pyplot(fig)
+    except AssertionError:
+        st.error("No recent data available.")
+
+
+def plot_dq_noc(noc_name, logscale=False, nocs_path="data/involcan/nocs", interactive=False):
+    import mpld3
+    import streamlit.components.v1 as components
+    from monitoring.NOC import NOC
+    import os
+    from datetime import datetime, timezone
+    
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
+
+    fig, ax = noc.plot_DQ(logscale=logscale)
     ax[0].set_title("")
     ax[1].set_title("")
     ax[0].set_ylabel("D-statistic")

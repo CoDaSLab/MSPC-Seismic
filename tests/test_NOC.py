@@ -136,7 +136,7 @@ def test_NOC_DQ_test():
     assert test_data.shape[0] == len(test_labels)
 
     # Calculate D and Q test values
-    noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
+    _, _ = noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
     
     assert noc.test_labels[0] == '2025-01-01T00:04:10Z'
     assert len(noc.D_test) == test_data.shape[0]
@@ -178,7 +178,7 @@ def test_NOC_DQ_test_unordered_labels():
     assert test_data.shape[0] == len(test_labels)
 
     # Calculate D and Q test values
-    noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
+    _, _ = noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
     D1 = noc.D_test.copy()
     Q1 = noc.Q_test.copy()
     
@@ -194,7 +194,7 @@ def test_NOC_DQ_test_unordered_labels():
     test_labels2.append('2025-01-01T00:05:00Z')  # Add a duplicate label
 
     # Calculate D and Q test values
-    noc.calculate_DQ_test(test_data2, test_labels2, store_dq=True)
+    _, _ = noc.calculate_DQ_test(test_data2, test_labels2, store_dq=True)
     
     assert noc.test_labels[0] == test_labels2[0]
     assert noc.test_labels[-1] == test_labels2[-1]
