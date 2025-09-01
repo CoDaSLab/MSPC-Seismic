@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import csv
 import numpy as np
 import matplotlib.pyplot as plt
+from monitoring.NOC import NOC
 
 def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, 
          missing_rates=None, plot=False, update_log=True,
@@ -15,8 +16,8 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
 
     Parameters
     ----------
-        nocs (list of NOC instances)
-            NOCs used for training. 
+        nocs (list of str)
+            Paths to the NOCs used for training. 
         test (numpy array)
             Test data
         starttime (datetime)
@@ -64,7 +65,8 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
     end_times = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in end_times]
 
     rows = []
-    for noc in nocs:
+    for noc_path in nocs:
+        noc = NOC.load(noc_path)
         if verbose:
             print(f"Calculating for NOC {noc.name}...")
 

@@ -243,8 +243,7 @@ def monitoring(config_path = 'config.json'):
     nocs = defaultdict(list)
     for name, station in noc_names:
         noc_path = os.path.join(nocs_path, name).replace('\\', '/')
-        noc = NOC.load(noc_path)
-        nocs[station].append(noc)
+        nocs[station].append(noc_path)
 
     # Dates for plots and updates
     plot_start = endtime - timedelta(hours=num_hours_plot)
@@ -302,7 +301,8 @@ def monitoring(config_path = 'config.json'):
         # Delete old features files
         delete_fft(features_path, station, datetime.min.replace(tzinfo=timezone.utc), delete_date)
 
-        for noc in nocs[station]:
+        for noc_path in nocs[station]:
+            noc = NOC.load(noc_path)
             if save_plots:
                 # Save MSPC plot
                 plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + endtime.strftime('%Y%m%dT%H%M%SZ')
