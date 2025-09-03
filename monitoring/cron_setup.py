@@ -8,10 +8,13 @@ If the script is already scheduled in the crontab with a different frequency, th
 
 import json
 import subprocess
+import sys, os
+script_path=sys.argv[0]
+repo_path = os.path.abspath(os.path.join(script_path, "..", ".."))
 
 # Path to the JSON configuration file and path to the monitoring script
-CONFIG_JSON = "/home/TIC270/gsus/DigiVolcan/monitoring/config.json"
-COMMANDS = ["/home/TIC270/gsus/DigiVolcan/jobs/automated/auto_pull.sh", "srun /home/TIC270/gsus/DigiVolcan/jobs/automated/monitoring.sh"]
+CONFIG_JSON = repo_path+"/monitoring/config.json"
+COMMANDS = [repo_path+"/monitoring/monitoring.sh"]
 
 # Read configuration from the JSON file
 def read_config(json_path):
@@ -45,7 +48,7 @@ def generate_cron_line(command, frequency):
     else:
         print("Invalid frequency: it must evenly divide 60.")
         return None
-    return f"{minute_field} * * * * {command}"
+    return f"{minute_field} * * * * bash {command}"
 
 # Main function
 def main():

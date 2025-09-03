@@ -51,7 +51,7 @@ def noc_maker(config):
             network = config["network"]
             station, channels = forms.select_station_multi_channel(key, station_list=config["stations"], 
                                                                     channel_list=config["channels"])
-
+            
             st.subheader("Extraction parameters:")
             window, shift = forms.select_window(key)
 
@@ -114,6 +114,7 @@ def noc_maker(config):
                        icon="✔️")
 
     with COL[1]:
+
         # Visualize explained variance by number of components
         with st.expander("Explained variance by number of components", expanded=submit):
             if submit:
@@ -239,5 +240,5 @@ with tab[0]:
     noc_maker(config)
 
 # ------- Configuration tab: Display JSON configuration file --------
-with tab[1]:
-    change_config(config, config_path)
+# with tab[1]:
+#     change_config(config, config_path)

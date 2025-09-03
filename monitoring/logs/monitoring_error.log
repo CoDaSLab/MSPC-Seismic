@@ -1,0 +1,156 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 354, in monitoring
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 146, in delete_old_files
+    raise ValueError(f"Directory does not exist: {directory_path}")
+ValueError: Directory does not exist: data/involcan/nocs/plots
+
+[mié 03 sep 2025 12:59:18 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 354, in monitoring
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 146, in delete_old_files
+    raise ValueError(f"Directory does not exist: {directory_path}")
+ValueError: Directory does not exist: data/involcan/nocs/plots
+
+[mié 03 sep 2025 12:59:24 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 367, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 355, in monitoring
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 146, in delete_old_files
+    raise ValueError(f"Directory does not exist: {directory_path}")
+ValueError: Directory does not exist: data/involcan/nocs/plots
+
+[mié 03 sep 2025 13:02:32 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 354, in monitoring
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 146, in delete_old_files
+    raise ValueError(f"Directory does not exist: {directory_path}")
+ValueError: Directory does not exist: data/involcan/nocs/plots
+
+[mié 03 sep 2025 13:17:30 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 354, in monitoring
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 146, in delete_old_files
+    raise ValueError(f"Directory does not exist: {directory_path}")
+ValueError: Directory does not exist: data/involcan/nocs/plots
+
+[mié 03 sep 2025 13:24:48 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 354, in monitoring
+    delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 146, in delete_old_files
+    raise ValueError(f"Directory does not exist: {directory_path}")
+ValueError: Directory does not exist: data/involcan/nocs/plots
+
+[mié 03 sep 2025 13:25:20 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 297, in monitoring
+    mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/mspc_rt.py", line 69, in mspc
+    noc = NOC.load(noc_path)
+          ^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/NOC.py", line 552, in load
+    with open(filepath, 'rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'data/involcan/nocs/PSAB_d_2025-09-01'
+
+[mié 03 sep 2025 13:25:55 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 297, in monitoring
+    mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/mspc_rt.py", line 74, in mspc
+    D_test, Q_test = noc.calculate_DQ_test(test, end_times, missing_rates=missing_rates,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/NOC.py", line 222, in calculate_DQ_test
+    _, _, D_test, Q_test, _, _ = DQ_tt(self.features, test, n_components=self.n_components,
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/mspc_pca/mspc.py", line 286, in DQ_tt
+    X_test_norm = X_test - mean_train
+                  ~~~~~~~^~~~~~~~~~~~
+ValueError: operands could not be broadcast together with shapes (30,1500) (270000,) 
+
+[mié 03 sep 2025 15:15:13 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 366, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 297, in monitoring
+    mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/mspc_rt.py", line 74, in mspc
+    D_test, Q_test = noc.calculate_DQ_test(test, end_times, missing_rates=missing_rates,
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/NOC.py", line 222, in calculate_DQ_test
+    _, _, D_test, Q_test, _, _ = DQ_tt(self.features, test, n_components=self.n_components,
+                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/mspc_pca/mspc.py", line 286, in DQ_tt
+    X_test_norm = X_test - mean_train
+                  ~~~~~~~^~~~~~~~~~~~
+ValueError: operands could not be broadcast together with shapes (30,1500) (270000,) 
+
+[mié 03 sep 2025 15:20:14 CEST] ERROR when monitoring.
+
+==============================================================
+

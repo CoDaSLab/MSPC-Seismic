@@ -54,7 +54,7 @@ def init_session_state():
     if 'end_date' not in st.session_state: st.session_state.end_date = datetime(2021, 9, 20)
     if 'end_time' not in st.session_state: st.session_state.end_time = time(0,0,0)
 
-    config_path = "jobs/automated/config.json"
+    config_path = "monitoring/config.json"
     if 'config_path' not in st.session_state: st.session_state.config_path = config_path
     config = load_json(config_path)
     if 'config' not in st.session_state: st.session_state.config = config

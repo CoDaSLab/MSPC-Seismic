@@ -127,9 +127,9 @@ def on_demand_visualization(config):
                                                     cpus=config["cpus"], verbose=False, save=False)
 
                     with st.spinner("Perfoming MSPC..."):
-                        noc = NOC.NOC.load(os.path.join(config["nocs_path"], noc_name))
+                        noc_path = os.path.join(config["nocs_path"], noc_name)
                         test = np.hstack([features[key] for key in config["feature_types"]])
-                        mspc_rt.mspc([noc], test, starttime, endtime, window_size=config["window_size"],
+                        mspc_rt.mspc([noc_path], test, starttime, endtime, window_size=config["window_size"],
                                     window_shift=config["window_shift"], missing_rates=features["missing_rates"],
                                     plot=False, update_log=False, nocs_path=config["nocs_path"], verbose=False)
 

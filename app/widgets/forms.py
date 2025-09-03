@@ -20,7 +20,7 @@ def select_station_multi_channel(key, station_list, channel_list=['HHE', 'HHN', 
     default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
     station = col[0].selectbox('Station', station_list, key=f"station_{key}",
                               index = default_station)
-    
+
     channels = col[1].multiselect('Channels', channel_list, key=f"channel_{key}",
                                default = channel_list)
 

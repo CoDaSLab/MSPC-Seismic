@@ -1,0 +1,76 @@
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/data/involcan/pull_rt.py", line 197, in <module>
+    download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.stations, args.channels, args.data_path,
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/data/involcan/pull_rt.py", line 108, in download_files_rt
+    client.connect(server, port=port, username=username, password=pasw, key_filename=key_path, passphrase=passphrase,
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 483, in connect
+    self._auth(
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 727, in _auth
+    key = self._key_from_filepath(
+          ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 636, in _key_from_filepath
+    key = klass.from_private_key_file(key_path, password)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/pkey.py", line 431, in from_private_key_file
+    key = cls(filename=filename, password=password)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/rsakey.py", line 64, in __init__
+    self._from_private_key_file(filename, password)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/rsakey.py", line 196, in _from_private_key_file
+    data = self._read_private_key_file("RSA", filename, password)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/pkey.py", line 506, in _read_private_key_file
+    with open(filename, "r") as f:
+         ^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '/home/gsus/.ssh/id_rsa'
+
+[mié 03 sep 2025 13:17:28 CEST] ERROR when downloading files.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/data/involcan/pull_rt.py", line 197, in <module>
+    download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.stations, args.channels, args.data_path,
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/data/involcan/pull_rt.py", line 108, in download_files_rt
+    client.connect(server, port=port, username=username, password=pasw, key_filename=key_path, passphrase=passphrase,
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 375, in connect
+    to_try = list(self._families_and_addresses(hostname, port))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 201, in _families_and_addresses
+    addrinfos = socket.getaddrinfo(
+                ^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+[mié 03 sep 2025 13:24:45 CEST] ERROR when downloading files.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/data/involcan/pull_rt.py", line 197, in <module>
+    download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.stations, args.channels, args.data_path,
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/data/involcan/pull_rt.py", line 108, in download_files_rt
+    client.connect(server, port=port, username=username, password=pasw, key_filename=key_path, passphrase=passphrase,
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 375, in connect
+    to_try = list(self._families_and_addresses(hostname, port))
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/site-packages/paramiko/client.py", line 201, in _families_and_addresses
+    addrinfos = socket.getaddrinfo(
+                ^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/installation/miniconda3/envs/lafragua/lib/python3.12/socket.py", line 978, in getaddrinfo
+    for res in _socket.getaddrinfo(host, port, family, type, proto, flags):
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+socket.gaierror: [Errno -3] Temporary failure in name resolution
+
+[mié 03 sep 2025 13:25:18 CEST] ERROR when downloading files.
+
+==============================================================
+
