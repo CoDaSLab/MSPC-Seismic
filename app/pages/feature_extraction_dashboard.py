@@ -39,7 +39,8 @@ with tabs[1]:
         
         network = filtered_files['network'].tolist()[0]
 
-        stations, channels = multi_select_station(key, station_list, channel_list=["HHE", "HHN", "HHZ"])
+        stations, channels = multi_select_station(key, station_list, channel_list=["HHE", "HHN", "HHZ"], 
+                                                  default_stations=station_list, default_channels=["HHE", "HHN", "HHZ"])
 
         st.subheader("Extraction parameters")
         window, shift = select_window(key)

@@ -26,13 +26,14 @@ def select_station_multi_channel(key, station_list, channel_list=['HHE', 'HHN', 
 
     return station, channels
 
-def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
+def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'],
+                         default_stations=None, default_channels=None):
     col = st.columns(2)
 
     stations = col[0].multiselect('Stations', station_list, key=f"station_{key}",
-                                default=station_list)
+                                default=default_stations)
     channels = col[1].multiselect('Channels', channel_list, key=f"channel_{key}",
-                                default=channel_list)
+                                default=default_channels)
 
     return stations, channels
 
