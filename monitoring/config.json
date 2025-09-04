@@ -1,41 +1,63 @@
 {
-  "update_frequency": 5,
-  "delay": 5,
-  "data_path": "data/involcan/mseed",
-  "features_path": "data/involcan/features",
-  "nocs_path": "data/involcan/nocs",
-  "save_plots": true,
-  "plots_path": "data/involcan/nocs/plots",
-  "latest_pulls_log_path": "data/involcan/metadata/latest_pulls.csv",
-  "noc_log_path": "data/involcan/metadata/noc_list.csv",
-  "anomaly_log_path": "data/involcan/metadata/anomaly_log.csv",
-  "network": "C7",
-  "stations": ["PPMA", "PSAB"],
-  "channels": ["HHE", "HHN", "HHZ"],
-  "starttime": "auto",
-  "endtime": "auto",
-  "window_size": 10,
-  "window_shift": null,
-  "detrend": false,
-  "windowing": false,
-  "feature_types": ["ffts"],
-  "fft_points": "auto",
-  "merge_method": 1,
-  "merge_fill_value": "interpolate",
-  "pad_fill_value": 0,
-  "cpus": 8,
-  "anomaly_criterion": "consecutive",
-  "verbose": false,
-  "num_days_before_delete": 10,
-  "num_hours_plot": 1,
-  "num_days_noc_update_frequency": 7,
-  "num_days_noc_length":7,
-  "metadata": {
-    "sampling_rate": 100,
-    "min_frequency": 0,
-    "max_frequency": 50
-  },
-  "ssh_key_path":"~/.ssh/id_ed25519",
-  "server_IP":"193.147.109.7",
-  "server_user":"seiscomp"
+    "general": {
+        "update_frequency": 5,
+        "delay": 5,
+        "num_days_before_delete": 30,
+        "num_days_noc_update_frequency": 1,
+        "num_days_noc_length": 7,
+        "verbose": false
+    },
+    "data": {
+        "network": "C7",
+        "stations": [
+            "PPMA",
+            "PSAB",
+            "TC13"
+        ],
+        "channels": [
+            "HHE",
+            "HHN",
+            "HHZ"
+        ],
+        "starttime": "auto",
+        "endtime": "auto"
+    },
+    "paths": {
+        "data": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/mseed",
+        "features": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/features",
+        "nocs": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/nocs",
+        "plots": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/nocs/plots",
+        "latest_pulls_log": "data/involcan/metadata/latest_pulls.csv",
+        "noc_log": "data/involcan/metadata/noc_list.csv",
+        "anomaly_log": "data/involcan/metadata/anomaly_log.csv"
+    },
+    "features": {
+        "window_size": 10,
+        "window_shift": null,
+        "detrend": null,
+        "windowing": false,
+        "types": [
+            "ffts"
+        ],
+        "fft_points": "auto",
+        "merge_method": 1,
+        "merge_fill_value": "interpolate",
+        "pad_fill_value": 0,
+        "cpus": 1
+    },
+    "plots": {
+        "save": true,
+        "num_hours": 1,
+        "anomaly_criterion": "consecutive"
+    },
+    "connection": {
+        "ssh_key_path": "~/.ssh/id_rda",
+        "server_IP": "193.147.109.7",
+        "server_user": "seiscomp"
+    },
+    "metadata": {
+        "sampling_rate": 100,
+        "min_frequency": 0,
+        "max_frequency": 50
+    }
 }

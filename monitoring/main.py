@@ -189,44 +189,44 @@ def monitoring(config_path = 'config.json'):
     config = load_config(config_path)
     config_str = json.dumps(config)  # config in string form
 
-    update_frequency = config["update_frequency"]  # Frequency of update in minutes
-    delay = config["delay"]  # Delay in minutes of calculations with respect to the current time 
-    data_path = config["data_path"]  # Path to the directory where seismic data files are saved.
-    features_path = config["features_path"]  # Path to the directory where feature files are saved.
-    nocs_path = config["nocs_path"]  # Path to the directory where NOC files are saved.
-    save_plots = config["save_plots"]  # Whether to save plots
-    plots_path = config["plots_path"]  # Path to the directory where MSPC plots are saved.
-    latest_pulls_log_path = config["latest_pulls_log_path"]  # Path to a CSV with information on the latest data downloads
-    noc_log_path = config["noc_log_path"]  # Path to a CSV for saving NOC information
-    anomaly_log_path = config["anomaly_log_path"]  # Path to a CSV for saving anomalous window information
-    network = config["network"]  # Network code
-    stations = config["stations"]  # Station codes
-    channels = config["channels"]  # Channel codes
-    window_size = config["window_size"]  # Size in seconds of the windows
-    window_shift = window_size if config["window_shift"] is None else config["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
-    detrend = config["detrend"]  # Detrending method. False for no detrending.
-    windowing = config["windowing"]  # Windowing method.
-    feature_types = config["feature_types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
-    fft_points = config["fft_points"]  # Number of FFT points (spectral resolution)
-    merge_method = config["merge_method"]  # Trace merging method (see ObsPy documentation)
-    merge_fill_value = config["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
-    pad_fill_value = config["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
-    cpus = config["cpus"]  # Number of CPUs used for FFT calculation
-    anomaly_criterion = config["anomaly_criterion"]  # Criterion for anomaly detection
-    verbose = config["verbose"]  # Whether to print extra messages.
-    num_days_before_delete = config["num_days_before_delete"]  # Number of days to keep saved features.
-    num_hours_plot = config["num_hours_plot"]  # Length in hours of the time range shown in MSPC plots
-    num_days_noc_update_frequency = config["num_days_noc_update_frequency"]  # Number of days between dynamic NOC updates
-    num_days_noc_length = config["num_days_noc_length"]  # Number of days used as training data
+    update_frequency = config["general"]["update_frequency"]  # Frequency of update in minutes
+    delay = config["general"]["delay"]  # Delay in minutes of calculations with respect to the current time 
+    data_path = config["paths"]["data"]  # Path to the directory where seismic data files are saved.
+    features_path = config["paths"]["features"]  # Path to the directory where feature files are saved.
+    nocs_path = config["paths"]["nocs"]  # Path to the directory where NOC files are saved.
+    save_plots = config["plots"]["save"]  # Whether to save plots
+    plots_path = config["paths"]["plots"]  # Path to the directory where MSPC plots are saved.
+    latest_pulls_log_path = config["paths"]["latest_pulls_log"]  # Path to a CSV with information on the latest data downloads
+    noc_log_path = config["paths"]["noc_log"]  # Path to a CSV for saving NOC information
+    anomaly_log_path = config["paths"]["anomaly_log"]  # Path to a CSV for saving anomalous window information
+    network = config["data"]["network"]  # Network code
+    stations = config["data"]["stations"]  # Station codes
+    channels = config["data"]["channels"]  # Channel codes
+    window_size = config["features"]["window_size"]  # Size in seconds of the windows
+    window_shift = window_size if config["features"]["window_shift"] is None else config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
+    detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.
+    windowing = config["features"]["windowing"]  # Windowing method.
+    feature_types = config["features"]["types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
+    fft_points = config["features"]["fft_points"]  # Number of FFT points (spectral resolution)
+    merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
+    merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
+    pad_fill_value = config["features"]["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
+    cpus = config["features"]["cpus"]  # Number of CPUs used for FFT calculation
+    anomaly_criterion = config["plots"]["anomaly_criterion"]  # Criterion for anomaly detection
+    verbose = config["general"]["verbose"]  # Whether to print extra messages.
+    num_days_before_delete = config["general"]["num_days_before_delete"]  # Number of days to keep saved features.
+    num_hours_plot = config["plots"]["num_hours"]  # Length in hours of the time range shown in MSPC plots
+    num_days_noc_update_frequency = config["general"]["num_days_noc_update_frequency"]  # Number of days between dynamic NOC updates
+    num_days_noc_length = config["general"]["num_days_noc_length"]  # Number of days used as training data
 
     time0 = datetime.now()
     
     # Set start and end times
-    if config["starttime"] == 'auto' or config["endtime"] == 'auto':
+    if config["data"]["starttime"] == 'auto' or config["data"]["endtime"] == 'auto':
         starttime, endtime = start_and_end_times(datetime.now(timezone.utc), update_frequency, delay)
     else:
-        starttime = datetime.strptime(config["starttime"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-        endtime = datetime.strptime(config["endtime"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+        starttime = datetime.strptime(config["data"]["starttime"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+        endtime = datetime.strptime(config["data"]["endtime"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
@@ -240,6 +240,34 @@ def monitoring(config_path = 'config.json'):
 
     # Load Normal Operation Conditions (NOCs) for all available stations
     noc_names = get_noc_names(noc_log_path, avail_stations)
+
+    # Create NOC for available stations that do not have one
+    noc_stations = set([sta for _, sta in noc_names])
+    no_noc_stations = avail_stations - noc_stations
+    if len(no_noc_stations) > 0:
+        for station in no_noc_stations:
+            # Get features to create NOC
+            if verbose:
+                print(f"Creating new NOC for station {station}...")
+            noc_end = endtime.replace(hour=0, minute=0, second=0)
+            noc_start = noc_end - timedelta(days=num_days_noc_length)
+            try:
+                features = calculate_fft_rt(noc_start, noc_end, network, station, channels, 
+                                            window_size, window_shift, detrend=detrend, windowing=windowing, fft_points=fft_points, 
+                                            merge_method=merge_method, merge_fill_value=merge_fill_value,
+                                            pad_fill_value = pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
+                # Create new NOC
+                new_name = station + '_' + 'd' + '_' + noc_end.strftime('%Y-%m-%d')
+                new_noc = NOC(new_name, features['ffts'], features['obs_labels'], network, station, type='dynamic',
+                        preprocessing = 1, n_components = 'auto', alpha = 0.01, percentile_threshold=True, csv_path=noc_log_path)
+                new_noc.set_metadata(noc_start, noc_end, window_size, window_shift, detrend, windowing, fft_points, merge_method, merge_fill_value, pad_fill_value)
+                new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
+                new_noc.write_csv(noc_log_path)
+
+                noc_names.append(new_name, station)
+            except:
+                print(f"Not enough data to create NOC for station {station}.")
+
     nocs = defaultdict(list)
     for name, station in noc_names:
         noc_path = os.path.join(nocs_path, name).replace('\\', '/')
@@ -327,9 +355,10 @@ def monitoring(config_path = 'config.json'):
                     # Create new NOC
                     new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
                     new_noc = NOC(new_name, new_features, new_labels, network=network, station=station,
-                                type='dynamic', preprocessing=noc.preprocessing, n_components=noc.n_components, 
+                                type='dynamic', preprocessing=noc.preprocessing, n_components='auto', 
                                 alpha=noc.alpha, percentile_threshold=noc.percentile_threshold, 
                                 q_method = noc.q_method, csv_path = noc_log_path)
+                    new_noc.set_metadata(window_size, window_shift, detrend, windowing, fft_points, merge_method, merge_fill_value, pad_fill_value)
                     new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
                     new_noc.write_csv(noc_log_path)
                     

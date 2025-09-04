@@ -18,7 +18,6 @@ from scipy.io import savemat
 import csv
 from datetime import datetime, timezone
 import pickle
-import matplotlib.dates as mdates
 
 
 class NOC:
@@ -84,6 +83,7 @@ class NOC:
             self.obs_labels = list(obs_labels)
         else:
             self.obs_labels = [""] * self.features.shape[0]
+        
         self.get_time_range()
 
         self.preprocessing = preprocessing
@@ -95,12 +95,19 @@ class NOC:
         self.percentile_threshold = percentile_threshold
         self.q_method = q_method
         self.csv_path = csv_path
+
+        # Find number of components
+        if n_components == 'auto':
+            self.calculate_n_components()
         
         # Attributes for test data
         self.D_test = []
         self.Q_test = []
         self.test_labels = []
         self.test_missing_rates = []
+
+        # Features metadata
+        self.metadata = {}
 
         # Calculate D and Q statistics
         self.calculate_DQ()
@@ -153,13 +160,37 @@ class NOC:
         self.calculate_DQ()
 
         self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+    
+
+    def set_metadata(self, starttime, endtime, window_size, window_shift=None, 
+                     detrend=None, windowing=False, fft_points='auto', 
+                     merge_method=0, merge_fill_value=None, pad_fill_value=0):
+        """
+        Create a `metadata` attribute containing information related to the training features.
+        """
+        if isinstance(starttime, datetime):
+            starttime = starttime.strftime('%Y-%m-%dT%H:%M:%SZ')
+            endtime = endtime.strftime('%Y-%m-%dT%H:%M:%SZ')
+            
+        self.metadata["start_time"] = starttime
+        self.metadata["end_time"] = endtime
+        self.metadata["window_size"] = window_size
+        if window_shift:
+            self.metadata["window_shift"] = window_size
+        self.metadata["detrend"] = detrend
+        self.metadata["windowing"] = windowing
+        self.metadata["fft_points"] = fft_points
+        self.metadata["merge_method"] = merge_method
+        self.metadata["merge_fill_value"] = merge_fill_value
+        self.metadata["pad_fill_value"] = pad_fill_value
+
+        self.time_range = [starttime, endtime]
 
 
     def pca(self, n_components=None):
         """
         Computes a PCA model from the features matrix.
         """
-
         if n_components is None:
             n_components = self.n_components
             
@@ -167,13 +198,36 @@ class NOC:
             scaler = StandardScaler(with_std=True)
             X = scaler.fit_transform(self.features)
         else:
-            X = self.features
+            X = self.features.copy()
 
         pca_model = PCA(n_components=self.n_components)
-        scores = pca_model.fit_transform(X)
-        loadings = pca_model.components_.T
+        pca_fit = pca_model.fit(X)
+       
+        # scores = pca_fit.transform(X)
+        # loadings = pca_fit.components_.T
 
-        return scores, loadings, pca_model
+        return pca_fit
+    
+    
+    def calculate_n_components(self):
+        from kneefinder import KneeFinder
+        
+        if self.preprocessing == 2:
+            scaler = StandardScaler(with_std=True)
+            X = scaler.fit_transform(self.features)
+        else:
+            X = self.features.copy()
+
+        pca_model = PCA()
+        pca_fit = pca_model.fit(X)
+
+        # Find knee in cumulative explained variance
+        data_x = np.arange(len(pca_fit.explained_variance_ratio_))
+        data_y = 1 - np.cumsum(pca_fit.explained_variance_ratio_)
+        kf = KneeFinder(data_x=data_x, data_y=data_y)
+        knee_x, _ = kf.find_knee()
+
+        self.n_components = min(1, round(knee_x))
 
 
     def calculate_DQ(self):
@@ -568,16 +622,20 @@ class NOC:
             # Create directory if it does not exist
             os.makedirs(os.path.dirname(csv_path), exist_ok=True)
             
-            starttime = ""
-            endtime = ""
-            if len(self.time_range) > 0:
+            if self.metadata:
+                starttime = self.metadata["start_time"]
+                endtime = self.metadata["end_time"]
+            elif len(self.time_range) > 0:
                 if isinstance(self.time_range[0], str):
                     starttime = self.time_range[0]
                     endtime = self.time_range[1]
                 else:
                     starttime = self.time_range[0][0]
                     endtime = self.time_range[-1][1]
-                    
+            else:
+                starttime = ""
+                endtime = ""
+            
             # Create new row
             row = {
                 'name': self.name,
