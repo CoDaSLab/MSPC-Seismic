@@ -46,7 +46,7 @@ if not submitted_map:
         stations = maps.station_selector(drawings, stations)
 
         if stations is not None:
-            marked_map = maps.update_stations(st.session_state.map, stations)
+            marked_map = maps.add_stations(st.session_state.map, stations)
 
 
     with col[1]:
@@ -90,7 +90,7 @@ if submitted_map and not submitted_time and not submitted_selection:
         stations = st.session_state.stations
         stations=stations[stations['station'].isin(eruption_stations)]
 
-        marked_map = maps.update_stations(st.session_state.map, stations)
+        marked_map = maps.add_stations(st.session_state.map, stations)
         maps.show_map(marked_map)
         st.dataframe(stations)
 
@@ -132,7 +132,7 @@ if submitted_selection:
     tajogaite_lon = -17.866111
 
     stations = st.session_state.stations
-    marked_map = maps.update_stations(st.session_state.map, stations)
+    marked_map = maps.add_stations(st.session_state.map, stations)
     Fullscreen(position="topleft").add_to(marked_map)
     
     folium.Marker(

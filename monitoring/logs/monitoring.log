@@ -134,3 +134,556 @@ ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring
 
 ==============================================================
 
+[mié 03 sep 2025 15:25:10 CEST] Running monitoring script...
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+
+[mié 03 sep 2025 15:30:10 CEST] Running monitoring script...
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+
+[mié 03 sep 2025 15:35:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.946133.
+
+==============================================================
+
+[mié 03 sep 2025 15:40:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.108007.
+
+==============================================================
+
+[mié 03 sep 2025 15:45:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.278130.
+
+==============================================================
+
+[mié 03 sep 2025 15:50:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.325034.
+
+==============================================================
+
+[mié 03 sep 2025 15:55:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.502550.
+
+==============================================================
+
+[mié 03 sep 2025 16:00:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.485724.
+
+==============================================================
+
+[mié 03 sep 2025 16:05:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.624444.
+
+==============================================================
+
+[mié 03 sep 2025 16:10:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.576770.
+
+==============================================================
+
+[mié 03 sep 2025 16:15:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.782707.
+
+==============================================================
+
+[mié 03 sep 2025 16:20:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.735030.
+
+==============================================================
+
+[mié 03 sep 2025 16:25:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.929574.
+
+==============================================================
+
+[mié 03 sep 2025 16:30:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.084276.
+
+==============================================================
+
+[mié 03 sep 2025 16:35:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.078899.
+
+==============================================================
+
+[jue 04 sep 2025 10:05:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.492849.
+
+==============================================================
+
+[jue 04 sep 2025 10:10:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.550446.
+
+==============================================================
+
+[jue 04 sep 2025 10:15:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.837100.
+
+==============================================================
+
+[jue 04 sep 2025 10:20:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.718532.
+
+==============================================================
+
+[jue 04 sep 2025 10:25:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.034266.
+
+==============================================================
+
+[jue 04 sep 2025 10:30:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.046358.
+
+==============================================================
+
+[jue 04 sep 2025 10:35:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.182383.
+
+==============================================================
+
+[jue 04 sep 2025 10:40:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.541888.
+
+==============================================================
+
+[jue 04 sep 2025 10:45:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.589493.
+
+==============================================================
+
+[jue 04 sep 2025 10:50:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.695955.
+
+==============================================================
+
+[jue 04 sep 2025 10:55:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.813880.
+
+==============================================================
+
+[jue 04 sep 2025 11:00:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.049906.
+
+==============================================================
+
+[jue 04 sep 2025 11:05:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.220389.
+
+==============================================================
+
+[jue 04 sep 2025 11:10:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.029941.
+
+==============================================================
+
+[jue 04 sep 2025 11:15:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.949410.
+
+==============================================================
+
+[jue 04 sep 2025 11:20:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.210115.
+
+==============================================================
+
+[jue 04 sep 2025 11:25:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.925659.
+
+==============================================================
+
+[jue 04 sep 2025 11:30:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.990061.
+
+==============================================================
+
+[jue 04 sep 2025 11:35:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.041685.
+
+==============================================================
+
+[jue 04 sep 2025 11:40:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.164044.
+
+==============================================================
+
+[jue 04 sep 2025 11:45:12 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.069695.
+
+==============================================================
+
+[jue 04 sep 2025 11:50:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.987206.
+
+==============================================================
+
+[jue 04 sep 2025 11:55:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.160074.
+
+==============================================================
+
+[jue 04 sep 2025 12:00:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.982248.
+
+==============================================================
+
+[jue 04 sep 2025 12:05:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.058636.
+
+==============================================================
+
+[jue 04 sep 2025 12:10:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.158554.
+
+==============================================================
+
+[jue 04 sep 2025 12:15:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.049775.
+
+==============================================================
+
+[jue 04 sep 2025 12:20:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.152171.
+
+==============================================================
+
+[jue 04 sep 2025 12:25:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.970267.
+
+==============================================================
+
+[jue 04 sep 2025 12:30:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.055651.
+
+==============================================================
+
+[jue 04 sep 2025 12:35:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.978564.
+
+==============================================================
+
+[jue 04 sep 2025 12:40:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.069948.
+
+==============================================================
+
+[jue 04 sep 2025 12:45:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.179596.
+
+==============================================================
+
+[jue 04 sep 2025 12:50:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.086526.
+
+==============================================================
+
+[jue 04 sep 2025 12:55:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.114189.
+
+==============================================================
+
+[jue 04 sep 2025 13:00:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.053072.
+
+==============================================================
+
+[jue 04 sep 2025 13:05:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.062360.
+
+==============================================================
+
+[jue 04 sep 2025 13:10:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.017428.
+
+==============================================================
+
+[jue 04 sep 2025 13:15:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.948737.
+
+==============================================================
+
+[jue 04 sep 2025 13:20:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.066854.
+
+==============================================================
+
+[jue 04 sep 2025 13:25:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.989152.
+
+==============================================================
+
+[jue 04 sep 2025 13:30:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.079036.
+
+==============================================================
+
+[jue 04 sep 2025 13:35:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.031798.
+
+==============================================================
+
+[jue 04 sep 2025 13:40:19 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.105861.
+
+==============================================================
+
+[jue 04 sep 2025 13:45:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.180927.
+
+==============================================================
+
+[jue 04 sep 2025 13:50:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.200864.
+
+==============================================================
+
+[jue 04 sep 2025 13:55:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.958692.
+
+==============================================================
+
+[jue 04 sep 2025 14:00:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.171686.
+
+==============================================================
+
+[jue 04 sep 2025 14:05:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.312404.
+
+==============================================================
+
+[jue 04 sep 2025 14:10:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.162587.
+
+==============================================================
+
+[jue 04 sep 2025 14:15:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.131579.
+
+==============================================================
+
+[jue 04 sep 2025 14:20:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.953632.
+
+==============================================================
+
+[jue 04 sep 2025 14:25:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.993656.
+
+==============================================================
+
+[jue 04 sep 2025 14:30:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.062204.
+
+==============================================================
+
+[jue 04 sep 2025 14:35:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.068002.
+
+==============================================================
+
+[jue 04 sep 2025 14:40:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.116532.
+
+==============================================================
+
+[jue 04 sep 2025 14:45:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.120254.
+
+==============================================================
+
+[jue 04 sep 2025 14:50:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.168441.
+
+==============================================================
+
+[jue 04 sep 2025 14:55:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.061250.
+
+==============================================================
+
+[jue 04 sep 2025 15:00:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.086305.
+
+==============================================================
+
+[jue 04 sep 2025 15:05:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.052528.
+
+==============================================================
+
+[jue 04 sep 2025 15:10:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.201202.
+
+==============================================================
+
+[jue 04 sep 2025 15:15:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.020723.
+
+==============================================================
+
+[jue 04 sep 2025 15:20:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.021657.
+
+==============================================================
+
+[jue 04 sep 2025 15:25:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.028799.
+
+==============================================================
+
+[jue 04 sep 2025 15:30:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.098367.
+
+==============================================================
+
+[jue 04 sep 2025 15:35:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.024763.
+
+==============================================================
+
+[jue 04 sep 2025 15:40:11 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.066673.
+
+==============================================================
+
+[jue 04 sep 2025 15:45:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.102984.
+
+==============================================================
+
+[jue 04 sep 2025 15:50:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.245358.
+
+==============================================================
+
+[jue 04 sep 2025 15:55:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.165782.
+
+==============================================================
+
+[jue 04 sep 2025 16:00:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.130124.
+
+==============================================================
+
+[jue 04 sep 2025 16:05:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.237056.
+
+==============================================================
+
+[jue 04 sep 2025 16:10:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.336425.
+
+==============================================================
+
+[jue 04 sep 2025 16:15:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.076294.
+
+==============================================================
+
+[jue 04 sep 2025 16:20:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:03.089218.
+
+==============================================================
+
+[jue 04 sep 2025 16:25:04 CEST] Running monitoring script...
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+
+[jue 04 sep 2025 16:30:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.947277.
+
+==============================================================
+
+[jue 04 sep 2025 16:35:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.888710.
+
+==============================================================
+
+[jue 04 sep 2025 16:40:10 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.943434.
+
+==============================================================
+
+[vie 05 sep 2025 08:35:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.466255.
+
+==============================================================
+
+[vie 05 sep 2025 08:40:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.624594.
+
+==============================================================
+
+[vie 05 sep 2025 08:45:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.820643.
+
+==============================================================
+
+[vie 05 sep 2025 08:50:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.789032.
+
+==============================================================
+
+[vie 05 sep 2025 08:55:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:01.975504.
+
+==============================================================
+
+[vie 05 sep 2025 09:00:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.150381.
+
+==============================================================
+
+[vie 05 sep 2025 09:05:16 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.373947.
+
+==============================================================
+
+[vie 05 sep 2025 09:10:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.444983.
+
+==============================================================
+
+[vie 05 sep 2025 09:15:08 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.730035.
+
+==============================================================
+
+[vie 05 sep 2025 09:20:09 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.775737.
+
+==============================================================
+
+[vie 05 sep 2025 09:25:13 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.157338.
+
+==============================================================
+
+[vie 05 sep 2025 09:30:11 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.255488.
+
+==============================================================
+
+[vie 05 sep 2025 09:35:12 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.160041.
+
+==============================================================
+
+[vie 05 sep 2025 09:40:12 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.082815.
+
+==============================================================
+
+[vie 05 sep 2025 09:45:13 CEST] Running monitoring script...
+Updated process control. Total time: 0:00:02.203966.
+
+==============================================================
+

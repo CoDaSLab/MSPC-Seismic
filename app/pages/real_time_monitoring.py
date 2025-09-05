@@ -63,6 +63,7 @@ def real_time_visualization(config):
 
             # Left column
             with col1:
+                
                 with st.spinner("Loading graph..."):
                     plots.plot_dq_rt(noc[0], time_range=plot_time, logscale=logscale_rt, n_consecutive=n_consecutive_rt, 
                                      nocs_path = config["nocs_path"])

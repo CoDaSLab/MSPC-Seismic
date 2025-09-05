@@ -74,3 +74,9 @@ socket.gaierror: [Errno -3] Temporary failure in name resolution
 
 ==============================================================
 
+/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/monitoring.sh: línea 35: python: orden no encontrada
+
+[jue 04 sep 2025 16:25:04 CEST] ERROR when downloading files.
+
+==============================================================
+

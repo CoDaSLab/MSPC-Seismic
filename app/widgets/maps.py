@@ -157,6 +157,7 @@ def draw_map(map= None):
     return map, output
 
 
+
 from shapely.geometry import Point, Polygon
 def is_inside(row, polygon, lon_label = 'lon', lat_label='lat'):
     point = Point(row[lon_label], row[lat_label]) 
@@ -181,17 +182,28 @@ def station_selector(drawings, stations):
         return stations[aux]
 
 
-def show_map(m, use_container_width=True):
-    try:
-        st_folium(m, use_container_width=use_container_width)
-    except: pass
-    return m
+def create_map(location=[28.653788, -17.866111], zoom_start=11, tiles="CartoDB positron",
+                use_container_width=True):
+    map = folium.Map(location=location, zoom_start=zoom_start, tiles=tiles)
+    return map
 
-def update_stations(m, stations):
+
+def show_map(map=None, use_container_width=True):
+    if map is None:
+        map = folium.Map(location=[28.653788, -17.866111], zoom_start=11, tiles="CartoDB positron")
+    try:
+        st_folium(map, use_container_width=use_container_width)
+    except: pass
+    return map
+
+def add_stations(m, stations:pd.DataFrame, color=None, popup:list= None):
     marked_map = copy.deepcopy(m)
+    if color is None: color = ["blue"]*len(stations)
+    if popup is None: popup = [""]*len(stations)
     for i in range(len(stations)):
         folium.Marker(
         location=[stations.iloc[i]['lat'], stations.iloc[i]['lon']],
-        popup=stations.iloc[i]['station'],
+        popup=stations.iloc[i]['station']+popup[i],
+        icon=folium.Icon(color=color[i], icon="cloud")
         ).add_to(marked_map)
     return marked_map

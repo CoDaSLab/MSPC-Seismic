@@ -22,6 +22,9 @@
 # ignore jobs folder
 jobs
 
+# ignore logs 
+/monitoring/logs/*
+
 # ignore conda enviroment
 installation/**/
 !installation/docker_legacy/
