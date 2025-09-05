@@ -32,7 +32,7 @@ today=$(date -u -d "now - 6 minute" +'%Y-%m-%d 00:00:00')
 now=$(date -u +'%Y-%m-%d %H:%M:%S')
 
 # Download files from server. Stores output and errors in different logs.
-python -m data.involcan.pull_rt "$today" "$now" "${server_ip}" "${server_user}" "$network" -kp "${ssh_key}" -s "${stations[@]}" -c "${channels[@]}" --log_path "$pull_times_log" --data_path "$data_path" >> "$LOG_FILE" 2>> "$ERROR_FILE"
+python -m data.involcan.pull_rt "$today" "$now" "${server_ip}" "${server_user}" "$network" -kp "${ssh_key}" -s "${stations[@]}" -c "${channels[@]}" -u $true --log_path "$pull_times_log" --data_path "$data_path" >> "$LOG_FILE" 2>> "$ERROR_FILE"
 
 # In case of error, write messages in ERROR_FILE
 if [ $? -ne 0 ]; then

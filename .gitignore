@@ -1,6 +1,10 @@
 # Exclude data for capacity and security
 /data/*/metadata/**
 !/data/involcan/metadata/**
+/data/involcan/metadata/anomaly_log.csv
+/data/involcan/metadata/latest_pulls.csv
+/data/involcan/metadata/noc_list.csv
+
 /data/*/features/**
 /data/*/nocs/**
 /data/involcan/metadata/ivc.dat
@@ -24,7 +28,7 @@
 jobs
 
 # ignore logs 
-/monitoring/logs/*
+/monitoring/logs/
 
 # ignore conda enviroment
 installation/**/
