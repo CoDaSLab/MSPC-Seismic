@@ -228,3 +228,57 @@ AssertionError: Number of traces in stream should be 1
 
 ==============================================================
 
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 395, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 246, in monitoring
+    no_noc_stations = avail_stations - noc_stations
+                      ~~~~~~~~~~~~~~~^~~~~~~~~~~~~~
+TypeError: unsupported operand type(s) for -: 'list' and 'set'
+
+[vie 05 sep 2025 09:55:06 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 395, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 325, in monitoring
+    mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/mspc_rt.py", line 72, in mspc
+    noc = NOC.load(noc)
+          ^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/NOC.py", line 606, in load
+    with open(filepath, 'rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: './data/involcan/nocs/PPMA_d_2021-09-20'
+
+[vie 05 sep 2025 14:20:06 CEST] ERROR when monitoring.
+
+==============================================================
+
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 395, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 325, in monitoring
+    mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/mspc_rt.py", line 72, in mspc
+    noc = NOC.load(noc)
+          ^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/NOC.py", line 606, in load
+    with open(filepath, 'rb') as f:
+         ^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: './data/involcan/nocs/PPMA_d_2021-09-20'
+
+[vie 05 sep 2025 14:26:34 CEST] ERROR when monitoring.
+
+==============================================================
+

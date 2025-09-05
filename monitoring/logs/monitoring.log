@@ -695,3 +695,346 @@ ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring
 
 ==============================================================
 
+[vie 05 sep 2025 09:55:03 CEST] Running monitoring script...
+Error retrieving available stations: [Errno 2] No such file or directory: '/data/involcan/metadata/latest_pulls.csv'. Attempting calculation for all stations...
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+
+[vie 05 sep 2025 10:00:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001757.
+
+==============================================================
+
+[vie 05 sep 2025 10:05:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001835.
+
+==============================================================
+
+[vie 05 sep 2025 10:10:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001824.
+
+==============================================================
+
+[vie 05 sep 2025 10:15:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001871.
+
+==============================================================
+
+[vie 05 sep 2025 10:20:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.006585.
+
+==============================================================
+
+[vie 05 sep 2025 10:25:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001831.
+
+==============================================================
+
+[vie 05 sep 2025 10:30:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001799.
+
+==============================================================
+
+[vie 05 sep 2025 10:35:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001833.
+
+==============================================================
+
+[vie 05 sep 2025 10:40:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001759.
+
+==============================================================
+
+[vie 05 sep 2025 10:45:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001844.
+
+==============================================================
+
+[vie 05 sep 2025 10:50:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.007087.
+
+==============================================================
+
+[vie 05 sep 2025 10:55:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001708.
+
+==============================================================
+
+[vie 05 sep 2025 11:00:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001826.
+
+==============================================================
+
+[vie 05 sep 2025 11:05:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001766.
+
+==============================================================
+
+[vie 05 sep 2025 11:10:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001818.
+
+==============================================================
+
+[vie 05 sep 2025 11:15:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001755.
+
+==============================================================
+
+[vie 05 sep 2025 11:20:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001711.
+
+==============================================================
+
+[vie 05 sep 2025 11:25:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001815.
+
+==============================================================
+
+[vie 05 sep 2025 11:30:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001739.
+
+==============================================================
+
+[vie 05 sep 2025 11:35:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001729.
+
+==============================================================
+
+[vie 05 sep 2025 11:40:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001746.
+
+==============================================================
+
+[vie 05 sep 2025 11:45:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001734.
+
+==============================================================
+
+[vie 05 sep 2025 11:50:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001829.
+
+==============================================================
+
+[vie 05 sep 2025 11:55:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001738.
+
+==============================================================
+
+[vie 05 sep 2025 12:00:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001743.
+
+==============================================================
+
+[vie 05 sep 2025 12:05:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001746.
+
+==============================================================
+
+[vie 05 sep 2025 12:10:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001741.
+
+==============================================================
+
+[vie 05 sep 2025 12:15:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.004156.
+
+==============================================================
+
+[vie 05 sep 2025 12:20:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001746.
+
+==============================================================
+
+[vie 05 sep 2025 12:25:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001757.
+
+==============================================================
+
+[vie 05 sep 2025 12:30:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001895.
+
+==============================================================
+
+[vie 05 sep 2025 12:35:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001776.
+
+==============================================================
+
+[vie 05 sep 2025 12:40:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001727.
+
+==============================================================
+
+[vie 05 sep 2025 12:45:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001842.
+
+==============================================================
+
+[vie 05 sep 2025 12:50:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001865.
+
+==============================================================
+
+[vie 05 sep 2025 12:55:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001758.
+
+==============================================================
+
+[vie 05 sep 2025 13:00:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001745.
+
+==============================================================
+
+[vie 05 sep 2025 13:05:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001801.
+
+==============================================================
+
+[vie 05 sep 2025 13:10:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001749.
+
+==============================================================
+
+[vie 05 sep 2025 13:15:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001764.
+
+==============================================================
+
+[vie 05 sep 2025 13:20:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001784.
+
+==============================================================
+
+[vie 05 sep 2025 13:25:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001823.
+
+==============================================================
+
+[vie 05 sep 2025 13:30:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001843.
+
+==============================================================
+
+[vie 05 sep 2025 13:35:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001789.
+
+==============================================================
+
+[vie 05 sep 2025 13:40:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001822.
+
+==============================================================
+
+[vie 05 sep 2025 13:45:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001878.
+
+==============================================================
+
+[vie 05 sep 2025 13:50:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001866.
+
+==============================================================
+
+[vie 05 sep 2025 13:55:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001841.
+
+==============================================================
+
+[vie 05 sep 2025 14:00:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001790.
+
+==============================================================
+
+[vie 05 sep 2025 14:05:03 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001736.
+
+==============================================================
+
+[vie 05 sep 2025 14:10:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001846.
+
+==============================================================
+
+[vie 05 sep 2025 14:15:04 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.004172.
+
+==============================================================
+
+[vie 05 sep 2025 14:20:03 CEST] Running monitoring script...
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+
+[vie 05 sep 2025 14:26:31 CEST] Running monitoring script...
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+
+[vie 05 sep 2025 14:30:28 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001898.
+
+==============================================================
+
+[vie 05 sep 2025 14:35:27 CEST] Running monitoring script...
+No data for any station (tolerance: 0:07:30).
+Updated process control. Total time: 0:00:00.001837.
+
+==============================================================
+

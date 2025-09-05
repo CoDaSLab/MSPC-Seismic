@@ -10,10 +10,37 @@
     "data": {
         "network": "C7",
         "stations": [
-            "PPMA",
-            "PSAB",
-            "TC13"
-        ],
+                "PA00",
+                "PA01",
+                "PA02",
+                "PA03",
+                "PA04",
+                "PA05",
+                "PA06",
+                "PA07",
+                "PA08",
+                "PA09",
+                "PAB ",
+                "PBB2",
+                "PBBA",
+                "PCOR",
+                "PFUE",
+                "PFVI",
+                "PGAR",
+                "PLPI",
+                "PML2",
+                "PMLU",
+                "PMOZ",
+                "PN01",
+                "PN02",
+                "PN03",
+                "PN04",
+                "PPAS",
+                "PPMA",
+                "PSAB",
+                "PTAB",
+                "TC13"
+                ],
         "channels": [
             "HHE",
             "HHN",
@@ -23,13 +50,13 @@
         "endtime": "auto"
     },
     "paths": {
-        "data": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/mseed",
-        "features": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/features",
-        "nocs": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/nocs",
-        "plots": "/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/nocs/plots",
-        "latest_pulls_log": "data/involcan/metadata/latest_pulls.csv",
-        "noc_log": "data/involcan/metadata/noc_list.csv",
-        "anomaly_log": "data/involcan/metadata/anomaly_log.csv"
+        "data": "./data/involcan/mseed",
+        "features": "./data/involcan/features",
+        "nocs": "./data/involcan/nocs",
+        "plots": "./data/involcan/nocs/plots",
+        "latest_pulls_log": "./data/involcan/metadata/latest_pulls.csv",
+        "noc_log": "./data/involcan/metadata/noc_list.csv",
+        "anomaly_log": "./data/involcan/metadata/anomaly_log.csv"
     },
     "features": {
         "window_size": 10,
@@ -51,7 +78,7 @@
         "anomaly_criterion": "consecutive"
     },
     "connection": {
-        "ssh_key_path": "~/.ssh/id_rda",
+        "ssh_key_path": "~/.ssh/id_ed25519",
         "server_IP": "193.147.109.7",
         "server_user": "seiscomp"
     },

@@ -2,7 +2,7 @@ from config import *
 from widgets import maps
 from utils.functions import load_last_pulls, load_stations
 
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 import pandas as pd
 
 
@@ -13,14 +13,14 @@ init_session_state()
 st.markdown("---")
 # st.markdown("<h1 style='text-align: center;'>Digivolcan Home</h1>", unsafe_allow_html=True)
 
-COL = st.columns(2)
-
-with COL[0]:
+# Station health check code
+@st.fragment(run_every = timedelta(seconds=2))
+def station_health_check():
     st.markdown("<h3 style='text-align: center;'>Running stations</h3>", unsafe_allow_html=True)
     last_pulls = load_last_pulls()
     stations = load_stations()
 
-    now = datetime.now(timezone.utc)
+    now = st.session_state.now
     last_pulls["time_since_last_pull"] = now-last_pulls["latest_pull_time"]
 
     last_pulls = last_pulls[last_pulls["time_since_last_pull"] <= pd.Timedelta(days=30)]
@@ -35,7 +35,7 @@ with COL[0]:
 
     for active_station in active_stations:
         station_rows = last_pulls[ last_pulls["station"] == active_station]    
-        time = max(station_rows["time_since_last_pull"])
+        time = station_rows["time_since_last_pull"].max()
 
         if   time < pd.Timedelta(minutes=5): color = "green" 
         elif time < pd.Timedelta(minutes=10): color = "orange" 
@@ -44,7 +44,13 @@ with COL[0]:
         active_stations_dic['station'].append(active_station)
         active_stations_dic['time_since_last_pull'].append(time)
         active_stations_dic['color'].append(color)
-        active_stations_dic['popup'].append("\nLast update:")
+        popup = "<br>Last updates:<br>"
+        for _, row in station_rows.iterrows():
+            td = row['time_since_last_pull']
+            popup += f"{row['channel']}: {td.components.days:02d}d {td.components.hours:02d}h:{td.components.minutes:02d}m:{td.components.seconds:02d}s<br>"
+
+        active_stations_dic['popup'].append(popup)
+
 
     # Display the Map
     map = maps.create_map()
@@ -53,23 +59,28 @@ with COL[0]:
                             popup=active_stations_dic['popup'])
     maps.show_map(map)
 
-    """
-    Calculamos la diferencia entre la última descarga y la hora actual en UTC. 
-    Dependiendo de este valor (en minutos?), coloreamos de una forma u otra los markers
-    del mapa.
+    return
 
-    Al poner el ratón encima de un marker veremos: El nombre de la estación, y la última hora de
-    actualización.
 
-    Si hace más de 1 mes de la última actualización, no se muestra el sensor en el mapa
 
-    Ya que cada estación cuenta con 3 canales, el tiempo que mostraremos seŕa el mayor de los 3
-    """    
 
-    # maps.draw_map()
+COL = st.columns(2)
+
+
+if datetime.now(timezone.utc)-st.session_state.now>pd.Timedelta(seconds=10): 
+    st.session_state.now = datetime.now(timezone.utc)
+
+with COL[0]:
+    station_health_check()  
 
 
 with COL[1]:
     st.markdown("<h3 style='text-align: center;'>Anomaly log</h3>", unsafe_allow_html=True)
     anomalies = pd.read_csv("data/involcan/metadata/anomaly_log.csv")
     anomalies
+
+
+
+
+
+

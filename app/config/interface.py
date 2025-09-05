@@ -6,7 +6,7 @@ def logo():
 @st.cache_data
 def header():
     # Crear una fila de botones en el encabezado
-    col = st.columns(6)
+    col = st.columns(7)
 
     with col[0]:
         st.page_link("home.py", label="Home", icon="🏠")
@@ -20,6 +20,8 @@ def header():
         st.page_link("./pages/rtmonitoring.py", label="Real-Time Monitoring", icon="📡")
     with col[5]:
         st.page_link("./pages/eda.py", label="Exploratory Data Analysis", icon='📉')
+    with col[6]:
+        st.page_link("./pages/download_data.py", label="Download data", icon='⬇️')
 
 
 

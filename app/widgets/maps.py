@@ -203,7 +203,8 @@ def add_stations(m, stations:pd.DataFrame, color=None, popup:list= None):
     for i in range(len(stations)):
         folium.Marker(
         location=[stations.iloc[i]['lat'], stations.iloc[i]['lon']],
-        popup=stations.iloc[i]['station']+popup[i],
+        popup=folium.Popup("<u>"+stations.iloc[i]['station']+"</u>"+popup[i], max_width=500),
+        tooltip="<u>"+stations.iloc[i]['station']+"</u>"+popup[i],
         icon=folium.Icon(color=color[i], icon="cloud")
         ).add_to(marked_map)
     return marked_map

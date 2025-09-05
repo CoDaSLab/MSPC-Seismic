@@ -33,6 +33,7 @@ Arguments:
     -pw, --pasw             - Remote server password (optional, default is None).
     -p, --port              - Port number (optional, default is 22).
     -i, --allow_input       - If present, allows the user to input credentials manually after a failed login attempt (optional, default is False)
+    -u, --update_latest     - Updates the latest pull database with this download
     -v, --verbose           - Print extra messages (optional, default is False).
 
 Example:
@@ -49,7 +50,7 @@ from data.scripts.get_filenames import get_filenames
 def download_files_rt(starttime, endtime, server, user, network, stations, channels, 
                       data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/latest_pulls.csv',
                       key_path = '~/.ssh/id_rsa', passphrase=None, pasw=None, port=22, 
-                      allow_input=False, verbose=False):
+                      allow_input=False, update_latest=True, verbose=False):
     """
     Downloads seismic files filtered by date, station, and channel from SFTP server.
     Performs a single SSH connection to download all corresponding files.
@@ -163,7 +164,8 @@ def download_files_rt(starttime, endtime, server, user, network, stations, chann
     latest_rows = log.groupby(['station', 'channel'])['latest_pull_time'].idxmax()
     latest_files = log.loc[latest_rows].reset_index(drop=True)
     # Save CSV
-    latest_files.to_csv(log_path, header=True, index=False, date_format='%Y-%m-%dT%H:%M:%SZ')
+    if update_latest:
+        latest_files.to_csv(log_path, header=True, index=False, date_format='%Y-%m-%dT%H:%M:%SZ')
 
     failed_downloads = total_files - successful_downloads
 
@@ -190,9 +192,10 @@ if __name__ == "__main__":
     parser.add_argument("-pw", "--pasw", type=str, default=None, help="Remote server password")
     parser.add_argument("-p", "--port", type=int, default=22, help="Port number (default: 22)")
     parser.add_argument("-i", "--allow_input", action='store_true', help="Allow user to enter credentials manually (off by default)")
+    parser.add_argument("-u", "--update_latest", action='store_true', help="Save this download as the latest pull (use in real time)")
     parser.add_argument("-v", "--verbose", action='store_true', help="Print extra messages (default: False)")
 
     args = parser.parse_args()
 
     download_files_rt(args.starttime, args.endtime, args.server, args.user, args.network, args.stations, args.channels, args.data_path,
-                   args.log_path, args.key_path, args.passphrase, args.pasw, args.port, args.allow_input, args.verbose)
+                   args.log_path, args.key_path, args.passphrase, args.pasw, args.port, args.allow_input, args.update_latest, args.verbose)

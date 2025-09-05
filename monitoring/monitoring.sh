@@ -13,14 +13,14 @@ source ${REPO_DIR}/installation/miniconda3/bin/activate lafragua
 LOG_FILE="${REPO_DIR}/monitoring/logs/pull.log"
 ERROR_FILE="${REPO_DIR}/monitoring/logs/pull_error.log"
 # Read configuration file
-server_ip=$(jq -r '.server_IP' "$CONFIG_FILE")
-server_user=$(jq -r '.server_user' "$CONFIG_FILE")
-ssh_key=$(jq -r '.ssh_key_path' "$CONFIG_FILE")
-pull_times_log=$(jq -r '.latest_pulls_log_path' "$CONFIG_FILE")
-data_path=$(jq -r '.data_path' "$CONFIG_FILE")
-network=$(jq -r '.network' "$CONFIG_FILE")
-mapfile -t stations < <(jq -r '.stations[]' "$CONFIG_FILE")
-mapfile -t channels < <(jq -r '.channels[]' "$CONFIG_FILE")
+server_ip=$(jq -r '.connection.server_IP' "$CONFIG_FILE")
+server_user=$(jq -r '.connection.server_user' "$CONFIG_FILE")
+ssh_key=$(jq -r '.connection.ssh_key_path' "$CONFIG_FILE")
+pull_times_log=$(jq -r '.paths.latest_pulls_log' "$CONFIG_FILE")
+data_path=$(jq -r '.paths.data' "$CONFIG_FILE")
+network=$(jq -r '.data.network' "$CONFIG_FILE")
+mapfile -t stations < <(jq -r '.data.stations[]' "$CONFIG_FILE")
+mapfile -t channels < <(jq -r '.data.channels[]' "$CONFIG_FILE")
 
 echo "stations: ${stations[@]}" >> "$LOG_FILE"
 echo "channels: ${channels[@]}" >> "$LOG_FILE"

@@ -48,11 +48,13 @@ def init_session_state():
 
     if 'station' not in st.session_state: st.session_state.station = 'PPMA'
     if 'channel' not in st.session_state: st.session_state.channel = 'HHE'
-    from datetime import datetime, time
-    if 'start_date' not in st.session_state: st.session_state.start_date = datetime(2021, 9, 19)
+    from datetime import datetime, time, timezone, timedelta
+    if 'start_date' not in st.session_state: st.session_state.start_date = datetime.now()-timedelta(days=1)
     if 'start_time' not in st.session_state: st.session_state.start_time = time(0,0,0)
-    if 'end_date' not in st.session_state: st.session_state.end_date = datetime(2021, 9, 20)
+    if 'end_date' not in st.session_state: st.session_state.end_date = datetime.now()
     if 'end_time' not in st.session_state: st.session_state.end_time = time(0,0,0)
+
+    if 'now' not in st.session_state: st.session_state.now = datetime.now(timezone.utc)
 
     config_path = "monitoring/config.json"
     if 'config_path' not in st.session_state: st.session_state.config_path = config_path
