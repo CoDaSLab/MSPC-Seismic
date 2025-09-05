@@ -9,6 +9,7 @@
 /data/*/DAS/**
 /tests/data/**/*
 !/tests/data/**/
+/monitoring/backups/**
 # Exceptions to clarify structure
 !/data/**/
 !**/README.md

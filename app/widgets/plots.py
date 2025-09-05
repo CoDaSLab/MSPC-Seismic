@@ -72,7 +72,7 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
     from datetime import datetime, timedelta, timezone
 
     if time_range is None:
-        time_range = timedelta(hours=st.session_state.config["num_hours_plot"])
+        time_range = timedelta(hours=st.session_state.config["plots"]["num_hours"])
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
 

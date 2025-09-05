@@ -16,8 +16,8 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
 
     Parameters
     ----------
-        nocs (list of str)
-            Paths to the NOCs used for training. 
+        nocs (list of str or list of NOC)
+            Paths to the NOCs (or the NOCs themselves) used for training. 
         test (numpy array)
             Test data
         starttime (datetime)
@@ -50,6 +50,8 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
     if isinstance(endtime, str):
         endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    if not isinstance(nocs, list):
+        nocs = [nocs]
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
     
@@ -65,8 +67,9 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
     end_times = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in end_times]
 
     rows = []
-    for noc_path in nocs:
-        noc = NOC.load(noc_path)
+    for noc in nocs:
+        if isinstance(noc, str):
+            noc = NOC.load(noc)
         if verbose:
             print(f"Calculating for NOC {noc.name}...")
 

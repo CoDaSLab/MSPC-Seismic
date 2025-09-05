@@ -687,3 +687,11 @@ Updated process control. Total time: 0:00:02.203966.
 
 ==============================================================
 
+[vie 05 sep 2025 09:50:04 CEST] Running monitoring script...
+Error: The directory '/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/features' does not exist.
+File '/SCRATCH/TIC270/dvalesp/DigiVolCan/data/involcan/mseed/C7.PPMA..HHE.D.2025.248' not found. It will be skipped.
+
+ERROR: Monitoring failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/monitoring_error.log.
+
+==============================================================
+

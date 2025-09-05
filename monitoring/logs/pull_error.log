@@ -80,3 +80,13 @@ socket.gaierror: [Errno -3] Temporary failure in name resolution
 
 ==============================================================
 
+usage: pull_rt.py [-h] -s STATIONS [STATIONS ...] -c CHANNELS [CHANNELS ...]
+                  [-dp DATA_PATH] [-lp LOG_PATH] [-kp KEY_PATH]
+                  [-pp PASSPHRASE] [-pw PASW] [-p PORT] [-i] [-v]
+                  starttime endtime server user network
+pull_rt.py: error: argument -s/--stations: expected at least one argument
+
+[vie 05 sep 2025 09:50:04 CEST] ERROR when downloading files.
+
+==============================================================
+

@@ -70,13 +70,13 @@ def test_NOC_time_labels():
     new_data = np.random.randn(4, 4)
 
     labels = [
-        "2023-01-01 12:00:00",
-        "2023-01-01 13:00:00",  # +1 hour
-        "2023-01-01 14:00:00",  # +1 hour
-        "2023-01-01 15:30:00",  # +1.5 hours (interval change)
-        "2023-01-01 17:00:00",  # +1.5 hours
-        "2023-01-01 18:30:00",  # +1.5 hours
-        "2023-01-01 19:30:00"   # +1 hour (interval change)
+        "2023-01-01T12:00:00Z",
+        "2023-01-01T13:00:00Z",  # +1 hour
+        "2023-01-01T14:00:00Z",  # +1 hour
+        "2023-01-01T15:30:00Z",  # +1.5 hours (interval change)
+        "2023-01-01T17:00:00Z",  # +1.5 hours
+        "2023-01-01T18:30:00Z",  # +1.5 hours
+        "2023-01-01T19:30:00Z"   # +1 hour (interval change)
     ]
 
     noc = NOC('test_NOC', data, obs_labels=labels, preprocessing=1, n_components=2)
@@ -90,10 +90,10 @@ def test_NOC_time_labels():
     assert noc.time_range == expected_time_range, "Time range calculation failed."
     
     new_labels = [
-        "2023-01-01 20:30:00",  # +1 hour
-        "2023-01-01 22:30:00",  # +2 hours (interval change)
-        "2023-01-02 00:30:00",  # +2 hours
-        "2023-01-02 02:30:00",  # +2 hours
+        "2023-01-01T20:30:00Z",  # +1 hour
+        "2023-01-01T22:30:00Z",  # +2 hours (interval change)
+        "2023-01-02T00:30:00Z",  # +2 hours
+        "2023-01-02T02:30:00Z",  # +2 hours
     ]
     noc.update(new_data, new_labels)
 

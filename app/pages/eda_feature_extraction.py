@@ -7,8 +7,10 @@ from utils.functions import load_files
 import pandas as pd
 
 # --- Application start ---
-init_page("Feature extraction")
+init_page("EDA - Feature extraction")
 init_session_state()
+st.title("Feature extraction")
+header_eda()
 # ------------------------
 
 tabs = st.tabs(['Feature Log', 'Extract new features'])
@@ -115,7 +117,7 @@ with tabs[1]:
                             with st.spinner(f'[{current_loop}/{total_loops}] Creating object for station {station} and channel {channel}'):
                                 S = SISMO(network, station, channel, starttime, endtime,
                                         detrend=False, windowing=windowing, merge_method=0,
-                                        cpus=1, data_path=st.session_state.config["data_path"],
+                                        cpus=1, data_path=st.session_state.config["paths"]["data"],
                                         verbose = False)
                                 S.resampling_factor = resampling_factor
                             with st.spinner(f'[{current_loop}/{total_loops}] Calculating {type}s for station {station} and channel {channel}'):

@@ -9,10 +9,13 @@ import pandas as pd
 # -------------------------
 # --- Application start ---
 # -------------------------
-init_page("SISMO visualization")
+init_page("Exploratory Data Analysis")
 init_session_state()
-st.title('SISMO Signal Processing')
+st.title('Exploratory Data Analysis (EDA)')
+header_eda()
 # -------------------------
+
+st.subheader("Signal visualization")
 
 tab_names = ["SISMO Trend", "SISMO FFT"]
 tabs = st.tabs(tab_names)
@@ -67,7 +70,7 @@ with tabs[0]:
             for channel in channels:
                 S = SISMO(network, station, channel, starttime, endtime,
                         detrend=detrend, windowing=None, merge_method=0,
-                        cpus=1, data_path=st.session_state.config["data_path"],
+                        cpus=1, data_path=st.session_state.config["paths"]["data"],
                         verbose = False)
                 sismos.append(S)
 
@@ -134,7 +137,7 @@ with tabs[1]:
         with loading_space, st.spinner('Creating object'):  
             S = SISMO(network, station, channel, starttime, endtime,
                         detrend=detrend, windowing=windowing, merge_method=0,
-                        cpus=1, data_path=st.session_state.config["data_path"],
+                        cpus=1, data_path=st.session_state.config["paths"]["data"],
                         verbose = False)
 
         with loading_space, st.spinner('Calculating FFTs'):
@@ -143,9 +146,4 @@ with tabs[1]:
         with loading_space, st.spinner('Plotting trace'):
             with COL[1]:
                 plot_fft(S, window_id, ylim, interactive)
-
-
-
-
-
 

@@ -84,7 +84,7 @@ def select_time_rt(key):
         hour = st.number_input("Hours", key=f'hour_{key}',
                                 min_value=0,
                                 max_value=23,
-                                value = st.session_state.config["num_hours_plot"])
+                                value = st.session_state.config["plots"]["num_hours"])
     with col[1]:
         minute = st.number_input("Minutes", key=f'minute_{key}',
                                 min_value=0,
@@ -95,21 +95,23 @@ def select_time_rt(key):
     return time
 
 
-def select_detrend(key):
+def select_detrend(key, default=None):
     detrend_options = [None, 'linear', 'simple', 'constant']
-    detrend = st.selectbox('Detrend method', detrend_options, key=f"detrend_{key}", index=0,
+    index = detrend_options.index(default)
+    detrend = st.selectbox('Detrend method', detrend_options, key=f"detrend_{key}", index=index,
                            help= "Signals are demeaned on a window basis when calculating the STFT on top of this detrend")
     return detrend
 
 
-def select_windowing(key):
+def select_windowing(key, default=False):
     import scipy
 
     windowing_options =  scipy.signal.windows.__all__ 
     if False not in windowing_options:
         windowing_options.append(False)
-    windowing = st.selectbox('Windowing:', windowing_options,
-                                 len(windowing_options)-1, key=f"windowing_{key}")
+
+    index = windowing_options.index(default)
+    windowing = st.selectbox('Windowing:', windowing_options, index=index, key=f"windowing_{key}")
     if windowing != False:
         windowing = scipy.signal.windows.__dict__[windowing]
 
@@ -117,9 +119,9 @@ def select_windowing(key):
 
 def select_window(key):
     col = st.columns(2) 
-    window_size = col[0].number_input('Window length in seconds', value = st.session_state.config["window_size"],
+    window_size = col[0].number_input('Window length in seconds', value = st.session_state.config["features"]["window_size"],
                     key = f"window_size_{key}")
-    window_shift = col[1].number_input('Window shift in seconds', value = st.session_state.config["window_shift"],
+    window_shift = col[1].number_input('Window shift in seconds', value = st.session_state.config["features"]["window_shift"],
                     key = f"window_shift_{key}")
 
     return window_size, window_shift

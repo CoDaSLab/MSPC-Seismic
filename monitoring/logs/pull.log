@@ -1640,3 +1640,11 @@ Process completed. Total time: 0:00:08.621837
 
 ==============================================================
 
+stations: 
+channels: 
+[vie 05 sep 2025 09:50:04 CEST] Dowloading files...
+
+ERROR: Download failed. See /home/gsus/Documentos/GitHub/DigiVolCan/monitoring/logs/pull_error.log.
+
+==============================================================
+

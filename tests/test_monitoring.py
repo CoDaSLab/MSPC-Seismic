@@ -80,8 +80,8 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     # Set starttime and endtime in config
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
-        config["starttime"] = '2025-06-17T12:03:20Z'
-        config["endtime"] = '2025-06-17T12:04:10Z'
+        config["data"]["starttime"] = '2025-06-17T12:03:20Z'
+        config["data"]["endtime"] = '2025-06-17T12:04:10Z'
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 
@@ -99,8 +99,8 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
     # Update starttime and endtime in config
     with open(config_path, "r", encoding="utf-8") as f:
         config = json.load(f)
-        config["starttime"] = '2025-06-17T12:04:10Z'
-        config["endtime"] = '2025-06-17T12:05:00Z'
+        config["data"]["starttime"] = '2025-06-17T12:04:10Z'
+        config["data"]["endtime"] = '2025-06-17T12:05:00Z'
     with open(config_path, "w", encoding="utf-8") as f:
         json.dump(config, f, indent=4)
 

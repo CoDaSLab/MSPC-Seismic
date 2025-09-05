@@ -206,3 +206,25 @@ ValueError: operands could not be broadcast together with shapes (30,1500) (2700
 
 ==============================================================
 
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 395, in <module>
+    monitoring(args.config)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/monitoring/main.py", line 312, in monitoring
+    features = calculate_fft_rt(starttime, endtime, network, station, channels, 
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/preprocessing/fft_rt.py", line 83, in calculate_fft_rt
+    S = SISMO(
+        ^^^^^^
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/preprocessing/SISMO.py", line 97, in __init__
+    self.read_files_in_parallel(filenames)
+  File "/home/gsus/Documentos/GitHub/DigiVolCan/preprocessing/SISMO.py", line 167, in read_files_in_parallel
+    assert len(ST) == 1, "Number of traces in stream should be 1"
+           ^^^^^^^^^^^^
+AssertionError: Number of traces in stream should be 1
+
+[vie 05 sep 2025 09:50:07 CEST] ERROR when monitoring.
+
+==============================================================
+
