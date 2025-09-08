@@ -8,7 +8,7 @@ from scipy.io import savemat, loadmat
 from collections import defaultdict
 
 from preprocessing.fft_rt import calculate_fft_rt, delete_fft, list_fft_files
-from monitoring.mspc_rt import mspc, plot_anomalies
+from monitoring.mspc_rt import mspc, plot_anomalies_DQ
 from monitoring.NOC import NOC
 
 
@@ -335,7 +335,7 @@ def monitoring(config_path = 'config.json'):
                 # Save MSPC plot
                 plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + endtime.strftime('%Y%m%dT%H%M%SZ')
                 plot_filepath = os.path.join(plots_path, plot_filename)
-                plot_anomalies(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
+                plot_anomalies_DQ(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
                             save_path=plot_filepath, show=False)
             
             # Update dynamic NOCs

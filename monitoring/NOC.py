@@ -13,7 +13,7 @@ import os
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
-from mspc_pca.mspc import DQ, DQ_tt, plot_DQ, plot_DQ_tt
+from mspc_pca import mspc, plot
 from scipy.io import savemat
 import csv
 from datetime import datetime, timezone
@@ -234,7 +234,7 @@ class NOC:
         """
         Computes the D and Q-statistics and control limits for MSPC-PCA.
         """
-        self.D, self.Q, self.D_threshold, self.Q_threshold = DQ(self.features, n_components=self.n_components, 
+        self.D, self.Q, self.D_threshold, self.Q_threshold = mspc.DQ(self.features, n_components=self.n_components, 
                                                                  preprocessing=self.preprocessing, alpha=self.alpha, 
                                                                  percentile_threshold=self.percentile_threshold, 
                                                                  type_q=self.q_method, plot=False)
@@ -244,7 +244,32 @@ class NOC:
         if len(self.Q_threshold) == 1:
             self.Q_threshold = self.Q_threshold[0]
 
-    
+    def calculate_T(self, weight=None, norm_quantile=0.5):
+        """
+        Computes the T-scores for MSPC-PCA.
+        T = weight * D / UCL_D + (1 - weight) * Q / UCL_Q
+        UCL_D and UCL_Q are calculated as the norm_quantile quantile and of the D and Q values, respectively
+        Original paper: Computers & Security 87 (2019) 101603
+
+        Parameters
+        ----------
+        weight: float 
+            Weighting factor (between 0 and 1) for T-score. Default is the ratio between
+              number of principal components and the number of variables of the features matrix.
+        norm_quantile: float
+            Quantile used for normalization in the T-score formula. Default is 0.5 (median).
+        
+        Returns
+        -------
+        list: 
+            T-score values.
+        """
+        if weight is None:
+            weight = self.n_components / self.features.shape[1]
+
+        T = mspc.tscore((self.D, self.Q), weight=weight, norm_quantile=norm_quantile)
+        return T
+
     def calculate_DQ_test(self, test, test_labels, missing_rates=None, store_dq=False):
         """
         Computes the D and Q-statistic for test data using NOC features as training.
@@ -273,7 +298,7 @@ class NOC:
             missing_rates = [0.0] * len(test_labels)
 
         # Calculate D and Q
-        _, _, D_test, Q_test, _, _ = DQ_tt(self.features, test, n_components=self.n_components,
+        _, _, D_test, Q_test, _, _ = mspc.DQ_tt(self.features, test, n_components=self.n_components,
                                             preprocessing=self.preprocessing, alpha=self.alpha,
                                             percentile_threshold=self.percentile_threshold,
                                             type_q=self.q_method, plot=False)
@@ -309,6 +334,31 @@ class NOC:
         
         return D_test, Q_test
     
+    def calculate_T_test(self, weight=None, norm_quantile=0.5):
+        """
+        Computes T-scores of test data.
+        T = weight * D / UCL_D + (1 - weight) * Q / UCL_Q
+        UCL_D and UCL_Q are calculated as the norm_quantile quantile and of the 
+        training D and Q values, respectively.
+
+        Parameters
+        ----------
+        weight: float 
+            Weighting factor (between 0 and 1) for T-score. Default is the ratio between
+              number of principal components and the number of variables of the features matrix.
+        norm_quantile: float
+            Quantile used for normalization in the T-score formula. Default is 0.5 (median).
+        
+        Returns
+        -------
+        (T_train, T_test): 
+            Train and test T-score values.
+        """
+        if weight is None:
+            weight = self.n_components / self.features.shape[1]
+
+        T_train, T_test = mspc.tscore_tt((self.D, self.Q), (self.D_test, self.Q_test), weight=weight, norm_quantile=norm_quantile)
+        return T_train, T_test
 
     def delete_DQ_test(self, stop_date = None):
         """
@@ -359,7 +409,7 @@ class NOC:
         axes
             Tuple of two Axes objects, corresponding to the D and Q plots, respectively.
         """
-        fig, axes = plot_DQ(self.D, self.Q, self.D_threshold, self.Q_threshold, labels = self.obs_labels,
+        fig, axes = plot.plot_DQ(self.D, self.Q, self.D_threshold, self.Q_threshold, labels = self.obs_labels,
                             logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
         
         # Format x-axis labels
@@ -450,7 +500,7 @@ class NOC:
                 opacity = [1] * len(self.obs_labels) + opacity
 
         # Plot
-        fig, axes = plot_DQ_tt(self.D, self.Q, D_plot, Q_plot, self.D_threshold, self.Q_threshold, 
+        fig, axes = plot.plot_DQ_tt(self.D, self.Q, D_plot, Q_plot, self.D_threshold, self.Q_threshold, 
                                labels = plot_labels, logscale=logscale, plot_train=plot_train,
                                event_index=event_index, opacity=opacity, ax=ax)
 
@@ -485,6 +535,167 @@ class NOC:
             ax.set_xlim(-1, len(xtimes))
 
         return fig, axes
+
+    
+    def plot_T(self, T, threshold_quantiles=None, logscale=False, event_index=None, opacity=None, ax=None):
+        """
+        Plots T-score and control limits.
+
+        Parameters
+        ----------
+        T (list)
+            T-score values.
+        threshold_quantiles (float)
+            Quantile of the T-values used as threshold. Default is `1 - self.alpha`.
+        logscale (bool) 
+            If True, plots the statistics on a logarithmic scale (default: False).
+        event_index (list)
+            List of indices of observations to highlight in the graph (default: None).
+        opacity (list)
+            Opacity values for each bar in the plot (default: None).
+        ax (Axis)
+            Axes in which to plot (optional, default: None).
+
+        Returns
+        -------
+        fig
+            Matplotlib figure.
+        ax
+            Axes object.
+        """
+        if threshold_quantiles is None:
+            threshold_quantiles = 1 - self.alpha
+        fig, ax = plot.plot_tscore(T, threshold_quantiles, labels = self.obs_labels,
+                                    logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
+        
+        # Format x-axis labels
+        start_day = datetime.strptime(self.obs_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        end_day = datetime.strptime(self.obs_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        if start_day == end_day:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in self.obs_labels]
+        else:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').strftime('%m-%d %H:%M:%S') for label in self.obs_labels]
+        xlabels = []
+        xticks = []
+        if len(xtimes) < 100:
+            tick_step = 6
+        else:
+            n = np.floor(np.log10(len(xtimes) / 100))
+            tick_step = 6 * (5 ** (n + 1))
+
+        for i in range(len(xtimes)):
+            if i % tick_step == (tick_step-1):
+                xticks.append(i + 0.5)
+                xlabels.append(xtimes[i])
+
+        if start_day == end_day:
+            ax.set_xlabel(str(end_day) + " (UTC Time)", loc='right')
+        else:
+            ax.set_xlabel("UTC Time", loc='right')
+        ax.set_xticks(xticks)  # Center the ticks on the bars
+        ax.set_xticks(np.arange(len(self.obs_labels))+0.5, minor=True)  # Center the ticks on the bars
+        ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility
+        ax.set_xlim(-1, len(xtimes))
+
+        return fig, ax
+
+
+    def plot_T_test(self, T_train, T_test, starttime, endtime, threshold_quantiles=None, logscale=False, event_index=None, opacity=None,
+                     plot_train=False, ax=None):
+        """
+        Plots T-scores and control limits for train and test.
+
+        Parameters
+        ----------
+        T_train (list)
+            Training T-scores.
+        T_test (list)
+            Test T-scores.
+        starttime (str or datetime)
+            Start of the time range (UTC) depicted in the plot.
+        endtime (str or datetime)
+            End of the time range (UTC) depicted in the plot.
+        threshold_quantiles (float)
+            Quantile of the T-values used as threshold. Default is `1 - self.alpha`.
+        logscale (bool) 
+            If True, plots the statistics on a logarithmic scale (default: False)
+        event_index (list)
+            List of indices of observations to highlight in the graph (default: None).
+        opacity (list)
+            Opacity values for each bar in the plot. Defaults to using missing rates 
+            as opacity values.
+        plot_train (bool)
+            If True, plots both training and test T values. If False,  only plots
+            tests values (default: False)
+        ax (Axis)
+            Ax in which to plot (optional, default: None).
+
+        Returns
+        -------
+        fig
+            Matplotlib figure.
+        ax
+            Axes object.
+        """
+        # Convert start and end to datetime if they are strings
+        if isinstance(starttime, str):
+            starttime = datetime.strptime(starttime, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        if isinstance(endtime, str):
+            endtime = datetime.strptime(endtime, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+
+        time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in self.test_labels]
+        # Assumes that labels refer to the end time of the window
+        label_indices = [i for i, date in enumerate(time_labels) if starttime < date <= endtime]
+
+        # T values, and labels to plot
+        T_plot = [T_test[i] for i in label_indices]
+        plot_labels = [self.test_labels[i] for i in label_indices]
+
+        if opacity is None:
+            opacity = [1 - self.test_missing_rates[i] for i in label_indices]
+
+        if plot_train:
+            plot_labels = self.obs_labels + plot_labels
+            if opacity is not None:
+                opacity = [1] * len(self.obs_labels) + opacity
+
+        # Plot
+        if threshold_quantiles is None:
+            threshold_quantiles = 1 - self.alpha
+        fig, ax = plot.plot_tscore_tt(T_train, T_plot, threshold_quantiles, labels = plot_labels, 
+                                        logscale=logscale, plot_train=plot_train,
+                                        event_index=event_index, opacity=opacity, ax=ax)
+
+        # Format x-axis labels
+        start_day = datetime.strptime(plot_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        end_day = datetime.strptime(plot_labels[-1], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
+        if start_day == end_day:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').time() for label in plot_labels]
+        else:
+            xtimes = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').strftime('%m-%d %H:%M:%S') for label in plot_labels]
+        xlabels = []
+        xticks = []
+        if len(xtimes) < 100:
+            tick_step = 6
+        else:
+            n = np.floor(np.log10(len(xtimes) / 100))
+            tick_step = 6 * (5 ** (n + 1))
+
+        for i in range(len(xtimes)):
+            if i % tick_step == (tick_step-1):
+                xticks.append(i + 0.5)
+                xlabels.append(xtimes[i])
+
+        if start_day == end_day:
+            ax.set_xlabel(str(end_day) + " (UTC Time)", loc='right')
+        else:
+            ax.set_xlabel("UTC Time", loc='right')
+        ax.set_xticks(xticks)  # Center the ticks on the bars
+        ax.set_xticks(np.arange(len(plot_labels))+0.5, minor=True)  # Center the ticks on the bars
+        ax.set_xticklabels(xlabels, rotation=45, ha='right') # Rotate for better visibility
+        ax.set_xlim(-1, len(xtimes))
+
+        return fig, ax
 
 
     def get_time_range(self):

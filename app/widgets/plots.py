@@ -40,7 +40,7 @@ def plot_signals():
 
 def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
             criterion = 'consecutive', n_consecutive = 3, nocs_path="data/involcan/nocs", interactive=False):
-    from monitoring.mspc_rt import plot_anomalies
+    from monitoring.mspc_rt import plot_anomalies_DQ
     from monitoring.NOC import NOC
     import os
     from datetime import datetime, timezone
@@ -50,7 +50,7 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
     test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
     if test_start <= starttime and endtime <= test_end:
-        fig, _ = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
+        fig, _ = plot_anomalies_DQ(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
                                 criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
 
         if interactive:
@@ -66,7 +66,7 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
 
 def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, criterion = 'consecutive', 
                n_consecutive = 3, nocs_path="data/involcan/nocs", interactive=False):
-    from monitoring.mspc_rt import plot_anomalies
+    from monitoring.mspc_rt import plot_anomalies_DQ
     from monitoring.NOC import NOC
     import os
     from datetime import datetime, timedelta, timezone
@@ -80,7 +80,7 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
     starttime = endtime - time_range
     
     try:
-        fig, ax = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
+        fig, ax = plot_anomalies_DQ(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
                                 criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
         ax[0].set_title("")
         ax[1].set_title("")
@@ -98,29 +98,57 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
     except AssertionError:
         st.error("No recent data available.")
 
-def plot_U_rt(noc_name, time_range=None, logscale=False, plot_train=False, criterion = 'consecutive', 
-               n_consecutive = 3, nocs_path="data/involcan/nocs", interactive=False):
-    from monitoring.mspc_rt import plot_anomalies
+
+def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+                    logscale=False, plot_train=False,criterion = 'consecutive', n_consecutive = 3, 
+                    nocs_path="data/involcan/nocs", interactive=False):
+    from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
     import os
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timezone
+    
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
+    test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
 
-    if time_range is None:
-        time_range = timedelta(hours=st.session_state.config["num_hours_plot"])
+    if test_start <= starttime and endtime <= test_end:
+        fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,
+                                  logscale=logscale, plot_train=plot_train, criterion = criterion, 
+                                  n_consecutive = n_consecutive, save=False, show=False)
+        ax.set_title("")
+        ax.set_ylabel(f"T-score ($\\alpha = {T_weight}$)")
+
+        if interactive:
+            import mpld3
+            import streamlit.components.v1 as components
+            fig_html = mpld3.fig_to_html(fig)
+            components.html(fig_html, height=600)
+        else:
+            st.pyplot(fig)
+    else:
+        st.error("No calculation available for the given time range.")
+
+
+def plot_tscore_rt(noc_name, time_range=None, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+                logscale=False, plot_train=False,criterion = 'consecutive', n_consecutive = 3, 
+                nocs_path="data/involcan/nocs", interactive=False):
+    from monitoring.mspc_rt import plot_anomalies_T
+    from monitoring.NOC import NOC
+    import os
+    from datetime import datetime, timezone
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
 
     endtime = datetime.now(timezone.utc)
     starttime = endtime - time_range
-    
+
     try:
-        fig, ax = plot_anomalies(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
-                                criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
-        ax[0].set_title("")
-        ax[1].set_title("")
-        ax[0].set_ylabel("D-statistic")
-        ax[1].set_ylabel("Q-statistic")
+        fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,
+                                  logscale=logscale, plot_train=plot_train, criterion = criterion, 
+                                  n_consecutive = n_consecutive, save=False, show=False)
+        ax.set_title("")
         fig.suptitle(noc.name)
+        ax.set_ylabel(f"T-score ($\\alpha = {T_weight}$)")
 
         if interactive:
             import mpld3
@@ -145,6 +173,29 @@ def plot_dq_noc(noc_name, logscale=False, nocs_path="data/involcan/nocs", intera
     ax[0].set_ylabel("D-statistic")
     ax[1].set_ylabel("Q-statistic")
     fig.suptitle(noc.name)
+
+    if interactive:
+        import mpld3
+        import streamlit.components.v1 as components
+
+        fig_html = mpld3.fig_to_html(fig)
+        components.html(fig_html, height=600)
+    else:
+        st.pyplot(fig)
+
+
+def plot_tscore_noc(noc_name, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+                    logscale=False, nocs_path="data/involcan/nocs", interactive=False):
+    from monitoring.NOC import NOC
+    import os
+    
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
+    T = noc.calculate_T(T_weight, T_norm_quantile)
+
+    fig, ax = noc.plot_T(T, T_threshold_quantile, logscale=logscale)
+    ax.set_title("")
+    fig.suptitle(noc.name)
+    ax.set_ylabel(f"T-score ($\\alpha = {T_weight}$)")
 
     if interactive:
         import mpld3

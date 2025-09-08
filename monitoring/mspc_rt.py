@@ -1,5 +1,5 @@
 import os
-from mspc_pca.mspc import plot_DQ
+from mspc_pca.plot import plot_DQ
 from datetime import datetime, timedelta, timezone
 import csv
 import numpy as np
@@ -121,9 +121,45 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
     if verbose:
         print(f"Finished all MSPC calculations. Time taken: {datetime.now() - time0}.")
     
-    
 
-def get_anomalies(D_test, Q_test, D_threshold, Q_threshold, 
+def get_anomalies(test, threshold, criterion='consecutive', n_consecutive=3):
+    """
+    Applies a criterion to obtain the indices of anomalous windows given a list of
+    values and threshold.
+
+    Parameters
+    ----------
+    test (list)
+        Test values.
+    threshold (float)
+        Upper control limit for the D-statistic
+    criterion (str)
+        Criterion for considering an observation anomalous.
+        - `'consecutive'` (default): All observations in a group of `n_consecutive` 
+            consecutive observations above the threshold are anomalous.
+    n_consecutive (int)
+        If `criterion == 'consecutive'`, number of consecutive observations
+        above the threshold to be considered an anomaly (default: 3).
+
+    Returns
+    -------
+    anomaly_ids (set)
+        Set of anomaly indices.
+    """
+    n_obs = len(test)
+    anomaly_ids = set()
+    
+    if criterion == 'consecutive':
+        assert n_obs >= n_consecutive, f"At least {n_consecutive} observations are needed, but {n_obs} were given."
+
+        for i in range(n_obs - n_consecutive + 1):
+            if np.all(test[i:i+n_consecutive] > threshold):
+                anomaly_ids.update(np.arange(i, i+n_consecutive))
+
+    return anomaly_ids 
+
+
+def get_anomalies_DQ(D_test, Q_test, D_threshold, Q_threshold, 
                   criterion='consecutive', n_consecutive=3):
     """
     Applies a criterion to obtain the indices of anomalous windows given the D and Q statistics
@@ -131,13 +167,13 @@ def get_anomalies(D_test, Q_test, D_threshold, Q_threshold,
 
     Parameters
     ----------
-    noc.D_test (list)
+    D_test (list)
         D-statistic values.
-    noc.Q_test (list)
+    Q_test (list)
         Q-statistic values.
-    noc.D_threshold (float)
+    D_threshold (float)
         Upper control limit for the D-statistic
-    noc.Q_threshold (float)
+    Q_threshold (float)
         Upper control limit for the Q-statistic
     criterion (str)
         Criterion for considering an observation anomalous.
@@ -173,7 +209,80 @@ def get_anomalies(D_test, Q_test, D_threshold, Q_threshold,
     return anomaly_D_ids, anomaly_Q_ids
 
 
-def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecutive=3, 
+def plot_anomalies_T(noc, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+                     criterion='consecutive', n_consecutive=3, save=True, save_path="data/involcan/nocs/plots", 
+                     opacity=None, plot_train=True, logscale=False, show=False):
+    """
+    Plots T-scores and highlights anomalies (according to a criterion) in a different color.
+
+    Parameters
+    ----------
+    noc (str)
+        NOC instance.
+    starttime (datetime)
+        Start of the time range to plot (UTC)
+    endtime (datetime)
+        End of the time range to plot (UTC)
+    T_weight (float)
+        Weight for T-score calculation.
+    T_norm_quantile (float)
+        Quantile of D and Q values used for normalization in T-score calculation 
+        (default: 0.5).
+    T_threshold_quantile (float)
+        Quantile of T-scores used as threshold for detecting anomalies. `1 - noc.alpha`
+        by default.
+    save (bool)
+        If True, saves the graph in `save_path` (default: True)
+    save_path (str)
+        Path to save the plot.
+    criterion (str)
+        Criterion for considering an observation anomalous.
+        - `'consecutive'` (default): All observations in a group of `n_consecutive` 
+            consecutive observations above the threshold are anomalous.
+            This is the only method implemented so far.
+    n_consecutive (int)
+        If `criterion == 'consecutive'`, number of consecutive observations
+        above the threshold to be considered an anomaly (default: 3).
+    opacity (list or None)
+        Opacity of the bars in the plot. If None, uses rate of missing values 
+        as opacity.
+    plot_train (bool)
+        If True, plots T values for both training and test data. 
+        If False, only plots T for test data.
+    logscale (bool)
+        If True, uses a logarithmic scale (default: False).
+    show (bool)
+        If True, shows graph (default: False).
+    """
+    # Obtain T values to plot
+    T_train, T_test = noc.calculate_T_test(weight=T_weight, norm_quantile=T_norm_quantile)
+    T_threshold = np.quantile(T_train, T_threshold_quantile)
+    time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in noc.test_labels]
+    T_plot = [value for value, date in zip(T_test, time_labels) if starttime < date <= endtime]
+
+    # Get anomalies according to the new criterion
+    anomaly_ids = get_anomalies(T_plot, T_threshold, criterion = criterion, n_consecutive = n_consecutive)
+    anomaly_ids = sorted(list(anomaly_ids))
+    
+    if plot_train:
+        anomaly_ids = [i + len(T_train) for i in anomaly_ids]
+
+    # Plot D and Q values and highlight anomalies
+    event_index = anomaly_ids if len(anomaly_ids) > 0 else None
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
+    fig, axes = noc.plot_T_test(T_train, T_test, starttime, endtime, threshold_quantiles=T_threshold_quantile, 
+                                plot_train=False, logscale=logscale, event_index=event_index, opacity=opacity)
+    plt.tight_layout()
+
+    if save:
+        plt.savefig(os.path.join(save_path))
+    if show:
+        plt.show()
+    
+    return fig, axes
+
+
+def plot_anomalies_DQ(noc, starttime, endtime, criterion='consecutive', n_consecutive=3, 
                    save=True, save_path="data/involcan/nocs/plots", opacity=None,
                    plot_train=True, logscale=False, show=False):
     """
@@ -216,7 +325,7 @@ def plot_anomalies(noc, starttime, endtime, criterion='consecutive', n_consecuti
     Q_plot = [value for value, date in zip(noc.Q_test, time_labels) if starttime < date <= endtime]
 
     # Get anomalies according to the new criterion
-    anomaly_D_ids, anomaly_Q_ids = get_anomalies(D_plot, Q_plot, noc.D_threshold, noc.Q_threshold,
+    anomaly_D_ids, anomaly_Q_ids = get_anomalies_DQ(D_plot, Q_plot, noc.D_threshold, noc.Q_threshold,
                                                  criterion = criterion, n_consecutive = n_consecutive)
     anomaly_ids = sorted(list(anomaly_D_ids.union(anomaly_Q_ids)))
     

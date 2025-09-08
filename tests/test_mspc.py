@@ -4,7 +4,6 @@ from monitoring.NOC import NOC
 from monitoring.mspc_rt import mspc
 import pandas as pd
 import time
-import ast
 
 @pytest.fixture
 def psab_data():
