@@ -256,6 +256,8 @@ def plot_anomalies_T(noc, starttime, endtime, T_weight=None, T_norm_quantile=0.5
     """
     # Obtain T values to plot
     T_train, T_test = noc.calculate_T_test(weight=T_weight, norm_quantile=T_norm_quantile)
+    if T_threshold_quantile is None:
+        T_threshold_quantile = 1 - noc.alpha
     T_threshold = np.quantile(T_train, T_threshold_quantile)
     time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in noc.test_labels]
     T_plot = [value for value, date in zip(T_test, time_labels) if starttime < date <= endtime]

@@ -9,17 +9,18 @@ import pandas as pd
 # -------------------------
 # --- Application start ---
 # -------------------------
-init_page("SISMO visualization")
+init_page("EDA - Signal visualization")
 init_session_state()
-st.title('SISMO Signal Processing')
+st.title('Exploratory Data Analysis (EDA)')
+header_eda()
 # -------------------------
+
+st.subheader("Signal visualization")
 
 tab_names = ["SISMO Trend", "SISMO FFT"]
 tabs = st.tabs(tab_names)
 
-files = load_files()
-files['start_time'] = pd.to_datetime(files['start_time'], utc=True)
-files['end_time'] = pd.to_datetime(files['end_time'], utc=True)
+config = st.session_state.config
 
 # ------------ SISMO Trace ------------
 with tabs[0]:
@@ -32,14 +33,8 @@ with tabs[0]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
 
-        filtered_files = files[(files['start_time']==starttime.replace(hour=0, minute=0, second=0)) 
-                               | (files['end_time']==endtime.replace(hour=0, minute=0, second=0)) ]
-        station_list = pd.unique(filtered_files['station']).tolist()
-
-        if len(station_list) == 0:
-            st.error("No data found for this time range.")
-        
-        network = filtered_files['network'].tolist()[0]
+        station_list = config["data"]["stations"]
+        network = config["data"]["network"]
 
         st.subheader('Data selection')
         station, channels = select_station_multi_channel(key, station_list, ['HHE', 'HHN', 'HHZ'])
@@ -67,7 +62,7 @@ with tabs[0]:
             for channel in channels:
                 S = SISMO(network, station, channel, starttime, endtime,
                         detrend=detrend, windowing=None, merge_method=0,
-                        cpus=1, data_path=st.session_state.config["paths"]["data"],
+                        cpus=1, data_path=config["paths"]["data"],
                         verbose = False)
                 sismos.append(S)
 
@@ -92,14 +87,8 @@ with tabs[1]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
 
-        filtered_files = files[(files['start_time']==starttime.replace(hour=0, minute=0, second=0)) 
-                               | (files['end_time']==endtime.replace(hour=0, minute=0, second=0)) ]
-        station_list = pd.unique(filtered_files['station']).tolist()
-
-        if len(station_list) == 0:
-            st.error("No data found for this time range.")
-        
-        network = filtered_files['network'].tolist()[0]
+        station_list = config["data"]["stations"]
+        network = config["data"]['network']
 
         st.subheader('Data selection')
         station, channel = select_station(key, station_list)
@@ -134,7 +123,7 @@ with tabs[1]:
         with loading_space, st.spinner('Creating object'):  
             S = SISMO(network, station, channel, starttime, endtime,
                         detrend=detrend, windowing=windowing, merge_method=0,
-                        cpus=1, data_path=st.session_state.config["paths"]["data"],
+                        cpus=1, data_path=config["paths"]["data"],
                         verbose = False)
 
         with loading_space, st.spinner('Calculating FFTs'):
@@ -143,9 +132,4 @@ with tabs[1]:
         with loading_space, st.spinner('Plotting trace'):
             with COL[1]:
                 plot_fft(S, window_id, ylim, interactive)
-
-
-
-
-
 

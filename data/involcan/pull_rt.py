@@ -142,7 +142,8 @@ def download_files_rt(starttime, endtime, server, user, network, stations, chann
                         successful_downloads += 1
                         pull_time = datetime.now(timezone.utc)
                     except Exception as e:
-                        print(f"Error downloading {filepath}: {e}")
+                        if verbose:
+                            print(f"Error downloading {filepath}: {e}")
                     else:
                         row = pd.DataFrame({'network' : [network], 'station' : [station], 'channel' : [channel], 'latest_file' : [filename],
                                             'start_time' : [stime], 'latest_pull_time' : [pull_time.strftime('%Y-%m-%dT%H:%M:%SZ')]})

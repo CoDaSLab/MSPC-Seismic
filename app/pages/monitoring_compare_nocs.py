@@ -37,13 +37,14 @@ with col1[0]:
         submit = st.form_submit_button("Plot oMEDA comparison", type='primary', use_container_width=True)
     
     with st.form("dq_noc_selector_comparison"):
-        st.write("##### Plot D and Q statistics for both NOCs:")
+        st.write("##### Plot T-scores for both NOCs:")
         col2 = st.columns(2)
         with col2[0]:
             logscale = st.checkbox("Log scale", value=False, key="logscale_noc_dq_monitoring",
                                             help="Display Y-axis using a logarithmic scale.")
+            weight = st.slider("T-score weight", 0.0, 1.0, step=0.05)
         with col2[1]:
-            submit_dq = st.form_submit_button("Plot D and Q statistics", use_container_width=True)
+            submit_dq = st.form_submit_button("Plot T-scores", use_container_width=True)
 
 with col1[1]:
     if submit:
@@ -56,8 +57,8 @@ if submit_dq:
     col3 = st.columns(2)
     with col3[0]:
         with st.spinner("Plotting results..."):
-            plots.plot_dq_noc(noc1, nocs_path=config["paths"]["nocs"], logscale=logscale)
+            plots.plot_tscore_noc(noc1, T_weight=weight, nocs_path=config["paths"]["nocs"], logscale=logscale)
     
     with col3[1]:
         with st.spinner("Plotting results.."):
-            plots.plot_dq_noc(noc2, nocs_path=config["paths"]["nocs"], logscale=logscale)
+            plots.plot_tscore_noc(noc2, T_weight=weight, nocs_path=config["paths"]["nocs"], logscale=logscale)

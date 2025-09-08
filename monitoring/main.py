@@ -117,13 +117,14 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
         list: List of tuples (NOC name, station).
     """
     noc_names = []
-
-    with open(csv_path, 'r') as csvfile:
-        reader = csv.DictReader(csvfile)
-        for row in reader:
-            station = row['station']
-            if station in stations and row['type'] in noc_types:
-                noc_names.append((row['name'], row['station']))
+ 
+    if os.path.isfile(csv_path):
+        with open(csv_path, 'r') as csvfile:
+            reader = csv.DictReader(csvfile)
+            for row in reader:
+                station = row['station']
+                if station in stations and row['type'] in noc_types:
+                    noc_names.append((row['name'], row['station']))
 
     return noc_names
 
@@ -236,7 +237,7 @@ def monitoring(config_path = 'config.json'):
         avail_stations = avail_stations.intersection(stations)
     except Exception as e:
         print(f"Error retrieving available stations: {e}. Attempting calculation for all stations...")
-        avail_stations = stations
+        avail_stations = set(stations)
 
     # Load Normal Operation Conditions (NOCs) for all available stations
     noc_names = get_noc_names(noc_log_path, avail_stations)
@@ -264,9 +265,9 @@ def monitoring(config_path = 'config.json'):
                 new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
                 new_noc.write_csv(noc_log_path)
 
-                noc_names.append(new_name, station)
-            except:
-                print(f"Not enough data to create NOC for station {station}.")
+                noc_names.append((new_name, station))
+            except Exception as e:
+                print(f"Not enough data to create NOC for station {station}: {e}.")
 
     nocs = defaultdict(list)
     for name, station in noc_names:
@@ -358,7 +359,8 @@ def monitoring(config_path = 'config.json'):
                                 type='dynamic', preprocessing=noc.preprocessing, n_components='auto', 
                                 alpha=noc.alpha, percentile_threshold=noc.percentile_threshold, 
                                 q_method = noc.q_method, csv_path = noc_log_path)
-                    new_noc.set_metadata(window_size, window_shift, detrend, windowing, fft_points, merge_method, merge_fill_value, pad_fill_value)
+                    new_noc.set_metadata(endtime-timedelta(days=num_days_noc_length), endtime, window_size, window_shift, detrend, 
+                                         windowing, fft_points, merge_method, merge_fill_value, pad_fill_value)
                     new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
                     new_noc.write_csv(noc_log_path)
                     

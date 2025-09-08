@@ -105,13 +105,14 @@ def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5
     from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
     import os
-    from datetime import datetime, timezone
+    from datetime import datetime, timedelta, timezone
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
     test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
     test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    window_size = timedelta(seconds=noc.metadata["window_size"])
 
-    if test_start <= starttime and endtime <= test_end:
+    if test_start - window_size <= starttime and endtime <= test_end + window_size:
         fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,
                                   logscale=logscale, plot_train=plot_train, criterion = criterion, 
                                   n_consecutive = n_consecutive, save=False, show=False)
@@ -146,8 +147,7 @@ def plot_tscore_rt(noc_name, time_range=None, T_weight=None, T_norm_quantile=0.5
         fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,
                                   logscale=logscale, plot_train=plot_train, criterion = criterion, 
                                   n_consecutive = n_consecutive, save=False, show=False)
-        ax.set_title("")
-        fig.suptitle(noc.name)
+        ax.set_title(noc.name)
         ax.set_ylabel(f"T-score ($\\alpha = {T_weight}$)")
 
         if interactive:

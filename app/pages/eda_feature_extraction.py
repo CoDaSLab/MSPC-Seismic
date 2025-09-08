@@ -9,15 +9,15 @@ import pandas as pd
 # --- Application start ---
 init_page("EDA - Feature extraction")
 init_session_state()
-st.title("Feature extraction")
+st.title("Exploratory Data Analysis (EDA)")
 header_eda()
 # ------------------------
 
+st.subheader("Feature extraction")
+
 tabs = st.tabs(['Feature Log', 'Extract new features'])
 
-files = load_files()
-files['start_time'] = pd.to_datetime(files['start_time'], utc=True)
-files['end_time'] = pd.to_datetime(files['end_time'], utc=True)
+config = st.session_state.config
 
 with tabs[0]:
     log = pd.read_csv("data/involcan/metadata/feature_log.csv",)
@@ -32,17 +32,11 @@ with tabs[1]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
 
-        filtered_files = files[(files['start_time']==starttime.replace(hour=0, minute=0, second=0)) 
-                            | (files['end_time']==endtime.replace(hour=0, minute=0, second=0)) ]
-        station_list = pd.unique(filtered_files['station']).tolist()
+        station_list = config["data"]["stations"]
+        network = config["data"]["network"]
 
-        if len(station_list) == 0:
-            st.error("No data found for this time range.")
-        
-        network = filtered_files['network'].tolist()[0]
-
-        stations, channels = multi_select_station(key, station_list, channel_list=["HHE", "HHN", "HHZ"], 
-                                                  default_stations=station_list, default_channels=["HHE", "HHN", "HHZ"])
+        stations, channels = multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'], 
+                                                  default_stations=station_list, default_channels=config["data"]["channels"])
 
         st.subheader("Extraction parameters")
         window, shift = select_window(key)

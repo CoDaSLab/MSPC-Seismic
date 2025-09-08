@@ -5,10 +5,13 @@ from widgets.tables import show_table, check_availability, filter_dataframe, che
 from widgets.forms import select_time
 
 # --- Application start ---
-init_page("Digivolcan Database")
+init_page("EDA - Database")
 init_session_state()
-st.title('Digivolcan database dashboard')
+st.title('Exploratory Data Analysis (EDA)')
+header_eda()
 # ------------------------
+
+st.subheader("DigiVolCan database")
 
 # csv files to load
 csv_files = {

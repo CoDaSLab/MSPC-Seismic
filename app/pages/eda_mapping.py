@@ -6,10 +6,13 @@ from widgets.tables import available_stations
 from utils.functions import load_events, load_stations, load_files, read_streams
 
 # --- Application start ---
-init_page("Location Map")
+init_page("EDA - Map")
 init_session_state()
-# st.title('Data mapping')
+st.title('Exploratory Data Analysis (EDA)')
+header_eda()
 # ------------------------
+
+st.subheader("Data mapping")
 
 import folium
 from streamlit_folium import st_folium 

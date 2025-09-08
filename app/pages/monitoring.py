@@ -65,9 +65,10 @@ with col[1]:
                                     key = key + "consecutive_windows", 
                                     help="When the number of consecutive windows over the threshold is greater or equal than this number, " \
                                     "the corresponding windows will be colored red in the graph.")
+            weight = st.slider("T-score weight", 0.0, 1.0, step=0.05)
             
         submit = st.form_submit_button("Plot", type = "primary", use_container_width=True,
-                                        help="Plot D and Q statistics. If no previous calculations exist, check the 'Run calculations' box and try again.")
+                                        help="Plot T-scores. If no previous calculations exist, check the 'Run calculations' box and try again.")
 
 with col[0]:
     # Calculate and display D and Q statistics
@@ -93,6 +94,5 @@ with col[0]:
                                 plot=False, update_log=False, nocs_path=config["paths"]["nocs"], verbose=False)
 
             with st.spinner("Plotting results..."):
-                plots.plot_dq(noc_name, starttime.replace(tzinfo=timezone.utc), endtime.replace(tzinfo=timezone.utc),
-                            logscale=logscale, n_consecutive=n_consecutive, nocs_path = config["paths"]["nocs"])
-                    
+                plots.plot_tscore(noc_name, starttime.replace(tzinfo=timezone.utc), endtime.replace(tzinfo=timezone.utc),
+                                    T_weight=weight, logscale=logscale, n_consecutive=n_consecutive, nocs_path = config["paths"]["nocs"])
