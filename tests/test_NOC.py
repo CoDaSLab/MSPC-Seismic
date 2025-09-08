@@ -242,11 +242,13 @@ def test_calculate_T():
     assert test_data.shape[0] == len(test_labels)
 
     # Calculate D and Q test values
-    _, _ = noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
+    D_test, Q_test = noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
     T_train, T_test = noc.calculate_T_test(weight=0)
-    Q_train = np.array(noc.Q)
+    D_train, Q_train = np.array(noc.D), np.array(noc.Q)
     
-    assert np.all(T_train == np.array(Q_train) / np.median(Q_train))
+    assert np.allclose(noc.Q_test, Q_test)
+    assert np.allclose(T_train, np.array(Q_train) / np.median(Q_train))
+    assert np.allclose(T_test, np.array(Q_test) / np.median(Q_train))
     assert noc.test_labels[0] == '2025-01-01T00:04:10Z'
     assert len(T_test) == test_data.shape[0]
 
