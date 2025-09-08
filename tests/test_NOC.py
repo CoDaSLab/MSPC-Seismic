@@ -220,3 +220,41 @@ def test_compare_NOCs(features, new_features):
     ax.set_ylabel("Changed label", loc="top")
     plt.tight_layout()
     plt.show()
+
+
+def test_calculate_T():
+    # Create training data
+    data = np.random.randn(24, 4)
+    start = datetime(2025,1,1,0,0,0, tzinfo=timezone.utc)
+    end = datetime(2025,1,1,0,4,0, tzinfo=timezone.utc)
+    labels = list(pd.date_range(start, end, data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ'))[1:]  # Exclude the first label
+
+    assert data.shape[0] == len(labels)
+
+    noc = NOC('test_NOC', data, obs_labels=labels, preprocessing=1, n_components=2)
+
+    # Create test data
+    test_data = np.random.rand(6, 4)
+    start = datetime(2025,1,1,0,4,0, tzinfo=timezone.utc)
+    end = datetime(2025,1,1,0,5,0, tzinfo=timezone.utc)
+    test_labels = pd.date_range(start, end, test_data.shape[0]+1).strftime('%Y-%m-%dT%H:%M:%SZ')[1:]  # Exclude the first label
+
+    assert test_data.shape[0] == len(test_labels)
+
+    # Calculate D and Q test values
+    _, _ = noc.calculate_DQ_test(test_data, test_labels, store_dq=True)
+    T_train, T_test = noc.calculate_T_test(weight=0)
+    Q_train = np.array(noc.Q)
+    
+    assert np.all(T_train == np.array(Q_train) / np.median(Q_train))
+    assert noc.test_labels[0] == '2025-01-01T00:04:10Z'
+    assert len(T_test) == test_data.shape[0]
+
+    # Plot D and Q test values
+    noc.plot_T_test(T_train, T_test, start, end, plot_train = False)
+    plt.tight_layout()
+    plt.show()
+
+    noc.plot_T_test(T_train, T_test, start, end, plot_train = True)
+    plt.tight_layout()
+    plt.show()
