@@ -222,7 +222,7 @@ def test_compare_NOCs(features, new_features):
     plt.show()
 
 
-def test_calculate_T():
+def test_NOC_calculate_T():
     # Create training data
     data = np.random.randn(24, 4)
     start = datetime(2025,1,1,0,0,0, tzinfo=timezone.utc)
@@ -258,5 +258,29 @@ def test_calculate_T():
     plt.show()
 
     noc.plot_T_test(T_train, T_test, start, end, plot_train = True)
+    plt.tight_layout()
+    plt.show()
+
+
+def test_NOC_n_components(features):
+    # Create a NOC instance without specifying n_components
+    noc = NOC("test_NOC", features, preprocessing=1)
+    
+    fig, ax = noc.calculate_n_components(plot=True)
+
+    # Find the knee label
+    _, labels = ax.get_legend_handles_labels()
+    knee_labels = [lbl for lbl in labels if lbl.lower().startswith("knee at")]
+
+    assert knee_labels, "There should be a legend entry for the knee line"
+    # Extract the number from the label
+    knee_value = float(knee_labels[0].split(" ")[-1].strip()[:-1])
+
+    # Compare with the computed n_components
+    if knee_value >= 0.5:
+        assert round(knee_value) == noc.n_components
+    else:
+        assert noc.n_components == 1
+
     plt.tight_layout()
     plt.show()

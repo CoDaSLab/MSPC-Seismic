@@ -209,8 +209,12 @@ class NOC:
         return pca_fit
     
     
-    def calculate_n_components(self):
+    def calculate_n_components(self, plot=False, ax=None):
+        """
+        Automatically determines the number of principal components for MSPC-PCA.
+        """
         from kneefinder import KneeFinder
+        from mspc_pca.ckf import ckf
         
         if self.preprocessing == 2:
             scaler = StandardScaler(with_std=True)
@@ -218,16 +222,37 @@ class NOC:
         else:
             X = self.features.copy()
 
-        pca_model = PCA()
-        pca_fit = pca_model.fit(X)
+        pca = PCA()
+        X_fit = pca.fit_transform(X)
 
-        # Find knee in cumulative explained variance
-        data_x = np.arange(len(pca_fit.explained_variance_ratio_))
-        data_y = 1 - np.cumsum(pca_fit.explained_variance_ratio_)
-        kf = KneeFinder(data_x=data_x, data_y=data_y)
+        scores = X_fit
+        loadings = pca.components_
+        ckf_cumpress = ckf(X, scores, loadings.T, plot=False)
+        ckf_cumpress = ckf_cumpress / ckf_cumpress[0]  # Normalize CKF
+
+        # Find knee in ckf
+        data_x = np.arange(len(pca.explained_variance_ratio_) + 1)
+        cumvar = np.array(1 - np.cumsum(pca.explained_variance_ratio_))  # cumulative explained variance
+        cumvar = np.insert(cumvar, 0, 1)
+        kf = KneeFinder(data_x=data_x, data_y=ckf_cumpress)
         knee_x, _ = kf.find_knee()
 
-        self.n_components = min(1, round(knee_x))
+        self.n_components = max(1, round(knee_x))
+
+        if plot:
+            import matplotlib.pyplot as plt
+             # --- Plotting ---
+            if ax is None:
+                fig, ax = plt.subplots(figsize=(6, 4))
+            
+            plot_range = data_x
+            ax.plot(plot_range, cumvar, label="Residual Variance", color='red', marker='o')
+            ax.plot(plot_range, ckf_cumpress, label="CKF", color='blue', marker='o')
+            ax.axvline(x=knee_x, color="black", linestyle="--", label=f"Knee at $x = {knee_x}$")
+            ax.set_xlabel("Number of Principal Components")
+            ax.legend()
+
+            return fig, ax
 
 
     def calculate_DQ(self):
