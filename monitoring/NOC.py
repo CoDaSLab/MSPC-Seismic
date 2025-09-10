@@ -37,7 +37,7 @@ class NOC:
         network (str)
             Network code.
         station (str)
-            Station code.
+            Station code or list of station codes.
         type (str)
             Type of NOC (static or dynamic).
         features (numpy array)
@@ -782,7 +782,10 @@ class NOC:
         print("Information:")
         print(f"    Name: {self.name}")
         print(f"    Network: {self.network}")
-        print(f"    Station: {self.station}")
+        if isinstance(self.station, list):
+            print(f"    Stations: {self.station}")
+        else:
+            print(f"    Station: {self.station}")
         print(f"    NOC type: {self.type}")
         print(f"    Updated on: {self.last_update_time}")
         
@@ -830,7 +833,7 @@ class NOC:
     
 
     @staticmethod
-    def load(filepath):
+    def load(filepath, include_features=True, include_dq=True) -> "NOC":
         """
         Load a NOC from a pickle file.
 
@@ -838,9 +841,26 @@ class NOC:
         ----------
         filepath (str)
             Path to the input file.
+        include_features (bool)
+            Whether to include the feature matrix in the output.
+        include_dq (bool)
+            Whether to include the D and Q statistic values in the output.
+        
+        Returns
+        -------
+        NOC
+            An instance of the NOC class
         """
         with open(filepath, 'rb') as f:
-            return pickle.load(f)
+            noc = pickle.load(f)
+        
+        if not include_features:
+            del noc.features
+        if not include_dq:
+            del noc.D, noc.Q, noc.D_threshold, noc.Q_threshold, 
+            del noc.D_test, noc.Q_test, noc.test.missing_rates, noc.test_labels
+        
+        return noc
         
 
     def write_csv(self, path=None):
@@ -911,7 +931,7 @@ class NOC:
                 writer.writerows(rows)
 
     def __str__(self):
-        return f"NOC class. Name: {self.name}."
+        return f"NOC: {self.name}."
 
 
 # Additional functions

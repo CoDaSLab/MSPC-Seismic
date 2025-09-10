@@ -13,6 +13,7 @@ source ${REPO_DIR}/installation/miniconda3/bin/activate lafragua
 LOG_FILE="${REPO_DIR}/monitoring/logs/pull.log"
 ERROR_FILE="${REPO_DIR}/monitoring/logs/pull_error.log"
 # Read configuration file
+run_monitoring=$(jq -r '.general.run_monitoring' "$CONFIG_FILE")
 server_ip=$(jq -r '.connection.server_IP' "$CONFIG_FILE")
 server_user=$(jq -r '.connection.server_user' "$CONFIG_FILE")
 ssh_key=$(jq -r '.connection.ssh_key_path' "$CONFIG_FILE")
@@ -51,25 +52,28 @@ echo >> "$LOG_FILE"
 
 
 # -- EXECUTE ANOMALY MONITORING CALCULATIONS --
-LOG_FILE="${REPO_DIR}/monitoring/logs/monitoring.log"
-ERROR_FILE="${REPO_DIR}/monitoring/logs/monitoring_error.log"
+if [ "$run_monitoring" = "true" ]; then
 
-echo "[$(date)] Running monitoring script..." >> "$LOG_FILE"
+    LOG_FILE="${REPO_DIR}/monitoring/logs/monitoring.log"
+    ERROR_FILE="${REPO_DIR}/monitoring/logs/monitoring_error.log"
 
-# Run monitoring script
-python -m monitoring.main --config "$CONFIG_FILE" >> "$LOG_FILE" 2>> "$ERROR_FILE"
+    echo "[$(date)] Running monitoring script..." >> "$LOG_FILE"
 
-# In case of error, write messages in ERROR_FILE
-if [ $? -ne 0 ]; then
-    echo >> "$ERROR_FILE"
-    echo "[$(date)] ERROR when monitoring." >> "$ERROR_FILE"
-    echo >> "$ERROR_FILE"
-    echo "==============================================================" >> "$ERROR_FILE"
-    echo >> "$ERROR_FILE"
+    # Run monitoring script
+    python -m monitoring.main --config "$CONFIG_FILE" >> "$LOG_FILE" 2>> "$ERROR_FILE"
+
+    # In case of error, write messages in ERROR_FILE
+    if [ $? -ne 0 ]; then
+        echo >> "$ERROR_FILE"
+        echo "[$(date)] ERROR when monitoring." >> "$ERROR_FILE"
+        echo >> "$ERROR_FILE"
+        echo "==============================================================" >> "$ERROR_FILE"
+        echo >> "$ERROR_FILE"
+        echo >> "$LOG_FILE"
+        echo "ERROR: Monitoring failed. See $ERROR_FILE." >> "$LOG_FILE"
+    fi
+
     echo >> "$LOG_FILE"
-    echo "ERROR: Monitoring failed. See $ERROR_FILE." >> "$LOG_FILE"
+    echo "==============================================================" >> "$LOG_FILE"
+    echo >> "$LOG_FILE"
 fi
-
-echo >> "$LOG_FILE"
-echo "==============================================================" >> "$LOG_FILE"
-echo >> "$LOG_FILE"
