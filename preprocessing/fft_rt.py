@@ -4,6 +4,7 @@ from datetime import datetime, timedelta, timezone
 import numpy as np
 from scipy.io import savemat, loadmat
 from collections import defaultdict
+import json
 
 from preprocessing.SISMO import SISMO
 
@@ -74,7 +75,8 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
 
     features = {'ffts': [], 
                 'deltas_ffts': [],
-                'deltas_deltas_ffts': []}
+                'deltas_deltas_ffts': [],
+                'missing_rates': []}
     
     for station in stations:
         for channel in channels:
@@ -103,7 +105,8 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
             S.fft_bin(fft_points)
             channel_features = {'ffts': np.squeeze(S.fft), 
                                 'deltas_ffts': np.squeeze(S.deltas_fft),
-                                'deltas_deltas_ffts': np.squeeze(S.deltas_deltas_fft)}
+                                'deltas_deltas_ffts': np.squeeze(S.deltas_deltas_fft),
+                                'missing_rates': np.squeeze(S.get_missing_samples(rate=True)).reshape(-1, 1)}
 
             for key, array in channel_features.items():        
                 features[key].append(array)
@@ -124,9 +127,6 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
             features[key] = np.concatenate(features[key], axis=1)
         else:
             features[key] = np.array([])
-
-    # Rate of missing values for every window
-    features['missing_rates'] = np.squeeze(S.get_missing_samples(rate=True))
 
     # Observation labels (window end times)
     n_obs, n_vars = features['ffts'].shape
@@ -326,7 +326,8 @@ def find_features(path, stations, starttime, endtime, feature_types, additional_
             if additional_matches:
                 for key in additional_matches.keys():
                     if 'config' in feat.keys():
-                        if additional_matches[key] != feat["config"][key]:
+                        config = json.loads(feat["config"])
+                        if additional_matches[key] != config[key]:
                             match = False
             if match:                
                 for key in feature_types:

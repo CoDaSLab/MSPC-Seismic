@@ -35,6 +35,7 @@ def test_calculate_fft_multiple_stations():
     assert len(features['var_classes']) == 2000
     assert features['var_classes'][500] == 'PPMA.HHN'
     assert np.unique(features['var_classes']).tolist() == ['PPMA.HHE', 'PPMA.HHN', 'PSAB.HHE', 'PSAB.HHN']
+    assert len(features["missing_rates"]) == 6
     
     
 def test_calculate_fft_with_overlap():
@@ -156,7 +157,7 @@ def fake_feat():
         "var_classes": ["c1", "c2"],
         "obs_labels": ["2023-01-01T00:00:00Z", "2023-01-01T01:00:00Z", "2023-01-01T02:00:00Z"],
         "missing_rates": [0.0, 0.05, 0.0],
-        "config": {"param": "ok"},
+        "config": '{"param": "ok"}',
     }
 
 
@@ -213,7 +214,7 @@ class TestFindFeatures:
     def test_additional_matches_filters(self, mock_loadmat, mock_list_fft, fake_feat):
         """Should discard files if additional_matches does not match"""
         mock_list_fft.return_value = ["fake_file.mat"]
-        fake_feat["config"]["param"] = "other"  # does not match required
+        fake_feat["config"] = '{"param" : "other"}'  # does not match required
         mock_loadmat.return_value = fake_feat
 
         result = find_features(
