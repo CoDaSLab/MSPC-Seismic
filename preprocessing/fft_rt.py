@@ -2,11 +2,12 @@ import os
 import re
 from datetime import datetime, timedelta, timezone
 import numpy as np
-from scipy.io import savemat
+from scipy.io import savemat, loadmat
+from collections import defaultdict
 
 from preprocessing.SISMO import SISMO
 
-def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN', 'HHZ'], 
+def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HHN', 'HHZ'], 
                     window_size=10, window_shift=None, detrend=False, windowing=False, fft_points=256, 
                     merge_method=0, merge_fill_value = None, pad_fill_value=False,
                     data_path="data/involcan/mseed", cpus=1, verbose=False, save=False, 
@@ -20,7 +21,7 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
         starttime (datetime): Start time for data extraction (UTC).
         endtime (datetime): End time for data extraction (UTC).
         network (str): Seismic network identifier.
-        station (str): Station codes.
+        stations (str): Station codes.
         channels (list of str): List of channels (default: ['HHE', 'HHN', 'HHZ']).
         window_size (int): Time window size in seconds (default: 10).
         window_shift (int): Interval between the start of windows in seconds (default: window_size).
@@ -59,6 +60,11 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
 
     assert starttime <= endtime, "Error: Start date cannot be after end date."
 
+    if not isinstance(stations, list):
+        stations = [stations]
+    if not isinstance(channels, list):
+        channels = [channels]
+
     time0 = datetime.now()
     if verbose:
         print(f"Extracting features...")
@@ -70,38 +76,49 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
                 'deltas_ffts': [],
                 'deltas_deltas_ffts': []}
     
-    for channel in channels:
-        if verbose:
-            print(f"""
-                Extracting SISMO features 
-                network: {network}, station: {station}, channel: {channel}
-                from {starttime} to {endtime}
-                window size: {window_size} s
-                window shift: {window_shift} s
-                """)
+    for station in stations:
+        for channel in channels:
+            if verbose:
+                print(f"""
+                    Extracting SISMO features 
+                    network: {network}, station: {station}, channel: {channel}
+                    from {starttime} to {endtime}
+                    window size: {window_size} s
+                    window shift: {window_shift} s
+                    """)
 
-        S = SISMO(
-            network, station, channel, 
-            starttime, endtime, detrend=detrend, windowing=windowing,
-            merge_method=merge_method, merge_fill_value=merge_fill_value,
-            pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
-        )
-        if verbose:
-            S.check()
+            S = SISMO(
+                network, station, channel, 
+                starttime, endtime, detrend=detrend, windowing=windowing,
+                merge_method=merge_method, merge_fill_value=merge_fill_value,
+                pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
+            )
+            if verbose:
+                S.check()
+            
+            # Set window size and overlap
+            S.set_windows(window_size, window_shift)
+
+            # Calculate FFT coefficients
+            S.fft_bin(fft_points)
+            channel_features = {'ffts': np.squeeze(S.fft), 
+                                'deltas_ffts': np.squeeze(S.deltas_fft),
+                                'deltas_deltas_ffts': np.squeeze(S.deltas_deltas_fft)}
+
+            for key, array in channel_features.items():        
+                features[key].append(array)
+
+        # Concatenate features for all channels along the columns
+        for key in features.keys():
+            if features[key]: 
+                features[key] = [np.concatenate(features[key], axis=1)]
         
-        # Set window size and overlap
-        S.set_windows(window_size, window_shift)
+        if save:
+            file_name = station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
+            mat_path = os.path.join(save_path, file_name).replace('\\', '/')
+            savemat(mat_path, features)
 
-        # Calculate FFT coefficients
-        S.fft_bin(fft_points)
-        channel_features = {'ffts': np.squeeze(S.fft), 
-                            'deltas_ffts': np.squeeze(S.deltas_fft),
-                            'deltas_deltas_ffts': np.squeeze(S.deltas_deltas_fft)}
-
-        for key, array in channel_features.items():        
-            features[key].append(array)
-
-    # Concatenate features for all channels along the columns
+    # Concatenate features for all stations along the columns
     for key in features.keys():
         if features[key]: 
             features[key] = np.concatenate(features[key], axis=1)
@@ -117,20 +134,19 @@ def calculate_fft_rt(starttime, endtime, network, station, channels=['HHE', 'HHN
     features['obs_labels'] = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in window_times]
 
     # Variable labels (frequencies)
-    n_vars_per_channel = n_vars // len(channels)
-    frequencies = np.round(np.linspace(S.fmin, S.fmax, n_vars), 4)
-    features['var_labels'] = frequencies.tolist() * len(channels)
+    n_vars_per_channel = n_vars // (len(channels) * len(stations))
+    frequencies = np.round(np.linspace(S.fmin, S.fmax, n_vars_per_channel), 4)
+    features['var_labels'] = frequencies.tolist() * (len(channels) * len(stations))
 
     # Variable classes (channels)
-    features['var_classes'] = [ch for ch in channels for _ in range(n_vars_per_channel)]
+    if len(stations) > 1:
+        channel_labels = [st + '.' + ch for st in stations for ch in channels]
+    else:
+        channel_labels = channels
+    features['var_classes'] = [ch for ch in channel_labels for _ in range(n_vars_per_channel)]
 
     if verbose:
         print(f"Extracted FFT coefficients. Time taken: {datetime.now() - time0}")
-
-    if save:
-        file_name = station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
-        mat_path = os.path.join(save_path, file_name).replace('\\', '/')
-        savemat(mat_path, features)
 
     return features
 
@@ -196,7 +212,7 @@ def delete_fft(path, station, starttime, endtime, verbose = False):
         print(f"An unexpected error occurred: {e}")
 
 
-def list_fft_files(path, station, starttime, endtime, verbose=False):
+def list_fft_files(path, station, starttime, endtime, intersect=False, verbose=False):
     """
     Lists .mat files in a directory that match a station name and fall within a date range.
 
@@ -206,6 +222,8 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
         station (str): Name of the station.
         starttime (str or datetime): The start date of the range (UTC).
         endtime (str or datetime): The end date of the range (UTC).
+        intersect (bool): Whether to include files that intersect with the date range
+            but do not fall completely within the time range.
         verbose (bool): Whether to print information about matched files.
 
     Returns
@@ -233,10 +251,16 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
                     file_start = datetime.strptime(file_start_str, '%Y-%m-%dT%H-%M-%SZ').replace(tzinfo=timezone.utc)
                     file_end = datetime.strptime(file_end_str, '%Y-%m-%dT%H-%M-%SZ').replace(tzinfo=timezone.utc)
 
-                    if file_start >= starttime and file_end <= endtime:
-                        matching_files.append(filename)
-                        if verbose:
-                            print(f"Matched file: {filename}")
+                    if intersect: 
+                        if file_start <= endtime and file_end >= starttime:
+                            matching_files.append(filename)
+                            if verbose:
+                                print(f"Matched file: {filename}")
+                    else:
+                        if file_start >= starttime and file_end <= endtime:
+                            matching_files.append(filename)
+                            if verbose:
+                                print(f"Matched file: {filename}")
 
                 except ValueError:
                     if verbose:
@@ -251,3 +275,134 @@ def list_fft_files(path, station, starttime, endtime, verbose=False):
         print(f"An unexpected error occurred: {e}")
 
     return sorted(matching_files)
+
+
+def find_features(path, stations, starttime, endtime, feature_types, additional_matches:dict=None, verbose:bool=False):
+    """
+    Reads feature files from a given list of stations and time range in the specified path and returns 
+    the corresponding features dictionary.
+
+    Parameters
+    ----------
+    path (str): Path to the directory containing the files.
+    stations (str): Name of the stations.
+    starttime (str or datetime): The start date of the range (UTC).
+    endtime (str or datetime): The end date of the range (UTC).
+    feature_types (list): List of features (e.g. "ffts") to retrieve.
+    additional_matches (dict): Other parameters that the file needs to match. Default is None.
+    verbose (bool): Whether to print information about matched files. Default is False.
+
+    Returns
+    -------
+    dict: features object (similar to the output of calculate_fft_rt)
+    """
+    if isinstance(starttime, str):
+        starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+    if isinstance(endtime, str):
+        endtime = datetime.strptime(endtime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
+
+    assert starttime <= endtime, "Error: Start date cannot be after end date."
+
+    if isinstance(stations, str):
+        stations = [stations]
+    
+    # Initialize features dictionary
+    features_all = {}
+    features = {}
+    avail_stations = []
+
+    for station in stations:
+        features[station] = defaultdict(list)
+
+        # Find feature files
+        files = list_fft_files(path, station, starttime, endtime, intersect=True, verbose=verbose)
+        first_match = True
+        for file in files:
+            # Load file         
+            feat = loadmat(file)
+
+            # Check additional matches
+            match = True
+            if additional_matches:
+                for key in additional_matches.keys():
+                    if 'config' in feat.keys():
+                        if additional_matches[key] != feat["config"][key]:
+                            match = False
+            if match:                
+                for key in feature_types:
+                    features[station][key].append(feat[key])
+
+                if first_match:
+                    features[station]["var_labels"] = feat["var_labels"]
+                    features[station]["var_classes"] = feat["var_classes"]
+                    first_match = False
+                features[station]["obs_labels"].extend(feat["obs_labels"])
+                features[station]["missing_rates"].extend(feat["missing_rates"])
+                
+        if files and not first_match:
+            # Filter dates and remove duplicates
+            obs = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in features[station]["obs_labels"]]
+            obs_idx = [i for i, label in enumerate(obs) if label > starttime and label <= endtime]
+            features[station]["obs_labels"] = [label for i, label in enumerate(features[station]["obs_labels"]) if i in obs_idx]
+            features[station]["missing_rates"] = [label for i, label in enumerate(features[station]["missing_rates"]) if i in obs_idx]
+            features[station]["obs_labels"], unique_idx = np.unique(features[station]["obs_labels"], return_index=True)
+            features[station]["missing_rates"] = np.array(features[station]["missing_rates"])[unique_idx]
+            
+            for key in feature_types:
+                features[station][key] = np.vstack(features[station][key])
+                features[station][key] = features[station][key][obs_idx, :]
+                features[station][key] = features[station][key][unique_idx, :]
+            
+            if np.mean(features[station]["missing_rates"]) < 0.1:
+                avail_stations.append(station)
+        
+    if not avail_stations:
+        if verbose:
+            print("No features available for the given time range.")
+        return {}
+
+    # Combine observation labels
+    all_obs = sorted(set().union(*[features[st]["obs_labels"] for st in avail_stations]))
+    all_obs = np.array(all_obs)
+    features_all["obs_labels"] = all_obs
+
+    # Combine features
+    for key in feature_types:
+        station_blocks = []
+        for st in avail_stations:
+            st_obs = np.array(features[st]["obs_labels"])
+            idx_map = {obs: i for i, obs in enumerate(st_obs)}
+
+            data = features[st][key]
+            n_var = data.shape[1]
+            aligned_data = np.zeros((len(all_obs), n_var))
+            for i, obs in enumerate(all_obs):
+                if obs in idx_map:
+                    aligned_data[i, :] = data[idx_map[obs], :]
+            station_blocks.append(aligned_data)
+
+        features_all[key] = np.hstack(station_blocks)
+    
+    # Combine missing rates
+    mr_blocks = []
+    for st in avail_stations:
+        st_obs = np.array(features[st]["obs_labels"])
+        idx_map = {obs: i for i, obs in enumerate(st_obs)}
+
+        aligned_missing = np.ones(len(all_obs))
+        for i, obs in enumerate(all_obs):
+            if obs in idx_map:
+                aligned_missing[i] = features[st]["missing_rates"][idx_map[obs]]
+        mr_blocks.append(aligned_missing.reshape(-1, 1))
+    features_all["missing_rates"] = np.mean(np.hstack(mr_blocks), axis=1)
+
+    # Combine variable labels and classes
+    all_var_labels = []
+    all_var_classes = []
+    for st in avail_stations:
+        all_var_labels.extend(features[st]["var_labels"])
+        all_var_classes.extend([f"{st}.{lbl}" for lbl in features[st]["var_classes"]])
+    features_all["var_labels"] = np.array(all_var_labels)
+    features_all["var_classes"] = np.array(all_var_classes)
+    
+    return features_all
