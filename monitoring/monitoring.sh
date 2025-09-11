@@ -13,7 +13,7 @@ source ${REPO_DIR}/installation/miniconda3/bin/activate lafragua
 LOG_FILE="${REPO_DIR}/monitoring/logs/pull.log"
 ERROR_FILE="${REPO_DIR}/monitoring/logs/pull_error.log"
 # Read configuration file
-run_monitoring=$(jq -r '.general.run_monitoring' "$CONFIG_FILE")
+auto_monitoring=$(jq -r '.general.auto_monitoring' "$CONFIG_FILE")
 server_ip=$(jq -r '.connection.server_IP' "$CONFIG_FILE")
 server_user=$(jq -r '.connection.server_user' "$CONFIG_FILE")
 ssh_key=$(jq -r '.connection.ssh_key_path' "$CONFIG_FILE")
@@ -52,7 +52,7 @@ echo >> "$LOG_FILE"
 
 
 # -- EXECUTE ANOMALY MONITORING CALCULATIONS --
-if [ "$run_monitoring" = "true" ]; then
+if [ "$auto_monitoring" = "true" ]; then
 
     LOG_FILE="${REPO_DIR}/monitoring/logs/monitoring.log"
     ERROR_FILE="${REPO_DIR}/monitoring/logs/monitoring_error.log"

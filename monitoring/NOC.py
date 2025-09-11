@@ -209,9 +209,10 @@ class NOC:
         return pca_fit
     
     
-    def calculate_n_components(self, plot=False, ax=None):
+    def calculate_n_components(self, max_components=None, method='var', plot=False, ax=None):
         """
-        Automatically determines the number of principal components for MSPC-PCA.
+        Automatically determines the number of principal components for MSPC-PCA by finding
+        a knee in the CKF function (method='ckf') or the residual variance (method='var')
         """
         from kneefinder import KneeFinder
         from mspc_pca.ckf import ckf
@@ -222,19 +223,22 @@ class NOC:
         else:
             X = self.features.copy()
 
-        pca = PCA()
+        pca = PCA(n_components=max_components)
         X_fit = pca.fit_transform(X)
 
         scores = X_fit
         loadings = pca.components_
-        ckf_cumpress = ckf(X, scores, loadings.T, plot=False)
-        ckf_cumpress = ckf_cumpress / ckf_cumpress[0]  # Normalize CKF
-
-        # Find knee in ckf
         data_x = np.arange(len(pca.explained_variance_ratio_) + 1)
-        cumvar = np.array(1 - np.cumsum(pca.explained_variance_ratio_))  # cumulative explained variance
-        cumvar = np.insert(cumvar, 0, 1)
-        kf = KneeFinder(data_x=data_x, data_y=ckf_cumpress)
+
+        if method == 'ckf':
+            ckf_cumpress = ckf(X, scores, loadings.T, plot=False)
+            data_y = ckf_cumpress / ckf_cumpress[0]  # Normalize CKF
+        elif method == 'var':
+            res_var = np.array(1 - np.cumsum(pca.explained_variance_ratio_))  # residual variance
+            data_y = np.insert(res_var, 0, 1)
+        
+        # Find knee
+        kf = KneeFinder(data_x=data_x, data_y=data_y)
         knee_x, _ = kf.find_knee()
 
         self.n_components = max(1, round(knee_x))
@@ -246,8 +250,7 @@ class NOC:
                 fig, ax = plt.subplots(figsize=(6, 4))
             
             plot_range = data_x
-            ax.plot(plot_range, cumvar, label="Residual Variance", color='red', marker='o')
-            ax.plot(plot_range, ckf_cumpress, label="CKF", color='blue', marker='o')
+            ax.plot(data_x, data_y, label="Residual Variance" if method=='var' else "ckf", color='red', marker='o')
             ax.axvline(x=knee_x, color="black", linestyle="--", label=f"Knee at $x = {knee_x}$")
             ax.set_xlabel("Number of Principal Components")
             ax.legend()
@@ -857,7 +860,7 @@ class NOC:
         if not include_features:
             del noc.features
         if not include_dq:
-            del noc.D, noc.Q, noc.D_threshold, noc.Q_threshold, 
+            del noc.D, noc.Q, noc.D_threshold, noc.Q_threshold
             del noc.D_test, noc.Q_test, noc.test.missing_rates, noc.test_labels
         
         return noc

@@ -1,12 +1,12 @@
 {
     "general": {
-        "run_monitoring": false,
+        "auto_monitoring": true,
         "update_frequency": 5,
         "delay": 5,
         "num_days_before_delete": 30,
         "num_days_noc_update_frequency": 1,
         "num_days_noc_length": 7,
-        "verbose": true
+        "verbose": false
     },
     "data": {
         "network": "C7",

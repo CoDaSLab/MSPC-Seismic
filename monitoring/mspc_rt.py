@@ -209,7 +209,7 @@ def get_anomalies_DQ(D_test, Q_test, D_threshold, Q_threshold,
     return anomaly_D_ids, anomaly_Q_ids
 
 
-def plot_anomalies_T(noc, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
                      criterion='consecutive', n_consecutive=3, save=True, save_path="data/involcan/nocs/plots", 
                      opacity=None, plot_train=True, logscale=False, show=False):
     """

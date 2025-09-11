@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import ast
 import csv
 import numpy as np
 from datetime import datetime, timedelta, timezone
@@ -122,9 +123,19 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
         with open(csv_path, 'r') as csvfile:
             reader = csv.DictReader(csvfile)
             for row in reader:
-                station = row['station']
-                if station in stations and row['type'] in noc_types:
-                    noc_names.append((row['name'], row['station']))
+                try:
+                    # In case the row["station"] is a list of stations
+                    station = ast.literal_eval(row["station"])
+                except (ValueError, SyntaxError):
+                    station = row["station"]
+                
+                if isinstance(station, list):
+                    stations_in_list = station[station in stations]
+                    if len(stations_in_list) > 0:
+                        noc_names.append((row['name'], stations_in_list))
+                else:
+                    if np.all(station in stations) and row['type'] in noc_types:
+                        noc_names.append((row['name'], station))
 
     return noc_names
 
@@ -256,18 +267,25 @@ def monitoring(config_path = 'config.json'):
                 features = calculate_fft_rt(noc_start, noc_end, network, station, channels, 
                                             window_size, window_shift, detrend=detrend, windowing=windowing, fft_points=fft_points, 
                                             merge_method=merge_method, merge_fill_value=merge_fill_value,
-                                            pad_fill_value = pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
+                                            pad_fill_value=pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
                 # Create new NOC
-                new_name = station + '_' + 'd' + '_' + noc_end.strftime('%Y-%m-%d')
-                new_noc = NOC(new_name, features['ffts'], features['obs_labels'], network, station, type='dynamic',
-                        preprocessing = 1, n_components = 'auto', alpha = 0.01, percentile_threshold=True, csv_path=noc_log_path)
-                new_noc.set_metadata(noc_start, noc_end, window_size, window_shift, detrend, windowing, fft_points, merge_method, merge_fill_value, pad_fill_value)
+                if isinstance(station, list):
+                    new_name = "-".join(station) + '_' + 'd' + '_' + noc_end.strftime('%Y-%m-%d')
+                else:
+                    new_name = station + '_' + 'd' + '_' + noc_end.strftime('%Y-%m-%d')
+                new_features = np.hstack([features[key] for key in feature_types])
+                new_noc = NOC(new_name, new_features, features['obs_labels'], network, station, type='dynamic',
+                              preprocessing = 1, n_components = 'auto', alpha = 0.01, percentile_threshold=True, csv_path=noc_log_path)
+                new_noc.set_metadata(noc_start, noc_end, window_size, window_shift, detrend, windowing, fft_points, 
+                                     merge_method, merge_fill_value, pad_fill_value)
                 new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
                 new_noc.write_csv(noc_log_path)
 
                 noc_names.append((new_name, station))
+
+                del features, new_features, new_noc
             except Exception as e:
-                print(f"Not enough data to create NOC for station {station}: {e}.")
+                print(f"NOC for station {station} could not be created: {e}.")
 
     nocs = defaultdict(list)
     for name, station in noc_names:
@@ -287,8 +305,8 @@ def monitoring(config_path = 'config.json'):
     for station in avail_stations:
         # If previous runs failed, attempt to recalculate features. Only attempts to recalculate up to 10 failed runs
         max_failed_runs = 10
-        previous_files = list_fft_files(features_path, station, 
-                                        starttime - timedelta(minutes=max_failed_runs * update_frequency), starttime)
+        previous_files = list_fft_files(features_path, station, starttime - timedelta(minutes=max_failed_runs * update_frequency), 
+                                        starttime, verbose=verbose)
         i = 1
         previous_success = False
         while i <= len(previous_files) and not previous_success:
@@ -317,7 +335,11 @@ def monitoring(config_path = 'config.json'):
 
         # Save features files
         features['config'] = config_str
-        file_name = station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
+        if isinstance(station, list):
+            file_station = "-".join(station)
+        else:
+            file_station = station
+        file_name = file_station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
         mat_path = os.path.join(features_path, file_name).replace('\\', '/')
         savemat(mat_path, features)
 
@@ -341,7 +363,7 @@ def monitoring(config_path = 'config.json'):
             
             # Update dynamic NOCs
             last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-            if noc.type == 'dynamic':
+            if noc.type != 'static':
                 if update_start > last_noc_update:
                     # Get paths of the feature files to update NOCs
                     filenames = list_fft_files(features_path, station, endtime-timedelta(days=num_days_noc_length), endtime, verbose=verbose)
@@ -354,7 +376,10 @@ def monitoring(config_path = 'config.json'):
                             new_labels.extend(file['obs_labels'])
 
                     # Create new NOC
-                    new_name = noc.station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
+                    if isinstance(station, list):
+                        new_name = "-".join(station) + '_' + 'd' + '_' + noc_end.strftime('%Y-%m-%d')
+                    else:
+                        new_name = station + '_' + 'd' + '_' + starttime.strftime('%Y-%m-%d')
                     new_noc = NOC(new_name, new_features, new_labels, network=network, station=station,
                                 type='dynamic', preprocessing=noc.preprocessing, n_components='auto', 
                                 alpha=noc.alpha, percentile_threshold=noc.percentile_threshold, 

@@ -1,6 +1,6 @@
 {
     "general": {
-        "run_monitoring": false,
+        "auto_monitoring": false,
         "update_frequency": 5,
         "delay": 5,
         "num_days_before_delete": 10,

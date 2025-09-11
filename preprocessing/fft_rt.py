@@ -81,13 +81,12 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     for station in stations:
         for channel in channels:
             if verbose:
-                print(f"""
-                    Extracting SISMO features 
-                    network: {network}, station: {station}, channel: {channel}
-                    from {starttime} to {endtime}
-                    window size: {window_size} s
-                    window shift: {window_shift} s
-                    """)
+                print(
+                    f"Extracting SISMO features\n"
+                    f"  network: {network}, station: {station}, channel: {channel}\n"
+                    f"  from {starttime} to {endtime}\n"
+                    f"  window size: {window_size} s, window shift: {window_shift} s."
+                )
 
             S = SISMO(
                 network, station, channel, 
@@ -111,22 +110,14 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
             for key, array in channel_features.items():        
                 features[key].append(array)
 
-        # Concatenate features for all channels along the columns
-        for key in features.keys():
-            if features[key]: 
-                features[key] = [np.concatenate(features[key], axis=1)]
-        
-        if save:
-            file_name = station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
-            mat_path = os.path.join(save_path, file_name).replace('\\', '/')
-            savemat(mat_path, features)
-
     # Concatenate features for all stations along the columns
     for key in features.keys():
         if features[key]: 
             features[key] = np.concatenate(features[key], axis=1)
         else:
             features[key] = np.array([])
+
+    features["missing_rates"] = np.mean(features["missing_rates"], axis=1)
 
     # Observation labels (window end times)
     n_obs, n_vars = features['ffts'].shape
@@ -144,6 +135,11 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     else:
         channel_labels = channels
     features['var_classes'] = [ch for ch in channel_labels for _ in range(n_vars_per_channel)]
+
+    if save:
+        file_name = "-".join(station) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
+        mat_path = os.path.join(save_path, file_name).replace('\\', '/')
+        savemat(mat_path, features)
 
     if verbose:
         print(f"Extracted FFT coefficients. Time taken: {datetime.now() - time0}")

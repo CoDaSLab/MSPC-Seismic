@@ -1245,8 +1245,11 @@ class HDAS:
                  for sp in range(len(self.sps))
                  for window_id in range(self.n_windows)]
 
-        pool = mp.Pool(self.cpus)
-        results = pool.starmap(self._fft_bin, tasks)
+        if self.cpus == 1:
+            results = [self._fft_bin(*task) for task in tasks]
+        else:
+            with mp.Pool(self.cpus) as pool:
+                results = pool.starmap(self._fft_bin, tasks)
 
         # Compile the results
         result_id = 0
