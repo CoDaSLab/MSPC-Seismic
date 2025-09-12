@@ -23,8 +23,8 @@ import pickle
 class NOC:
     def __init__(self, name:str, features:np.ndarray, obs_labels:list = None, 
                  network:str = "", station:str = "", type:str = "", preprocessing:int = 1, 
-                 n_components:int = None, alpha:float = 0.01, percentile_threshold:bool = True, 
-                 q_method:str = 'Jackson', csv_path:str = None):
+                 n_components:int = None, quantile_threshold:float = 0.01, 
+                 csv_path:str = None):
         """
         Stores and updates information associated with the Normal Operation Conditions (NOC) for
         real-time monitoring using Principal Component Analysis-based Multivariate Statistical 
@@ -50,21 +50,12 @@ class NOC:
                 2: centering and scaling
         n_components (int)
             Number of principal components to compute and used for MSPC.
+            'auto' for automatic calculation of the number of components.
             Default is `min(features.shape)`.
-        alpha (float)
-            Significance level. Used for percentile calculation if `percentile_threshold == True`.
-            Default ia 0.01.
-        percentile_threshold (bool)
-            If True, computes the control limits as the `(1 - alpha) * 100` percentile of the 
-            D and Q values for the training data. If False, uses methods by Tracy et al. (1992)
-            for D, and Box (1954) or Jackson and Mudholkar (1979) for Q. Default is True.
-        q_method (str)
-            Method for Q control limit. Only used if percentile_threshold = False.
-                - 'Box' for Box (1954)
-                - 'Jackson' for Jackson and Mudholkar (1979) (default)
+        quantile_threshold (float)
+            Quantile of the D and Q values used as threshold. Default is 0.99.
         csv_path (str)
             Path to a CSV file for writing NOC information.
-
         """
         # Parameter check
         if not isinstance(features, np.ndarray):
@@ -79,26 +70,30 @@ class NOC:
         self.station = station
         self.type = type
         self.features = features
+        self.features_shape = features.shape
         if obs_labels is not None:
             self.obs_labels = list(obs_labels)
         else:
-            self.obs_labels = [""] * self.features.shape[0]
-        
-        self.get_time_range()
+            self.obs_labels = [""] * self.features_shape[0]
+            
+        # Features metadata
+        self.metadata = {}
+        self.time_range = []
 
         self.preprocessing = preprocessing
         if n_components:
             self.n_components = n_components
         else: 
             self.n_components = np.min(features.shape)
-        self.alpha = alpha
-        self.percentile_threshold = percentile_threshold
-        self.q_method = q_method
+        self.quantile_threshold = quantile_threshold
         self.csv_path = csv_path
 
         # Find number of components
         if n_components == 'auto':
             self.calculate_n_components()
+
+        self.D = []
+        self.Q = []
         
         # Attributes for test data
         self.D_test = []
@@ -106,57 +101,7 @@ class NOC:
         self.test_labels = []
         self.test_missing_rates = []
 
-        # Features metadata
-        self.metadata = {}
-
         # Calculate D and Q statistics
-        self.calculate_DQ()
-
-        self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
-
-
-    def update(self, new_features=None, new_obs_labels=[], delete_old=True):
-        """
-        Updates the NOC's features, and recalculates the PCA model and D and Q statistics. If new features are provided, 
-        they are appended to the previously existing features matrix.
-
-        Parameters
-        ----------
-        new_features (numpy array)
-            2D matrix containing new features to append to the previously existing feature matrix.
-            Default is None.
-        new_obs_labels (list)
-            Observation (row) labels for `new_features`.
-        delete_old (bool)
-            If True, the first rows of the previous feature matrix will be replaced, so the
-            updated features matrix will have the same shape as the previously existing one.
-            Default is True.
-        """
-        # Check new features and labels
-        num_rows, num_cols = self.features.shape
-        if new_features is None:
-            new_features = np.empty((0, num_cols))
-
-        num_new_rows, num_new_cols = new_features.shape
-        assert num_new_cols == num_cols, f"New features matrix has {num_new_cols} columns but should have {num_cols} columns."
-
-        if len(new_obs_labels) > 0:
-            assert len(new_obs_labels) == num_new_rows, f"Parameter new_obs_labels has length {len(new_obs_labels)}, but should have length {num_new_rows}."
-
-        # Delete old features 
-        if delete_old and num_new_rows <= num_rows:
-            self.features = np.delete(self.features, np.arange(num_new_rows), axis=0)
-            self.obs_labels = self.obs_labels[num_new_rows:]
-
-        # Add new features
-        self.features = np.vstack((self.features, new_features))
-        if len(new_obs_labels) > 0:
-            self.obs_labels.extend(new_obs_labels)
-        else:
-            self.obs_labels.extend([""] * num_new_rows)
-        self.get_time_range()
-
-        # Update D and Q statistics
         self.calculate_DQ()
 
         self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
@@ -185,28 +130,6 @@ class NOC:
         self.metadata["pad_fill_value"] = pad_fill_value
 
         self.time_range = [starttime, endtime]
-
-
-    def pca(self, n_components=None):
-        """
-        Computes a PCA model from the features matrix.
-        """
-        if n_components is None:
-            n_components = self.n_components
-            
-        if self.preprocessing == 2:
-            scaler = StandardScaler(with_std=True)
-            X = scaler.fit_transform(self.features)
-        else:
-            X = self.features.copy()
-
-        pca_model = PCA(n_components=self.n_components)
-        pca_fit = pca_model.fit(X)
-       
-        # scores = pca_fit.transform(X)
-        # loadings = pca_fit.components_.T
-
-        return pca_fit
     
     
     def calculate_n_components(self, max_components=None, method='var', plot=False, ax=None):
@@ -249,7 +172,6 @@ class NOC:
             if ax is None:
                 fig, ax = plt.subplots(figsize=(6, 4))
             
-            plot_range = data_x
             ax.plot(data_x, data_y, label="Residual Variance" if method=='var' else "ckf", color='red', marker='o')
             ax.axvline(x=knee_x, color="black", linestyle="--", label=f"Knee at $x = {knee_x}$")
             ax.set_xlabel("Number of Principal Components")
@@ -262,15 +184,42 @@ class NOC:
         """
         Computes the D and Q-statistics and control limits for MSPC-PCA.
         """
-        self.D, self.Q, self.D_threshold, self.Q_threshold = mspc.DQ(self.features, n_components=self.n_components, 
-                                                                 preprocessing=self.preprocessing, alpha=self.alpha, 
-                                                                 percentile_threshold=self.percentile_threshold, 
-                                                                 type_q=self.q_method, plot=False)
-        if len(self.D_threshold) == 1:
-            self.D_threshold = self.D_threshold[0]
+        if len(self.D) > 0 and len(self.Q) > 0:
+            return
         
-        if len(self.Q_threshold) == 1:
-            self.Q_threshold = self.Q_threshold[0]
+        # Preprocessing
+        self.mean = np.mean(self.features, axis=0)
+        self.std = np.std(self.features, axis=0, ddof=1) # Bessel's correction, shouldn't affect results but is mathematically correct
+        if self.preprocessing == 1:
+            X_norm = self.features - self.mean
+        elif self.preprocessing == 2:
+            X_norm = (self.features - self.mean) / self.std
+
+        # PCA
+        pca = PCA(n_components=self.n_components)
+        scores = pca.fit_transform(X_norm)
+        self.pca = pca
+
+        self.score_mean = np.mean(scores, axis=0)
+        self.score_std = np.std(scores, axis=0, ddof=1)
+        self.D = np.sum(((scores - self.score_mean) / self.score_std) ** 2, axis=1)
+
+        X_norm_reconstructed = pca.inverse_transform(scores)
+        residuals = X_norm - X_norm_reconstructed
+        self.Q = np.sum(residuals ** 2, axis=1)
+
+        # Thresholds
+        quantile_threshold = self.quantile_threshold
+        if np.isscalar(quantile_threshold):
+            self.D_threshold = np.percentile(self.D, 100 * (1 - quantile_threshold))
+            self.Q_threshold = np.percentile(self.Q, 100 * (1 - quantile_threshold))
+        else:
+            self.D_threshold = []
+            self.Q_threshold = []
+            for a in quantile_threshold:
+                self.D_threshold.append(np.percentile(self.D, 100 * (1 - a)))
+                self.Q_threshold.append(np.percentile(self.Q, 100 * (1 - a)))
+
 
     def calculate_T(self, weight=None, norm_quantile=0.5):
         """
@@ -293,7 +242,7 @@ class NOC:
             T-score values.
         """
         if weight is None:
-            weight = self.n_components / self.features.shape[1]
+            weight = self.n_components / self.features_shape[1]
 
         T = mspc.tscore((self.D, self.Q), weight=weight, norm_quantile=norm_quantile)
         return T
@@ -325,11 +274,19 @@ class NOC:
         if missing_rates is None:
             missing_rates = [0.0] * len(test_labels)
 
+        # Preprocessing
+        if self.preprocessing == 1:
+            X_test_norm = test - self.mean
+        elif self.preprocessing == 2:
+            X_test_norm = (test - self.mean) / self.std
+        
+        scores_test = self.pca.transform(X_test_norm)
+        
         # Calculate D and Q
-        _, _, D_test, Q_test, _, _ = mspc.DQ_tt(self.features, test, n_components=self.n_components,
-                                            preprocessing=self.preprocessing, alpha=self.alpha,
-                                            percentile_threshold=self.percentile_threshold,
-                                            type_q=self.q_method, plot=False)
+        D_test = np.sum(((scores_test - self.score_mean) / self.score_std) ** 2, axis=1)
+        X_test_norm_reconstructed = self.pca.inverse_transform(scores_test)
+        residuals_test = X_test_norm - X_test_norm_reconstructed
+        Q_test = np.sum(residuals_test ** 2, axis=1)
 
         if store_dq:
             # Load existing test data into a map
@@ -383,7 +340,7 @@ class NOC:
             Train and test T-score values.
         """
         if weight is None:
-            weight = self.n_components / self.features.shape[1]
+            weight = self.n_components / self.features_shape[1]
 
         T_train, T_test = mspc.tscore_tt((self.D, self.Q), (self.D_test, self.Q_test), weight=weight, norm_quantile=norm_quantile)
         return T_train, T_test
@@ -574,7 +531,7 @@ class NOC:
         T (list)
             T-score values.
         threshold_quantiles (float)
-            Quantile of the T-values used as threshold. Default is `1 - self.alpha`.
+            Quantile of the T-values used as threshold. Default is `1 - self.quantile_threshold`.
         logscale (bool) 
             If True, plots the statistics on a logarithmic scale (default: False).
         event_index (list)
@@ -592,7 +549,7 @@ class NOC:
             Axes object.
         """
         if threshold_quantiles is None:
-            threshold_quantiles = 1 - self.alpha
+            threshold_quantiles = 1 - self.quantile_threshold
         fig, ax = plot.plot_tscore(T, threshold_quantiles, labels = self.obs_labels,
                                     logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
         
@@ -644,7 +601,7 @@ class NOC:
         endtime (str or datetime)
             End of the time range (UTC) depicted in the plot.
         threshold_quantiles (float)
-            Quantile of the T-values used as threshold. Default is `1 - self.alpha`.
+            Quantile of the T-values used as threshold. Default is `1 - self.quantile_threshold`.
         logscale (bool) 
             If True, plots the statistics on a logarithmic scale (default: False)
         event_index (list)
@@ -689,7 +646,7 @@ class NOC:
 
         # Plot
         if threshold_quantiles is None:
-            threshold_quantiles = 1 - self.alpha
+            threshold_quantiles = 1 - self.quantile_threshold
         fig, ax = plot.plot_tscore_tt(T_train, T_plot, threshold_quantiles, labels = plot_labels, 
                                         logscale=logscale, plot_train=plot_train,
                                         event_index=event_index, opacity=opacity, ax=ax)
@@ -793,16 +750,10 @@ class NOC:
         print(f"    Updated on: {self.last_update_time}")
         
         print("Parameters:")
-        print(f"    Features shape: {self.features.shape}")
+        print(f"    Features shape: {self.features_shape}")
         print(f"    Preprocessing: {self.preprocessing} ({'centering' if self.preprocessing == 1 else 'centering + scaling'})")
         print(f"    Number of principal components: {self.n_components}")
-
-        print(f"    Use percentile as threshold: {self.percentile_threshold}")
-        if self.percentile_threshold == True:
-            print(f"    Percentile: {(1 - self.alpha) * 100}")
-        else:
-            print(f"    Significance level: {self.alpha}")
-            print(f"    Q threshold method: {self.q_method}")
+        print(f"    Percentile: {self.quantile_threshold * 100}")
 
         print("Control limits:")
         print(f"    D threshold: {self.D_threshold:.4f}")
@@ -810,7 +761,7 @@ class NOC:
         print("=============================")
 
     
-    def save(self, filepath, filetype='pickle'):
+    def save(self, filepath:str, filetype:str='pickle'):
         """
         Saves NOC data in a file.
 
@@ -824,19 +775,38 @@ class NOC:
         # Create directory if it does not exist
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
 
+        if self.features is None:
+            self.features = np.array([])
+
+        # Save features
+        if isinstance(self.features, np.ndarray) and self.features.size > 0:
+            features = {'name': self.name, 'features': self.features, 'obs_labels': self.obs_labels}
+            feat_filepath = os.path.join(os.path.dirname(filepath), f'features_{self.name}')
+            if filetype == 'mat':
+                savemat(feat_filepath, features)
+            else:
+                features["config"] = self.metadata
+                with open(feat_filepath, 'wb') as f:
+                    pickle.dump(features, f)
+
+            # Remove features from NOC instance
+            self.features = np.array([])
+
+        # Save dictionary with all NOC attributes (no features)
         if filetype == 'mat':
             data = self.__dict__
             del data['csv_path']
-
-            # Save dictionary with all NOC attributes
+            del data["metadata"]
+            del data["pca"]
+            
             savemat(filepath, data)
         else:
             with open(filepath, 'wb') as f:
                 pickle.dump(self, f)
-    
+
 
     @staticmethod
-    def load(filepath, include_features=True, include_dq=True) -> "NOC":
+    def load(filepath, include_dq=True) -> "NOC":
         """
         Load a NOC from a pickle file.
 
@@ -844,8 +814,6 @@ class NOC:
         ----------
         filepath (str)
             Path to the input file.
-        include_features (bool)
-            Whether to include the feature matrix in the output.
         include_dq (bool)
             Whether to include the D and Q statistic values in the output.
         
@@ -857,13 +825,17 @@ class NOC:
         with open(filepath, 'rb') as f:
             noc = pickle.load(f)
         
-        if not include_features:
-            del noc.features
         if not include_dq:
             del noc.D, noc.Q, noc.D_threshold, noc.Q_threshold
             del noc.D_test, noc.Q_test, noc.test.missing_rates, noc.test_labels
         
         return noc
+    
+    def load_features(self, nocs_path='data/involcan/nocs/'):
+        path = os.path.join(nocs_path, f"features_{self.name}").replace('\\', '/')
+        with open(path, 'rb') as f:
+            feat = pickle.load(f)
+        return feat["features"]
         
 
     def write_csv(self, path=None):
@@ -901,8 +873,8 @@ class NOC:
                 'network': self.network,
                 'station': self.station,
                 'type': self.type,
-                'n_windows': self.features.shape[0],
-                'n_variables': self.features.shape[1],
+                'n_windows': self.features_shape[0],
+                'n_variables': self.features_shape[1],
                 'n_components': self.n_components,
                 'D_threshold': np.round(self.D_threshold, 4),
                 'Q_threshold': np.round(self.Q_threshold, 4),
@@ -940,7 +912,7 @@ class NOC:
 # Additional functions
 from mspc_pca.omeda import omeda
 
-def compare_nocs(noc1, noc2, preprocessing=1, n_components=None, var_labels=None, var_classes=None, ax=None):
+def compare_nocs(noc1:NOC, noc2:NOC, nocs_path, preprocessing=1, n_components=None, var_labels=None, var_classes=None, ax=None):
     """
     Compares two NOCs using oMEDA.
 
@@ -950,6 +922,8 @@ def compare_nocs(noc1, noc2, preprocessing=1, n_components=None, var_labels=None
         First NOC.
     noc2 (NOC)
         Second NOC.
+    nocs_path (str)
+        Path to the directory where NOCs are saved.
     preprocessing (int)
         Preprocessing for NOC features:
         - 1: mean-centering (default)
@@ -973,13 +947,15 @@ def compare_nocs(noc1, noc2, preprocessing=1, n_components=None, var_labels=None
         Axis with plotted oMEDA vector.
     """
     # Check that the NOCs are comparable
-    assert noc1.features.shape[1] == noc2.features.shape[1], f"Error: NOCs should have the same number of columns ({noc1.features.shape[1]} != {noc2.features.shape[1]})."
+    assert noc1.features_shape[1] == noc2.features_shape[1], f"Error: NOCs should have the same number of columns ({noc1.features_shape[1]} != {noc2.features_shape[1]})."
     
-    features_all = np.vstack((noc1.features, noc2.features))
+    noc1_features = noc1.load_features(nocs_path)
+    noc2_features = noc2.load_features(nocs_path)
+    features_all = np.vstack((noc1_features, noc2_features))
 
     # Dummy variable for omeda
     dummy = np.ones(len(features_all))
-    dummy[len(noc1.features):] = -1
+    dummy[len(noc1_features):] = -1
     
     if preprocessing == 1:
         scaler = StandardScaler(with_std=False)

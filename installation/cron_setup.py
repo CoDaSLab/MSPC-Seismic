@@ -20,7 +20,7 @@ COMMANDS = [repo_path+"/monitoring/monitoring.sh"]
 def read_config(json_path):
     with open(json_path, 'r') as file:
         data = json.load(file)
-        return data.get("update_frequency")
+        return data.get("general", {}).get("update_frequency")
 
 # Get the current crontab content
 def get_current_crontab():
