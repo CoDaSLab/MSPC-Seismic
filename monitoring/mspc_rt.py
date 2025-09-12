@@ -69,7 +69,11 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
     rows = []
     for noc in nocs:
         if isinstance(noc, str):
-            noc = NOC.load(noc)
+            try:
+                noc = NOC.load(noc)
+            except Exception as e:
+                print(f"Could not run MSPC on the NOC at {noc}: {e}")
+                continue
         if verbose:
             print(f"Calculating for NOC {noc.name}...")
 
@@ -229,7 +233,7 @@ def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile
         Quantile of D and Q values used for normalization in T-score calculation 
         (default: 0.5).
     T_threshold_quantile (float)
-        Quantile of T-scores used as threshold for detecting anomalies. `1 - noc.alpha`
+        Quantile of T-scores used as threshold for detecting anomalies. `noc.quantile_threshold`
         by default.
     save (bool)
         If True, saves the graph in `save_path` (default: True)
@@ -257,7 +261,7 @@ def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile
     # Obtain T values to plot
     T_train, T_test = noc.calculate_T_test(weight=T_weight, norm_quantile=T_norm_quantile)
     if T_threshold_quantile is None:
-        T_threshold_quantile = 1 - noc.alpha
+        T_threshold_quantile = noc.quantile_threshold
     T_threshold = np.quantile(T_train, T_threshold_quantile)
     time_labels = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in noc.test_labels]
     T_plot = [value for value, date in zip(T_test, time_labels) if starttime < date <= endtime]

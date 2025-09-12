@@ -22,14 +22,14 @@ def ppma_data():
 @pytest.fixture
 def noc_ppma1(ppma_data):
     noc = NOC('ppma1', ppma_data['ffts'][:20, :], obs_labels=ppma_data['obs_labels'][:20], network='C7', station='PPMA', 
-              type='dynamic', preprocessing=1, n_components=2, alpha=0.01, percentile_threshold=True, 
+              type='dynamic', preprocessing=1, n_components=2, quantile_threshold=0.99, 
               csv_path='tests/metadata/noc_list.csv')
     return noc
 
 @pytest.fixture
 def noc_ppma2(ppma_data):
     noc = NOC('ppma2', ppma_data['ffts'][:20, :], obs_labels=ppma_data['obs_labels'][:20], network='C7', station='PPMA', 
-              type='static', preprocessing=1, n_components=3, alpha=0.05, percentile_threshold=True, 
+              type='static', preprocessing=1, n_components=3, quantile_threshold=0.95, 
               csv_path='tests/metadata/noc_list.csv')
     return noc
 

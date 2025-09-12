@@ -33,15 +33,13 @@ def ppma_data2():
 @pytest.fixture
 def noc_psab(psab_data):
     noc = NOC('psab_NOC1', psab_data['ffts'][:25, :], obs_labels=psab_data['obs_labels'][:25], network='C7', station='PSAB', 
-              type='dynamic', preprocessing=1, n_components=2, alpha=0.01, percentile_threshold=True, 
-              q_method='Jackson', csv_path='tests/metadata/noc_list.csv')
+              type='dynamic', preprocessing=1, n_components=2, quantile_threshold=0.99, csv_path='tests/metadata/noc_list.csv')
     return noc
 
 @pytest.fixture
 def noc_ppma(ppma_data):
     noc = NOC('ppma_NOC1', ppma_data['ffts'][:25, :], obs_labels=ppma_data['obs_labels'][:25], network='C7', station='PPMA', 
-              type='dynamic', preprocessing=1, n_components=3, alpha=0.001, percentile_threshold=True, 
-              q_method='Jackson', csv_path='tests/metadata/noc_list.csv')
+              type='dynamic', preprocessing=1, n_components=3, quantile_threshold=0.999, csv_path='tests/metadata/noc_list.csv')
     return noc
 
     

@@ -88,7 +88,7 @@ with COL[0]:
             st.session_state.noc_name = noc_name
             noc = NOC.NOC(noc_name, train_data, features["obs_labels"], network=network, station=station,
                             type=noc_type, preprocessing=prep, n_components=1, percentile_threshold=True,
-                            alpha=1-quantile, csv_path=config["paths"]["noc_log"])
+                            quantile_threshold=quantile, csv_path=config["paths"]["noc_log"])
             
         with st.spinner("Saving NOC..."):
             noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))

@@ -104,15 +104,10 @@ def noc_summary(noc_name, nocs_path="data/involcan/nocs"):
         st.markdown(f"**Last updated:** {noc.last_update_time}")
         
         st.markdown("##### :orange[**Parameters**]")
-        st.markdown(f"**Features shape:** {noc.features.shape}")
+        st.markdown(f"**Features shape:** {noc.features_shape}")
         st.markdown(f"**Preprocessing:** {'mean-centering' if noc.preprocessing == 1 else 'autoscaling'}")
         st.markdown(f"**Number of principal components:** {noc.n_components}")
-
-        if noc.percentile_threshold == True:
-            st.markdown(f"**Percentile:** {(1 - noc.alpha) * 100}")
-        else:
-            st.markdown(f"**Significance level:** {noc.alpha}")
-            st.markdown(f"**Q threshold method:** {noc.q_method}")
+        st.markdown(f"**Percentile:** {noc.quantile_threshold * 100}")
 
         st.markdown("##### :orange[**Control limits**]")
         st.markdown(f"**D threshold:** {noc.D_threshold:.4f}")

@@ -315,13 +315,15 @@ def find_features(path, stations, starttime, endtime, feature_types, additional_
         first_match = True
         for file in files:
             # Load file         
-            feat = loadmat(file)
+            feat = loadmat(os.path.join(path, file))
 
             # Check additional matches
             match = True
             if additional_matches:
                 for key in additional_matches.keys():
                     if 'config' in feat.keys():
+                        if isinstance(feat["config"], np.ndarray):
+                            feat["config"] = feat["config"][0]
                         config = json.loads(feat["config"])
                         if additional_matches[key] != config[key]:
                             match = False

@@ -216,8 +216,8 @@ def plot_noc_omeda(noc1_name, noc2_name, preprocessing=1, n_components=None, var
     noc1 = NOC.load(os.path.join(nocs_path, noc1_name).replace('\\', '/'))
     noc2 = NOC.load(os.path.join(nocs_path, noc2_name).replace('\\', '/'))
 
-    _, fig, _ = compare_nocs(noc1, noc2, preprocessing=preprocessing, n_components=n_components,
-                             var_labels=var_labels, var_classes=var_classes)
+    _, fig, _ = compare_nocs(noc1, noc2, nocs_path, preprocessing=preprocessing, 
+                             n_components=n_components, var_labels=var_labels, var_classes=var_classes)
 
     if interactive:
         import mpld3
