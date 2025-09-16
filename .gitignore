@@ -30,6 +30,9 @@ jobs
 # ignore logs 
 /monitoring/logs/
 
+# ignore user-specific configuration
+/monitoring/config.json
+
 # ignore conda enviroment
 installation/**/
 !installation/docker_legacy/
