@@ -6,6 +6,7 @@
         "num_days_before_delete": 10,
         "num_days_noc_update_frequency": 7,
         "num_days_noc_length": 7,
+        "max_missing_rate": 0.1,
         "verbose": false
     },
     "data": {

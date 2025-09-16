@@ -23,7 +23,7 @@ import pickle
 class NOC:
     def __init__(self, name:str, features:np.ndarray, obs_labels:list = None, 
                  network:str = "", station:str = "", type:str = "", preprocessing:int = 1, 
-                 n_components:int = None, quantile_threshold:float = 0.01, 
+                 n_components:int = None, quantile_threshold:float = 0.99, 
                  csv_path:str = None):
         """
         Stores and updates information associated with the Normal Operation Conditions (NOC) for
@@ -875,7 +875,9 @@ class NOC:
                 'type': self.type,
                 'n_windows': self.features_shape[0],
                 'n_variables': self.features_shape[1],
+                'preprocessing': self.preprocessing,
                 'n_components': self.n_components,
+                'quantile_threshold': self.quantile_threshold,
                 'D_threshold': np.round(self.D_threshold, 4),
                 'Q_threshold': np.round(self.Q_threshold, 4),
                 'start_time': starttime,
@@ -972,3 +974,74 @@ def compare_nocs(noc1:NOC, noc2:NOC, nocs_path, preprocessing=1, n_components=No
                                 title=f"{noc1.name} (+) vs. {noc2.name} (-)")
     
     return omeda_vec, fig, ax
+
+
+def fuse_nocs(noc_names, new_name, new_type='dynamic', nocs_path='data/involcan/nocs', 
+              log_path='data/involcan/metadata/noc_list.csv'):
+    """
+    Combine the features of different NOCs along the columns and creates a new NOC. 
+
+    Parameters
+    ----------
+    noc_names (list)
+        List of NOC names.
+    new_name (str)
+        Name of the new NOC.
+    new_type (str)
+        Type of the new NOC. One of 'dynamic', 'static' or 'inactive'.
+    nocs_path (str)
+        Path to the directory where NOCs are saved.
+    log_path (str)
+        Path to the CSV file containing information about the NOCs.
+    """
+    noc_names = sorted(noc_names)
+    feat_all = []
+    stations = []
+    for i, name in enumerate(noc_names):
+        # Load NOC and features
+        filepath = os.path.join(nocs_path, name)
+        noc = NOC.load(filepath)
+        feat = noc.load_features(nocs_path)
+        feat_param = noc.metadata
+        feat_shape = feat.shape
+
+        match = True
+        if i == 0:
+            # Reference values
+            ref_param = feat_param
+            ref_shape = feat_shape
+
+            # Other parameters
+            obs_labels = noc.obs_labels
+            network = noc.network
+            prep = noc.preprocessing
+            qt = noc.quantile_threshold
+            time_range = noc.time_range
+        else:
+            # Check parameters used for feature extraction
+            if np.any(feat_shape != ref_shape):
+                match = False
+                print(f"Shape of NOC {noc.name} should be {ref_shape} but is {feat_shape}. This NOC will not be part of the combined NOC.")
+            for key in ref_param.keys():
+                if feat_param[key] != ref_param[key]:
+                    match = False
+                    print(f"Parameter {key} of NOC {noc.name} should be {ref_param[key]} but is {feat_param[key]}. This NOC will not be part of the combined NOC.")
+        
+        if match:
+            feat_all.append(feat)
+            stations.append(noc.station)
+    
+    if len(feat_all) < 2:
+        raise Exception("No NOCs to fuse")
+
+    # Create new NOC
+    features = np.hstack(feat_all)
+    new_noc = NOC(new_name, features, obs_labels, network, stations, new_type, 
+                  preprocessing=prep, n_components='auto', quantile_threshold=qt, csv_path=log_path)
+    new_path = os.path.join(nocs_path, new_name)
+    new_noc.metadata = ref_param
+    new_noc.time_range = time_range
+    new_noc.save(new_path)
+    new_noc.write_csv(log_path)
+    
+    return new_noc

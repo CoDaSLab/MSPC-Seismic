@@ -66,6 +66,9 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     if not isinstance(channels, list):
         channels = [channels]
 
+    stations = sorted(stations)
+    channels = sorted(channels)
+
     time0 = datetime.now()
     if verbose:
         print(f"Extracting features...")
@@ -82,10 +85,9 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
         for channel in channels:
             if verbose:
                 print(
-                    f"Extracting SISMO features\n"
+                    f"  Extracting features\n"
                     f"  network: {network}, station: {station}, channel: {channel}\n"
                     f"  from {starttime} to {endtime}\n"
-                    f"  window size: {window_size} s, window shift: {window_shift} s."
                 )
 
             S = SISMO(
@@ -94,8 +96,6 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
                 merge_method=merge_method, merge_fill_value=merge_fill_value,
                 pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
             )
-            if verbose:
-                S.check()
             
             # Set window size and overlap
             S.set_windows(window_size, window_shift)
@@ -273,24 +273,35 @@ def list_fft_files(path, station, starttime, endtime, intersect=False, verbose=F
     return sorted(matching_files)
 
 
-def find_features(path, stations, starttime, endtime, feature_types, additional_matches:dict=None, verbose:bool=False):
+def find_features(path, stations, starttime, endtime, feature_types:list, additional_matches:dict=None, 
+                  max_missing_rate:float=0.1, verbose:bool=False):
     """
     Reads feature files from a given list of stations and time range in the specified path and returns 
     the corresponding features dictionary.
 
     Parameters
     ----------
-    path (str): Path to the directory containing the files.
-    stations (str): Name of the stations.
-    starttime (str or datetime): The start date of the range (UTC).
-    endtime (str or datetime): The end date of the range (UTC).
-    feature_types (list): List of features (e.g. "ffts") to retrieve.
-    additional_matches (dict): Other parameters that the file needs to match. Default is None.
-    verbose (bool): Whether to print information about matched files. Default is False.
+    path (str)
+        Path to the directory containing the files.
+    stations (str)
+        Name of the stations.
+    starttime (str or datetime)
+        The start date of the range (UTC).
+    endtime (str or datetime)
+        The end date of the range (UTC).
+    feature_types (list)
+        List of features (e.g. "ffts") to retrieve.
+    additional_matches (dict)
+        Other parameters that the file needs to match. Default is None.
+    max_missing_rate (float)
+        Maximum rate of missing values allowed for any station. Default is 0.1.
+    verbose (bool)
+        Whether to print information about matched files. Default is False.
 
     Returns
     -------
-    dict: features object (similar to the output of calculate_fft_rt)
+    dict
+        features object (similar to the output of calculate_fft_rt)
     """
     if isinstance(starttime, str):
         starttime = datetime.strptime(starttime, '%Y-%m-%d %H:%M:%S').replace(tzinfo=timezone.utc)
@@ -352,7 +363,7 @@ def find_features(path, stations, starttime, endtime, feature_types, additional_
                 features[station][key] = features[station][key][obs_idx, :]
                 features[station][key] = features[station][key][unique_idx, :]
             
-            if np.mean(features[station]["missing_rates"]) < 0.1:
+            if np.mean(features[station]["missing_rates"]) < max_missing_rate:
                 avail_stations.append(station)
         
     if not avail_stations:
@@ -364,6 +375,22 @@ def find_features(path, stations, starttime, endtime, feature_types, additional_
     all_obs = sorted(set().union(*[features[st]["obs_labels"] for st in avail_stations]))
     all_obs = np.array(all_obs)
     features_all["obs_labels"] = all_obs
+
+    # Combine missing rates
+    mr_blocks = []
+    for st in avail_stations:
+        st_obs = np.array(features[st]["obs_labels"])
+        idx_map = {obs: i for i, obs in enumerate(st_obs)}
+
+        aligned_missing = np.ones(len(all_obs))
+        for i, obs in enumerate(all_obs):
+            if obs in idx_map:
+                aligned_missing[i] = features[st]["missing_rates"][idx_map[obs]]
+        if np.mean(aligned_missing) < max_missing_rate:
+            mr_blocks.append(aligned_missing.reshape(-1, 1))
+        else:
+            avail_stations.remove(st)
+    features_all["missing_rates"] = np.mean(np.hstack(mr_blocks), axis=1)
 
     # Combine features
     for key in feature_types:
@@ -381,19 +408,6 @@ def find_features(path, stations, starttime, endtime, feature_types, additional_
             station_blocks.append(aligned_data)
 
         features_all[key] = np.hstack(station_blocks)
-    
-    # Combine missing rates
-    mr_blocks = []
-    for st in avail_stations:
-        st_obs = np.array(features[st]["obs_labels"])
-        idx_map = {obs: i for i, obs in enumerate(st_obs)}
-
-        aligned_missing = np.ones(len(all_obs))
-        for i, obs in enumerate(all_obs):
-            if obs in idx_map:
-                aligned_missing[i] = features[st]["missing_rates"][idx_map[obs]]
-        mr_blocks.append(aligned_missing.reshape(-1, 1))
-    features_all["missing_rates"] = np.mean(np.hstack(mr_blocks), axis=1)
 
     # Combine variable labels and classes
     all_var_labels = []
