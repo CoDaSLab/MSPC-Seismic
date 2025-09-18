@@ -24,8 +24,8 @@ config = st.session_state.config
 update_freq = timedelta(minutes=config["monitoring"]["update_frequency"])
 
 starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
-                                        update_frequency=config["general"]["update_frequency"],
-                                        delay = config["general"]["delay"])
+                                        update_frequency=config["monitoring"]["update_frequency"],
+                                        delay = config["monitoring"]["delay"])
 
 if "start_date" not in st.session_state:
     st.session_state.start_date = datetime.date(starttime)
@@ -94,7 +94,7 @@ def real_time_visualization(config, nocs, key):
 
 # ---------- Real-time Visualization ----------
 try:
-    avail_stations = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["general"]["update_frequency"])
+    avail_stations = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["monitoring"]["update_frequency"])
 except FileNotFoundError as e:
     st.error(f"Latest data downloads log not available. More details:\n{e}")
 try:

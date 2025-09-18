@@ -1,7 +1,7 @@
 #!/bin/bash
 
 REPO_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )
-CONFIG_FILE="${REPO_DIR}/monitoring/config.json"
+CONFIG_FILE="${REPO_DIR}/config.json"
 
 # Change directory
 cd $REPO_DIR
@@ -14,7 +14,7 @@ source ${REPO_DIR}/installation/miniconda3/bin/activate lafragua
 LOG_FILE="${REPO_DIR}/monitoring/logs/pull.log"
 ERROR_FILE="${REPO_DIR}/monitoring/logs/pull_error.log"
 # Read configuration file
-auto_monitoring=$(jq -r '.general.auto_monitoring' "$CONFIG_FILE")
+auto_monitoring=$(jq -r '.monitoring.auto_monitoring' "$CONFIG_FILE")
 server_ip=$(jq -r '.connection.server_IP' "$CONFIG_FILE")
 server_user=$(jq -r '.connection.server_user' "$CONFIG_FILE")
 ssh_key=$(jq -r '.connection.ssh_key_path' "$CONFIG_FILE")

@@ -24,8 +24,8 @@ st.subheader("On-demand visualization")
 config = st.session_state.config
 
 starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
-                                            update_frequency=config["general"]["update_frequency"],
-                                            delay = config["general"]["delay"])
+                                            update_frequency=config["monitoring"]["update_frequency"],
+                                            delay = config["monitoring"]["delay"])
 
 nocs = utils.get_noc_names(config["paths"]["noc_log"], config["data"]["stations"])
 

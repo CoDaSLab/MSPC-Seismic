@@ -26,12 +26,12 @@ def monitoring(config_path = 'config.json'):
     # Get all parameters for monitoring from the configuration file
     config = utils.load_config(config_path)
 
-    update_frequency = config["general"]["update_frequency"]  # Frequency of update in minutes
-    delay = config["general"]["delay"]  # Delay in minutes of calculations with respect to the current time 
+    update_frequency = config["monitoring"]["update_frequency"]  # Frequency of update in minutes
+    delay = config["monitoring"]["delay"]  # Delay in minutes of calculations with respect to the current time 
     data_path = config["paths"]["data"]  # Path to the directory where seismic data files are saved.
     features_path = config["paths"]["features"]  # Path to the directory where feature files are saved.
     nocs_path = config["paths"]["nocs"]  # Path to the directory where NOC files are saved.
-    save_plots = config["plots"]["save"]  # Whether to save plots
+    save_plots = config["monitoring"]["plots"]["save"]  # Whether to save plots
     plots_path = config["paths"]["plots"]  # Path to the directory where MSPC plots are saved.
     latest_pulls_log_path = config["paths"]["latest_pulls_log"]  # Path to a CSV with information on the latest data downloads
     noc_log_path = config["paths"]["noc_log"]  # Path to a CSV for saving NOC information
@@ -46,18 +46,18 @@ def monitoring(config_path = 'config.json'):
     detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.
     windowing = config["features"]["windowing"]  # Windowing method.
     feature_types = config["features"]["types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
-    fft_points = config["features"]["fft_points"]  # Number of FFT points (spectral resolution)
+    fft_points = config["features"]["stft_params"]["fft_points"]  # Number of FFT points (spectral resolution)
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
     pad_fill_value = config["features"]["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
     cpus = config["features"]["cpus"]  # Number of CPUs used for FFT calculation
-    anomaly_criterion = config["plots"]["anomaly_criterion"]  # Criterion for anomaly detection
-    verbose = config["general"]["verbose"]  # Whether to print extra messages.
-    num_days_before_delete = config["general"]["num_days_before_delete"]  # Number of days to keep saved features.
-    num_hours_plot = config["plots"]["num_hours"]  # Length in hours of the time range shown in MSPC plots
-    num_days_noc_update_frequency = config["general"]["num_days_noc_update_frequency"]  # Number of days between dynamic NOC updates
-    num_days_noc_length = config["general"]["num_days_noc_length"]  # Number of days used as training data
-    max_missing_rate = config["general"]["max_missing_rate"]  # Maximum rate of missing values allowed
+    anomaly_criterion = config["monitoring"]["plots"]["anomaly_criterion"]  # Criterion for anomaly detection
+    verbose = config["monitoring"]["verbose"]  # Whether to print extra messages.
+    num_days_before_delete = config["monitoring"]["num_days_before_delete"]  # Number of days to keep saved features.
+    num_hours_plot = config["monitoring"]["plots"]["num_hours"]  # Length in hours of the time range shown in MSPC plots
+    num_days_noc_update_frequency = config["monitoring"]["num_days_noc_update_frequency"]  # Number of days between dynamic NOC updates
+    num_days_noc_length = config["monitoring"]["num_days_noc_length"]  # Number of days used as training data
+    max_missing_rate = config["monitoring"]["max_missing_rate"]  # Maximum rate of missing values allowed
     
     config_str = json.dumps(config)  # config in string form
 
@@ -183,7 +183,7 @@ def monitoring(config_path = 'config.json'):
         
         # Calculate features
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
-                                    window_size, window_shift, detrend=detrend, windowing=windowing, fft_points=fft_points, 
+                                    window_size, window_shift, detrend=detrend, windowing=windowing, n_bins=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,
                                     pad_fill_value = pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
 

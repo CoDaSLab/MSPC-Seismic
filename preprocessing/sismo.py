@@ -117,6 +117,9 @@ def process_file(filename, verbose=False, stime=None, etime=None):
     - FileNotFoundError is caught and a message is printed; the function then returns None.
     """
 
+    # Convert to obspy's UTCDateTime format if necessary
+    stime = UTCDateTime(stime)
+    etime = UTCDateTime(etime)
     try:
         if verbose:
             print(f"Reading file: {filename}")
@@ -133,6 +136,8 @@ def process_file(filename, verbose=False, stime=None, etime=None):
 def read_files(
     filenames,
     process_file,
+    starttime, endtime, pad_fill_value,
+
     verbose=False,
     merge_method="interpolate",
     merge_fill_value=0,
@@ -172,6 +177,9 @@ def read_files(
         - 'endtime' : obspy.UTCDateTime
             Global end time of all traces.
     """
+    starttime = UTCDateTime(starttime)
+    endtime = UTCDateTime(endtime)
+
     ST = obspy.Stream()
 
     # Read files in parallel and keep individual Streams
@@ -189,6 +197,13 @@ def read_files(
 
     # Merge all traces
     ST.merge(method=merge_method, fill_value=merge_fill_value)
+
+    ST.trim(starttime = starttime, endtime = endtime,
+                pad = True, fill_value=pad_fill_value)
+    for tr in ST:
+        mask = tr.data == pad_fill_value
+        if np.any(mask):
+            tr.data = np.ma.masked_array(tr.data, mask=mask, fill_value = pad_fill_value)
 
     if len(ST) == 0:
         raise ValueError("No traces found in the files.")
@@ -291,24 +306,24 @@ def calculate_spectrogram(data: dict, window_length, shift, n_bins=None, window=
 
     Ns =  X.shape[0] # Number of stations
     Nc =  X.shape[1] # Number of channels
-    Nt = int(X.shape[2]/hop)+1 # Number of times
+    Nt = int(X.shape[2]/hop) + 0 # Number of times
     Nf = int((f_max - f_min)/df)+1 # Number of frequencies
 
-    Sxxs  = np.zeros((Ns, Nc, Nt, Nf))
+    Sxxs  = np.zeros((Ns, Nc, Nf, Nt))
     times = np.zeros((Ns, Nc, Nt))
     freqs = np.zeros((Ns, Nc, Nf))
 
     for i in range(Ns): # Loop for every sensor
         for j in range(Nc): # Loop for every channel
             time, freq, Sxx = features.spectrogram(data["X_tensor"][0,0], sr, window_samples, hop, window, padding, detrend, n_bins)
-            Sxxs[i,j,:,:] = Sxx.T
-            times[i,j,:]  = time
+            Sxxs[i,j,:,:] = Sxx[:,1:]
+            times[i,j,:]  = time[1:]
             freqs[i,j,:]  = freq
     return Sxxs, times, freqs
 
 def unfold_spectrogram(Sxxs, freqs=None, stations=None, channels=None):
     """
-    Unfold a 4D spectrogram array into a 2D array suitable for machine learning or analysis,
+    Unfold a 4D tensor into a 2D array suitable for machine learning or analysis,
     and optionally generate labels for frequencies, stations, and channels.
 
     Parameters

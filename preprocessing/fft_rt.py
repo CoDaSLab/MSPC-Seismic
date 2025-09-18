@@ -11,7 +11,7 @@ from preprocessing.sismo import *
 from data.scripts.get_filenames import get_filenames
 
 def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HHN', 'HHZ'], 
-                    window_size=10, window_shift=None, detrend=False, windowing=False, fft_points=256, 
+                    window_length=10, window_shift=None, detrend=False, windowing=False, n_bins='auto', 
                     merge_method=0, merge_fill_value = None, pad_fill_value=False,
                     data_path="data/involcan/mseed", cpus=1, verbose=False, save=False, 
                     save_path="data/involcan/features"):
@@ -26,11 +26,11 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
         network (str): Seismic network identifier.
         stations (str): Station codes.
         channels (list of str): List of channels (default: ['HHE', 'HHN', 'HHZ']).
-        window_size (int): Time window size in seconds (default: 10).
-        window_shift (int): Interval between the start of windows in seconds (default: window_size).
+        window_length (int): Time window size in seconds (default: 10).
+        window_shift (int): Interval between the start of windows in seconds (default: window_length).
         detrend (bool): Whether to remove linear trend from signals (default: False).
         windowing: Windowing function. If False, no function is applied (default: False).
-        fft_points (int or 'auto'): Number of FFT points. If set to `'auto'`, uses the number of 
+        n_bins (int or 'auto'): Number of FFT points. If set to `'auto'`, uses the number of 
             points per window.
         merge_method (int): Method used for merging waveform segments (see documentation for the 
             `Trace` class from the ObsPy module).
@@ -51,9 +51,9 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
             - 'deltas_ffts' (numpy array): First-order differences of FFTs.
             - 'deltas_deltas_ffts' (numpy array): Second-order differences of FFTs.
             - 'missing_rates' (numpy array): Proportion of missing samples in each time window.
-            - 'obs_labels' (list): Observation (row) labels, the corresponding end time for each window.
-            - 'var_labels' (list): Variable (column) labels, the corresponding frequency for each column.
-            - 'var_classes' (list): Variable (column) classes, the corresponding channel for each column.
+            - 'times_label' (list): Observation (row) labels, the corresponding end time for each window.
+            - 'freqs_label' (list): Variable (column) labels, the corresponding frequency for each column.
+            - 'channel_class' (list): Variable (column) classes, the corresponding channel for each column.
 
     """
     if isinstance(starttime, str):
@@ -76,20 +76,22 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
         print(f"Extracting features...")
 
     if window_shift is None:
-        window_shift = window_size
+        window_shift = window_length
 
     features = {}
-    filenames = get_filenames("C7", stations, channels, starttime.datetime, endtime.datetime)
+    filenames = get_filenames("C7", stations, channels, starttime.date(), endtime.date())
 
     data = read_files(filenames,
-    process_file=lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+    lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+    starttime, endtime, pad_fill_value,
     verbose=False,)
 
-    Sxxs, times, freqs = calculate_spectrogram(data, window_length, shift, n_bins,)
+    if n_bins == 'auto': n_bins=None
+    Sxxs, times, freqs = calculate_spectrogram(data, window_length, window_shift, n_bins,)
 
     X, freqs_label, station_class, channel_class = unfold_spectrogram(Sxxs, freqs, stations, channels)
 
-    timeUTC = np.arange(starttime, endtime, timedelta(seconds=shift), dtype='datetime64[s]').tolist()
+    timeUTC = np.arange(starttime, endtime, timedelta(seconds=window_shift), dtype='datetime64[s]').tolist()
     timeUTC=[x.strftime('%Y-%m-%dT%H:%M:%SZ') for x in timeUTC ]
 
     features["streams"] =  data["streams"]
@@ -99,7 +101,7 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     features["channel_class"] = channel_class
     features["freqs_label"] = freqs_label
     # features["missing_rates"] = [] # Calculate missing rate per window in calculate_spectrogrma and add here
-    features["missing_rates"] = np.zeros(Sxxs.shape[2]) # Calculate missing rate per window in calculate_spectrogrma and add here
+    features["missing_rates"] = np.zeros(Sxxs.shape[3]) # Calculate missing rate per window in calculate_spectrogrma and add here
 
     if save:
         file_name = "-".join(stations) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
@@ -309,19 +311,20 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
                     features[station][key].append(feat[key])
 
                 if first_match:
-                    features[station]["var_labels"] = feat["var_labels"]
-                    features[station]["var_classes"] = feat["var_classes"]
+                    features[station]["freqs_label"] = feat["freqs_label"]
+                    features[station]["channel_class"] = feat["channel_class"]
+                    features[station]["station_class"] = feat["station_class"]
                     first_match = False
-                features[station]["obs_labels"].extend(feat["obs_labels"])
+                features[station]["times_label"].extend(feat["times_label"])
                 features[station]["missing_rates"].extend(feat["missing_rates"])
                 
         if files and not first_match:
             # Filter dates and remove duplicates
-            obs = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in features[station]["obs_labels"]]
+            obs = [datetime.strptime(label, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc) for label in features[station]["times_label"]]
             obs_idx = [i for i, label in enumerate(obs) if label > starttime and label <= endtime]
-            features[station]["obs_labels"] = [label for i, label in enumerate(features[station]["obs_labels"]) if i in obs_idx]
+            features[station]["times_label"] = [label for i, label in enumerate(features[station]["times_label"]) if i in obs_idx]
             features[station]["missing_rates"] = [label for i, label in enumerate(features[station]["missing_rates"]) if i in obs_idx]
-            features[station]["obs_labels"], unique_idx = np.unique(features[station]["obs_labels"], return_index=True)
+            features[station]["times_label"], unique_idx = np.unique(features[station]["times_label"], return_index=True)
             features[station]["missing_rates"] = np.array(features[station]["missing_rates"])[unique_idx]
             
             for key in feature_types:
@@ -340,14 +343,14 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         return {}
 
     # Combine observation labels
-    all_obs = sorted(set().union(*[features[st]["obs_labels"] for st in avail_stations]))
+    all_obs = sorted(set().union(*[features[st]["times_label"] for st in avail_stations]))
     all_obs = np.array(all_obs)
-    features_all["obs_labels"] = all_obs
+    features_all["times_label"] = all_obs
 
     # Combine missing rates
     mr_blocks = []
     for st in avail_stations:
-        st_obs = np.array(features[st]["obs_labels"])
+        st_obs = np.array(features[st]["times_label"])
         idx_map = {obs: i for i, obs in enumerate(st_obs)}
 
         aligned_missing = np.ones(len(all_obs))
@@ -364,7 +367,7 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
     for key in feature_types:
         station_blocks = []
         for st in avail_stations:
-            st_obs = np.array(features[st]["obs_labels"])
+            st_obs = np.array(features[st]["times_label"])
             idx_map = {obs: i for i, obs in enumerate(st_obs)}
 
             data = features[st][key]
@@ -378,13 +381,16 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         features_all[key] = np.hstack(station_blocks)
 
     # Combine variable labels and classes
-    all_var_labels = []
-    all_var_classes = []
+    all_freqs_label = []
+    all_channel_class = []
+    all_station_class = []
     for st in avail_stations:
-        all_var_labels.extend(features[st]["var_labels"])
-        all_var_classes.extend([f"{st}.{lbl}" for lbl in features[st]["var_classes"]])
-    features_all["var_labels"] = np.array(all_var_labels)
-    features_all["var_classes"] = np.array(all_var_classes)
+        all_freqs_label.extend(features[st]["freqs_label"])
+        all_channel_class.extend(features[st]["channel_class"])
+        all_station_class.extend(features[st]["station_class"])
+    features_all["freqs_label"] = np.array(all_freqs_label)
+    features_all["channel_class"] = np.array(all_channel_class)
+    features_all["station_class"] = np.array(all_channel_class)
 
     if verbose:
         print(f"Search complete. Features found for the following stations: {avail_stations}. " \

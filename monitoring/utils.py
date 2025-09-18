@@ -240,12 +240,12 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
     detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.
     windowing = config["features"]["windowing"]  # Windowing method.
     feature_types = config["features"]["types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
-    fft_points = config["features"]["fft_points"]  # Number of FFT points (spectral resolution)
+    fft_points = config["features"]["stft_params"]["fft_points"]  # Number of FFT points (spectral resolution)
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
     pad_fill_value = config["features"]["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
     cpus = config["features"]["cpus"]  # Number of CPUs used for FFT calculation
-    verbose = config["general"]["verbose"]  # Whether to print extra messages.
+    verbose = config["monitoring"]["verbose"]  # Whether to print extra messages.
 
     if isinstance(station, list):
         new_name = "-".join(station) + '_' + 'd' + '_' + endtime.strftime('%Y-%m-%d')
@@ -261,7 +261,7 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
         additional_matches["window_shift"] = window_shift
         features = find_features(features_path, station, starttime, endtime, feature_types, 
                                 additional_matches=additional_matches, 
-                                max_missing_rate=config["general"]["max_missing_rate"], verbose=verbose)
+                                max_missing_rate=config["monitoring"]["max_missing_rate"], verbose=verbose)
         if features:
             print("Features found")
             # Get labels (assuming labels indicate end time of the window)
@@ -271,7 +271,7 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
                 current_time += timedelta(seconds=window_shift)
                 labels.append(current_time.strftime('Y-%m-%dT%H:%M:%SZ'))
 
-            if len(labels) != len(features["obs_labels"]) or any(labels != features["obs_labels"]):
+            if len(labels) != len(features["times_label"]) or any(labels != features["times_label"]):
                 calculate = True
         else:
             print("Features not found. Calculating....")
@@ -279,18 +279,18 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
     
     if calculate:
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
-                                    window_size, window_shift, detrend=detrend, windowing=windowing, fft_points=fft_points, 
+                                    window_size, window_shift, detrend=detrend, windowing=windowing, n_bins=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,
                                     pad_fill_value=pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
     
     # Create new NOC
     new_features = np.hstack([features[key] for key in feature_types])
     if noc_params:
-        new_noc = NOC(new_name, new_features, features['obs_labels'], network, station, type=noc_params["type"],
+        new_noc = NOC(new_name, new_features, features['times_label'], network, station, type=noc_params["type"],
                         preprocessing = noc_params["preprocessing"], n_components = noc_params["n_components"], 
                         quantile_threshold = noc_params["quantile_threshold"])
     else:
-        new_noc = NOC(new_name, new_features, features['obs_labels'], network, station, type='dynamic',
+        new_noc = NOC(new_name, new_features, features['times_label'], network, station, type='dynamic',
                         preprocessing = 1, n_components = 'ckf', quantile_threshold = 0.99, csv_path=noc_log_path)
     new_noc.set_metadata(starttime, endtime, window_size, window_shift, detrend, windowing, fft_points, 
                             merge_method, merge_fill_value, pad_fill_value)
