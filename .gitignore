@@ -2,6 +2,8 @@
 /data/*/metadata/**
 !/data/involcan/metadata/**
 /data/involcan/metadata/anomaly_log.csv
+/data/involcan/metadata/anomaly_log_supervised.csv
+/data/involcan/metadata/anomaly_log_unsupervised.csv
 /data/involcan/metadata/latest_pulls.csv
 /data/involcan/metadata/noc_list.csv
 
@@ -39,3 +41,5 @@ installation/**/
 !installation/guide_img/
 .vscode
 # !.gitignore
+
+config.json

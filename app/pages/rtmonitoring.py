@@ -21,7 +21,7 @@ st.subheader("Visualization")
 # Configuration file
 config = st.session_state.config
 
-update_freq = timedelta(minutes=config["general"]["update_frequency"])
+update_freq = timedelta(minutes=config["monitoring"]["update_frequency"])
 
 starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
                                         update_frequency=config["general"]["update_frequency"],

@@ -71,7 +71,7 @@ with COL[0]:
 
     if submit:
         with st.spinner("Calculating features..."):
-            features = calculate_fft_rt(starttime, endtime, network=network, station=station, 
+            features = calculate_fft_rt(starttime, endtime, network=network, stations=station, 
                                         channels=channels, window_size=window,
                                         window_shift=shift, detrend=detrend,
                                         windowing=windowing, fft_points=fft_points, 

@@ -9,7 +9,7 @@ def init_app():
     if st.session_state.app_start: return
 
     print("Initializing application ...")
-    print("Adding directoried to sys.path ...")
+    print("Adding directories to sys.path ...")
     import os, sys
     path = os.getcwd()
     sys.path.insert(0, path)
@@ -56,7 +56,7 @@ def init_session_state():
 
     if 'now' not in st.session_state: st.session_state.now = datetime.now(timezone.utc)
 
-    config_path = "monitoring/config.json"
+    config_path = "config.json"
     if 'config_path' not in st.session_state: st.session_state.config_path = config_path
     config = load_json(config_path)
     if 'config' not in st.session_state: st.session_state.config = config

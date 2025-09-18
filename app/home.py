@@ -61,23 +61,27 @@ def station_health_check():
 
     return
 
+def anomaly_log():
+    anomaly_log_path = st.session_state.config["paths"]["anomaly_log"]
+    anomalies = pd.read_csv(anomaly_log_path)
+    anomalies
+    return
 
 
 
 COL = st.columns(2)
 
-
 if datetime.now(timezone.utc)-st.session_state.now>pd.Timedelta(seconds=10): 
     st.session_state.now = datetime.now(timezone.utc)
-
 with COL[0]:
     station_health_check()  
 
 
 with COL[1]:
     st.markdown("<h3 style='text-align: center;'>Anomaly log</h3>", unsafe_allow_html=True)
-    anomalies = pd.read_csv("data/involcan/metadata/anomaly_log.csv")
-    anomalies
+    # anomalies = pd.read_csv("data/involcan/metadata/anomaly_log.csv")
+    # anomalies
+    anomaly_log()
 
 
 

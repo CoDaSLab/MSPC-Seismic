@@ -7,6 +7,8 @@ from collections import defaultdict
 import json
 
 from preprocessing.SISMO import SISMO
+from preprocessing.sismo import *
+from data.scripts.get_filenames import get_filenames
 
 def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HHN', 'HHZ'], 
                     window_size=10, window_shift=None, detrend=False, windowing=False, fft_points=256, 
@@ -76,68 +78,31 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     if window_shift is None:
         window_shift = window_size
 
-    features = {'ffts': [], 
-                'deltas_ffts': [],
-                'deltas_deltas_ffts': [],
-                'missing_rates': []}
-    
-    for station in stations:
-        for channel in channels:
-            if verbose:
-                print(
-                    f"  Extracting features\n"
-                    f"  network: {network}, station: {station}, channel: {channel}\n"
-                    f"  from {starttime} to {endtime}\n"
-                )
+    features = {}
+    filenames = get_filenames("C7", stations, channels, starttime.datetime, endtime.datetime)
 
-            S = SISMO(
-                network, station, channel, 
-                starttime, endtime, detrend=detrend, windowing=windowing,
-                merge_method=merge_method, merge_fill_value=merge_fill_value,
-                pad_fill_value=pad_fill_value, cpus=cpus, data_path=data_path
-            )
-            
-            # Set window size and overlap
-            S.set_windows(window_size, window_shift)
+    data = read_files(filenames,
+    process_file=lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+    verbose=False,)
 
-            # Calculate FFT coefficients
-            S.fft_bin(fft_points)
-            channel_features = {'ffts': np.squeeze(S.fft), 
-                                'deltas_ffts': np.squeeze(S.deltas_fft),
-                                'deltas_deltas_ffts': np.squeeze(S.deltas_deltas_fft),
-                                'missing_rates': np.squeeze(S.get_missing_samples(rate=True)).reshape(-1, 1)}
+    Sxxs, times, freqs = calculate_spectrogram(data, window_length, shift, n_bins,)
 
-            for key, array in channel_features.items():        
-                features[key].append(array)
+    X, freqs_label, station_class, channel_class = unfold_spectrogram(Sxxs, freqs, stations, channels)
 
-    # Concatenate features for all stations along the columns
-    for key in features.keys():
-        if features[key]: 
-            features[key] = np.concatenate(features[key], axis=1)
-        else:
-            features[key] = np.array([])
+    timeUTC = np.arange(starttime, endtime, timedelta(seconds=shift), dtype='datetime64[s]').tolist()
+    timeUTC=[x.strftime('%Y-%m-%dT%H:%M:%SZ') for x in timeUTC ]
 
-    features["missing_rates"] = np.mean(features["missing_rates"], axis=1)
-
-    # Observation labels (window end times)
-    n_obs, n_vars = features['ffts'].shape
-    window_times = [starttime + timedelta(seconds=window_shift * i + window_size) for i in range(n_obs)]
-    features['obs_labels'] = [datetime.strftime(label, '%Y-%m-%dT%H:%M:%SZ') for label in window_times]
-
-    # Variable labels (frequencies)
-    n_vars_per_channel = n_vars // (len(channels) * len(stations))
-    frequencies = np.round(np.linspace(S.fmin, S.fmax, n_vars_per_channel), 4)
-    features['var_labels'] = frequencies.tolist() * (len(channels) * len(stations))
-
-    # Variable classes (channels)
-    if len(stations) > 1:
-        channel_labels = [st + '.' + ch for st in stations for ch in channels]
-    else:
-        channel_labels = channels
-    features['var_classes'] = [ch for ch in channel_labels for _ in range(n_vars_per_channel)]
+    features["streams"] =  data["streams"]
+    features["times_label"] = timeUTC
+    features["spectrogram_unfold"] = X
+    features["station_class"] = station_class
+    features["channel_class"] = channel_class
+    features["freqs_label"] = freqs_label
+    # features["missing_rates"] = [] # Calculate missing rate per window in calculate_spectrogrma and add here
+    features["missing_rates"] = np.zeros(Sxxs.shape[2]) # Calculate missing rate per window in calculate_spectrogrma and add here
 
     if save:
-        file_name = "-".join(station) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
+        file_name = "-".join(stations) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')
         mat_path = os.path.join(save_path, file_name).replace('\\', '/')
         savemat(mat_path, features)
 

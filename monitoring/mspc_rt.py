@@ -136,7 +136,7 @@ def get_anomalies(test, threshold, criterion='consecutive', n_consecutive=3):
     test (list)
         Test values.
     threshold (float)
-        Upper control limit for the D-statistic
+        Upper control limit for the control statistic
     criterion (str)
         Criterion for considering an observation anomalous.
         - `'consecutive'` (default): All observations in a group of `n_consecutive` 

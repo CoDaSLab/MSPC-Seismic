@@ -30,13 +30,13 @@ def change_config(config, config_path):
         st.header("General parameters")
         col1, col2 = st.columns(2)
         with col1:
-            new_config["general"]["update_frequency"] = st.number_input("Update frequency (in minutes)", value=config["general"]["update_frequency"], min_value=0)
-            new_config["general"]["delay"] = st.number_input("Delay (in minutes)", value=config["general"]["delay"], min_value=0)
+            new_config["monitoring"]["update_frequency"] = st.number_input("Update frequency (in minutes)", value=config["monitoring"]["update_frequency"], min_value=0)
+            new_config["monitoring"]["delay"] = st.number_input("Delay (in minutes)", value=config["monitoring"]["delay"], min_value=0)
             new_config["paths"]["data"] = st.text_input("Raw signal data directory", value=config["paths"]["data"])
             new_config["paths"]["features"] = st.text_input("Features directory", value=config["paths"]["features"])
             new_config["paths"]["nocs"] = st.text_input("NOCs directory", value=config["paths"]["nocs"])
         with col2:
-            new_config["plots"]["save"] = st.checkbox("Save plots?", value=config["plots"]["save"],
+            new_config["monitoring"]["plots"]["save"] = st.checkbox("Save plots?", value=config["monitoring"]["plots"]["save"],
                                                help = "If checked, all plots generated will be saved in the specified path.")
             new_config["paths"]["plots"] = st.text_input("Plots directory", value=config["paths"]["plots"])
             new_config["paths"]["latest_pulls_log"] = st.text_input("Latest pulls log file", value=config["paths"]["latest_pulls_log"])
@@ -79,12 +79,12 @@ def change_config(config, config_path):
                                                             help="Value to fill gaps at the beginning or end of a signal.")
                 new_config["features"]["cpus"] = st.number_input("Number of CPUs for feature extraction", value=config["features"]["cpus"], min_value=1)
             with col2:
-                # config["general"]["verbose"] = st.checkbox("verbose", value=config["general"]["verbose"])
-                new_config["general"]["num_days_before_delete"] = st.number_input("Time before deletion (in days)", value=config["general"]["num_days_before_delete"], min_value=1,
+                # config["monitoring"]["verbose"] = st.checkbox("verbose", value=config["monitoring"]["verbose"])
+                new_config["monitoring"]["num_days_before_delete"] = st.number_input("Time before deletion (in days)", value=config["monitoring"]["num_days_before_delete"], min_value=1,
                                                                 help="Saved features, NOCs and graphs will be deleted after the specified number of days.")
-                new_config["plots"]["num_hours"] = st.number_input("Time range of the saved plots (in hours)", value=config["plots"]["num_hours"], min_value=1)
-                new_config["general"]["num_days_noc_update_frequency"] = st.number_input("NOC update frequency (in days)", value=config["general"]["num_days_noc_update_frequency"], min_value=1)
-                new_config["general"]["num_days_noc_length"] = st.number_input("Time range of NOC data (in days)", value=config["general"]["num_days_noc_length"], min_value=1)
+                new_config["monitoring"]["plots"]["num_hours"] = st.number_input("Time range of the saved plots (in hours)", value=config["monitoring"]["plots"]["num_hours"], min_value=1)
+                new_config["monitoring"]["num_days_noc_update_frequency"] = st.number_input("NOC update frequency (in days)", value=config["monitoring"]["num_days_noc_update_frequency"], min_value=1)
+                new_config["monitoring"]["num_days_noc_length"] = st.number_input("Time range of NOC data (in days)", value=config["monitoring"]["num_days_noc_length"], min_value=1)
         
         submitted = st.form_submit_button("Save configuration", type="primary", use_container_width=True)
         if submitted:

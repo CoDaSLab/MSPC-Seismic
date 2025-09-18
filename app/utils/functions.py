@@ -34,7 +34,7 @@ def load_last_pulls(filepath="data/involcan/metadata/latest_pulls.csv"):
     last_pulls["latest_pull_time"] = pd.to_datetime(last_pulls["latest_pull_time"], utc=True)
     return last_pulls
 
-def load_json(filepath="monitoring/config.json"):
+def load_json(filepath="config.json"):
     import json
     with open(filepath, 'r') as f:
         config = json.load(f)
