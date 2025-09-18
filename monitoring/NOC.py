@@ -89,8 +89,10 @@ class NOC:
         self.csv_path = csv_path
 
         # Find number of components
-        if n_components == 'auto':
-            self.calculate_n_components()
+        if n_components == 'var':
+            self.calculate_n_components(method='var')
+        elif n_components == 'ckf':
+            self.calculate_n_components(method='ckf')
 
         self.D = []
         self.Q = []
@@ -908,7 +910,7 @@ class NOC:
                 writer.writerows(rows)
 
     def __str__(self):
-        return f"NOC: {self.name}."
+        return f"NOC: {self.name}"
 
 
 # Additional functions
@@ -976,8 +978,8 @@ def compare_nocs(noc1:NOC, noc2:NOC, nocs_path, preprocessing=1, n_components=No
     return omeda_vec, fig, ax
 
 
-def fuse_nocs(noc_names, new_name, new_type='dynamic', nocs_path='data/involcan/nocs', 
-              log_path='data/involcan/metadata/noc_list.csv'):
+def fuse_nocs(noc_names, new_name=None, new_type='dynamic', nocs_path='data/involcan/nocs', 
+              log_path='data/involcan/metadata/noc_list.csv', verbose=False):
     """
     Combine the features of different NOCs along the columns and creates a new NOC. 
 
@@ -1021,11 +1023,13 @@ def fuse_nocs(noc_names, new_name, new_type='dynamic', nocs_path='data/involcan/
             # Check parameters used for feature extraction
             if np.any(feat_shape != ref_shape):
                 match = False
-                print(f"Shape of NOC {noc.name} should be {ref_shape} but is {feat_shape}. This NOC will not be part of the combined NOC.")
+                if verbose:
+                    print(f"Shape of NOC {noc.name} should be {ref_shape} but is {feat_shape}. This NOC will not be part of the combined NOC.")
             for key in ref_param.keys():
                 if feat_param[key] != ref_param[key]:
                     match = False
-                    print(f"Parameter {key} of NOC {noc.name} should be {ref_param[key]} but is {feat_param[key]}. This NOC will not be part of the combined NOC.")
+                    if verbose:
+                        print(f"Parameter {key} of NOC {noc.name} should be {ref_param[key]} but is {feat_param[key]}. This NOC will not be part of the combined NOC.")
         
         if match:
             feat_all.append(feat)
@@ -1036,12 +1040,16 @@ def fuse_nocs(noc_names, new_name, new_type='dynamic', nocs_path='data/involcan/
 
     # Create new NOC
     features = np.hstack(feat_all)
+    if new_name is None:
+        new_name = "-".join(stations) + "_" + datetime.strptime(time_range[1], "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
     new_noc = NOC(new_name, features, obs_labels, network, stations, new_type, 
-                  preprocessing=prep, n_components='auto', quantile_threshold=qt, csv_path=log_path)
+                  preprocessing=prep, n_components='ckf', quantile_threshold=qt, csv_path=log_path)
     new_path = os.path.join(nocs_path, new_name)
     new_noc.metadata = ref_param
     new_noc.time_range = time_range
     new_noc.save(new_path)
     new_noc.write_csv(log_path)
+
+    print(f"NOCs for stations {stations} fused.")
     
     return new_noc

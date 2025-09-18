@@ -50,6 +50,7 @@
   "metadata": {
     "sampling_rate": 100,
     "min_frequency": 0,
-    "max_frequency": 50
+    "max_frequency": 50,
+    "running": false
   }
 }

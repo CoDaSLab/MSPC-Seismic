@@ -5,7 +5,7 @@ from config.interface import header_monitoring
 from widgets import *
 
 from preprocessing.fft_rt import calculate_fft_rt
-from monitoring import NOC, mspc_rt, main
+from monitoring import mspc_rt, utils
 
 import numpy as np
 import os
@@ -23,11 +23,11 @@ st.subheader("On-demand visualization")
 
 config = st.session_state.config
 
-starttime, endtime = main.start_and_end_times(datetime.now(timezone.utc), 
+starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
                                             update_frequency=config["general"]["update_frequency"],
                                             delay = config["general"]["delay"])
 
-nocs = main.get_noc_names(config["paths"]["noc_log"], config["data"]["stations"])
+nocs = utils.get_noc_names(config["paths"]["noc_log"], config["data"]["stations"])
 
 if "start_date" not in st.session_state:
     st.session_state.start_date = datetime.date(starttime)

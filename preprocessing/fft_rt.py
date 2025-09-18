@@ -312,6 +312,8 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
 
     if isinstance(stations, str):
         stations = [stations]
+
+    time0 = datetime.now()
     
     # Initialize features dictionary
     features_all = {}
@@ -320,23 +322,22 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
 
     for station in stations:
         features[station] = defaultdict(list)
-
+        if verbose:
+            print(f"Searching for features for station {station}...")
         # Find feature files
         files = list_fft_files(path, station, starttime, endtime, intersect=True, verbose=verbose)
         first_match = True
         for file in files:
             # Load file         
-            feat = loadmat(os.path.join(path, file))
+            feat = loadmat(os.path.join(path, file), squeeze_me=True)
 
             # Check additional matches
             match = True
             if additional_matches:
                 for key in additional_matches.keys():
                     if 'config' in feat.keys():
-                        if isinstance(feat["config"], np.ndarray):
-                            feat["config"] = feat["config"][0]
                         config = json.loads(feat["config"])
-                        if additional_matches[key] != config[key]:
+                        if additional_matches[key] != config["features"][key]:
                             match = False
             if match:                
                 for key in feature_types:
@@ -365,7 +366,9 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
             
             if np.mean(features[station]["missing_rates"]) < max_missing_rate:
                 avail_stations.append(station)
-        
+                if verbose:
+                    print(f"Features found for station {station}.")
+                    
     if not avail_stations:
         if verbose:
             print("No features available for the given time range.")
@@ -417,5 +420,9 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         all_var_classes.extend([f"{st}.{lbl}" for lbl in features[st]["var_classes"]])
     features_all["var_labels"] = np.array(all_var_labels)
     features_all["var_classes"] = np.array(all_var_classes)
+
+    if verbose:
+        print(f"Search complete. Features found for the following stations: {avail_stations}. " \
+              f"Time taken: {datetime.now()- time0}")
     
     return features_all

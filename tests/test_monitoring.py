@@ -117,7 +117,7 @@ def test_monitoring_2nocs(noc_ppma1, noc_ppma2):
 
 
 def test_delete_old_files(temp_dir_with_files):
-    from monitoring.main import delete_old_files
+    from monitoring.utils import delete_old_files
 
     delete_old_files(temp_dir_with_files, "%Y-%m-%d", "2025-07-16")
 

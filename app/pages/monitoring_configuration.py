@@ -5,7 +5,7 @@ from widgets import *
 from utils.functions import load_data, load_stations
 
 from preprocessing.fft_rt import calculate_fft_rt
-from monitoring import NOC, main
+from monitoring import NOC, utils
 
 import numpy as np
 import os
@@ -27,11 +27,11 @@ config_path = st.session_state.config_path
 
 update_freq = timedelta(minutes=config["general"]["update_frequency"])
 
-starttime, endtime = main.start_and_end_times(datetime.now(timezone.utc), 
+starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
                                         update_frequency=config["general"]["update_frequency"],
                                         delay = config["general"]["delay"])
 
-nocs = main.get_noc_names(config["paths"]["noc_log"], config["data"]["stations"])
+nocs = utils.get_noc_names(config["paths"]["noc_log"], config["data"]["stations"])
 st.session_state.start_date = datetime.date(starttime)
 st.session_state.start_time = datetime.time(starttime)
 st.session_state.end_date = datetime.date(endtime)

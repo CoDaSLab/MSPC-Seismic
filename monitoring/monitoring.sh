@@ -2,6 +2,7 @@
 
 REPO_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )/.." &> /dev/null && pwd )
 CONFIG_FILE="${REPO_DIR}/monitoring/config.json"
+
 # Change directory
 cd $REPO_DIR
 
@@ -57,7 +58,23 @@ if [ "$auto_monitoring" = "true" ]; then
     LOG_FILE="${REPO_DIR}/monitoring/logs/monitoring.log"
     ERROR_FILE="${REPO_DIR}/monitoring/logs/monitoring_error.log"
 
+    # Check if script is already running
+    if [ "$(jq -r '.metadata.running' "$CONFIG_FILE")" = "true" ]; then
+        MSG="[$(date)] A previous execution is still ongoing. Aborting."
+        echo "$MSG" >> "$LOG_FILE"
+        exit 1
+    fi
+
     echo "[$(date)] Running monitoring script..." >> "$LOG_FILE"
+
+    # Restore "running" state after finishing or in case of error
+    cleanup() {
+        jq '.metadata.running = false' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
+    }
+    trap cleanup EXIT
+
+    # Set monitoring scripts to "running"
+    jq '.metadata.running = true' "$CONFIG_FILE" > "${CONFIG_FILE}.tmp" && mv "${CONFIG_FILE}.tmp" "$CONFIG_FILE"
 
     # Run monitoring script
     python -m monitoring.main --config "$CONFIG_FILE" >> "$LOG_FILE" 2>> "$ERROR_FILE"

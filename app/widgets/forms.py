@@ -38,7 +38,7 @@ def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'],
     return stations, channels
 
 def select_noc(key, stations, noc_log_path = "data/involcan/metadata/noc_list.csv"):
-    from monitoring.main import get_noc_names
+    from monitoring.utils import get_noc_names
     
     col = st.columns(2)
     station = col[0].selectbox('Station', stations, key=f"station_{key}",

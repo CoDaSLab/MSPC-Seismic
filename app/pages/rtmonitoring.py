@@ -4,7 +4,7 @@ from config.interface import header_rtmonitoring
 
 from widgets import *
 
-from monitoring import main
+from monitoring import utils
 from datetime import datetime, timezone, timedelta
 import pickle
 import time
@@ -23,7 +23,7 @@ config = st.session_state.config
 
 update_freq = timedelta(minutes=config["general"]["update_frequency"])
 
-starttime, endtime = main.start_and_end_times(datetime.now(timezone.utc), 
+starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
                                         update_frequency=config["general"]["update_frequency"],
                                         delay = config["general"]["delay"])
 
@@ -94,11 +94,11 @@ def real_time_visualization(config, nocs, key):
 
 # ---------- Real-time Visualization ----------
 try:
-    avail_stations = main.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["general"]["update_frequency"])
+    avail_stations = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["general"]["update_frequency"])
 except FileNotFoundError as e:
     st.error(f"Latest data downloads log not available. More details:\n{e}")
 try:
-    nocs = main.get_noc_names(config["paths"]["noc_log"], avail_stations)
+    nocs = utils.get_noc_names(config["paths"]["noc_log"], avail_stations)
     real_time_visualization(config, nocs=nocs, key="monitoring_rt")
 except FileNotFoundError as e:
     st.error(f"NOC list not available. More details:\n{e}")
