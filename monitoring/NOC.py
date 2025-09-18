@@ -122,8 +122,9 @@ class NOC:
         self.metadata["start_time"] = starttime
         self.metadata["end_time"] = endtime
         self.metadata["window_size"] = window_size
-        if window_shift:
+        if window_shift is None:
             self.metadata["window_shift"] = window_size
+        else: self.metadata["window_shift"] = window_shift
         self.metadata["detrend"] = detrend
         self.metadata["windowing"] = windowing
         self.metadata["fft_points"] = fft_points

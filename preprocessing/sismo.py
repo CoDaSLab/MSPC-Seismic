@@ -296,6 +296,10 @@ def calculate_spectrogram(data: dict, window_length, shift, n_bins=None, window=
     window_samples = int(window_length*sr)
     hop = int(shift*sr)
 
+    start_index = np.arange(0, X.shape[-1] - window_samples + 1, hop)
+    end_index = start_index + window_samples
+
+
     f_max = sr/2
     f_min = 0
 
@@ -306,12 +310,15 @@ def calculate_spectrogram(data: dict, window_length, shift, n_bins=None, window=
 
     Ns =  X.shape[0] # Number of stations
     Nc =  X.shape[1] # Number of channels
-    Nt = int(X.shape[2]/hop) + 0 # Number of times
+    Nt = int(X.shape[2]/hop) # Number of times
     Nf = int((f_max - f_min)/df)+1 # Number of frequencies
 
     Sxxs  = np.zeros((Ns, Nc, Nf, Nt))
     times = np.zeros((Ns, Nc, Nt))
     freqs = np.zeros((Ns, Nc, Nf))
+
+    N_win = len(start_index)
+    missing_rate_window = np.zeros((Ns, Nc, N_win))
 
     for i in range(Ns): # Loop for every sensor
         for j in range(Nc): # Loop for every channel
@@ -319,7 +326,11 @@ def calculate_spectrogram(data: dict, window_length, shift, n_bins=None, window=
             Sxxs[i,j,:,:] = Sxx[:,1:]
             times[i,j,:]  = time[1:]
             freqs[i,j,:]  = freq
-    return Sxxs, times, freqs
+            
+            for k in range(N_win):
+                missing_rate_window[i,j,k] = np.mean(data["missing_values"][i, j, start_index[k]:end_index[k]])
+
+    return Sxxs, times, freqs, missing_rate_window
 
 def unfold_spectrogram(Sxxs, freqs=None, stations=None, channels=None):
     """

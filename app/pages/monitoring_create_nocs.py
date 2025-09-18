@@ -50,7 +50,7 @@ with COL[0]:
                 fft_points = 'auto'
 
         st.subheader("Features to extract:")
-        feature_options = ["ffts", "deltas_ffts", "deltas_deltas_ffts"]
+        feature_options = ["spectrogram_unfold"]
         feature_types = st.multiselect("Select feature types", options=feature_options, default=feature_options[0],
                                         help="Available feature types are FFT coefficients and derivatives.")
         
@@ -72,9 +72,9 @@ with COL[0]:
     if submit:
         with st.spinner("Calculating features..."):
             features = calculate_fft_rt(starttime, endtime, network=network, stations=station, 
-                                        channels=channels, window_size=window,
+                                        channels=channels, window_length=window,
                                         window_shift=shift, detrend=detrend,
-                                        windowing=windowing, fft_points=fft_points, 
+                                        windowing=windowing, n_bins=fft_points, 
                                         merge_method=config["features"]["merge_method"], merge_fill_value=config["features"]["merge_fill_value"],
                                         pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], 
                                         cpus=config["features"]["cpus"], verbose=False, save=False)
@@ -86,7 +86,7 @@ with COL[0]:
                 noc_name = station + '_' + noc_type[0]
             noc_name = noc_name + '_' + endtime.strftime("%Y-%m-%d")
             st.session_state.noc_name = noc_name
-            noc = NOC.NOC(noc_name, train_data, features["obs_labels"], network=network, station=station,
+            noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station,
                             type=noc_type, preprocessing=prep, n_components=1, percentile_threshold=True,
                             quantile_threshold=quantile, csv_path=config["paths"]["noc_log"])
             

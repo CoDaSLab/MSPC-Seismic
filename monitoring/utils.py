@@ -169,7 +169,6 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
             for name in unmatched_nocs:
                 noc = NOC.load(os.path.join(nocs_path, name).replace('\\', '/'))
                 noc.type = unmatched_nocs[name]
-                noc.metadata["window_shift"] = noc.metadata["window_size"]  # BORRAR !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! <------------------
                 noc.save(os.path.join(nocs_path, name).replace('\\', '/'))
                 noc.write_csv(csv_path)
 

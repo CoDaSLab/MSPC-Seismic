@@ -87,7 +87,7 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     verbose=False,)
 
     if n_bins == 'auto': n_bins=None
-    Sxxs, times, freqs = calculate_spectrogram(data, window_length, window_shift, n_bins,)
+    Sxxs, times, freqs, missing_rate = calculate_spectrogram(data, window_length, window_shift, n_bins,)
 
     X, freqs_label, station_class, channel_class = unfold_spectrogram(Sxxs, freqs, stations, channels)
 
@@ -100,8 +100,8 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     features["station_class"] = station_class
     features["channel_class"] = channel_class
     features["freqs_label"] = freqs_label
-    # features["missing_rates"] = [] # Calculate missing rate per window in calculate_spectrogrma and add here
-    features["missing_rates"] = np.zeros(Sxxs.shape[3]) # Calculate missing rate per window in calculate_spectrogrma and add here
+    features["missing_rates"] = np.sum(missing_rate, -1)/X.shape[0]/X.shape[1] # Calculate missing rate per window in calculate_spectrogrma and add here
+    # features["missing_rates"] = np.zeros(Sxxs.shape[3]) # Calculate missing rate per window in calculate_spectrogrma and add here
 
     if save:
         file_name = "-".join(stations) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')

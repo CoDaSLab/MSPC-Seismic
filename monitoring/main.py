@@ -42,7 +42,7 @@ def monitoring(config_path = 'config.json'):
     window_size = config["features"]["window_size"]  # Size in seconds of the windows
     if config["features"]["window_shift"] is None:
         config["features"]["window_shift"] = window_size
-    window_shift = config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
+    else: window_shift = config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
     detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.
     windowing = config["features"]["windowing"]  # Windowing method.
     feature_types = config["features"]["types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
@@ -82,8 +82,6 @@ def monitoring(config_path = 'config.json'):
         print(f"No stations are available at the moment. Process aborted after {datetime.now() - time0}")
         return
     
-    avail_stations = {'PSAB', 'PTAB'} # BORRAR !!!!!!!!!!!!!!!!!!!!! <------------------------
-    
     # Load Normal Operation Conditions (NOCs) for all available stations
     additional_matches = config["features"]
     additional_matches["window_shift"] = window_shift
@@ -95,8 +93,9 @@ def monitoring(config_path = 'config.json'):
     noc_stations = set([sta for _, sta in noc_names if isinstance(sta, str)])
     no_noc_stations = avail_stations - noc_stations
     combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]
-
     no_noc_stations = sorted(no_noc_stations)
+    print(combined_stations)
+    print(noc_names)
     if len(noc_stations) > 0 and sorted(avail_stations) not in combined_stations:
         no_noc_stations.append(sorted(noc_stations))  # Add combined NOC
     
