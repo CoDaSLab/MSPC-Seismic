@@ -47,7 +47,7 @@ def real_time_visualization(config, nocs, key):
                                         key = key + "consecutive_windows", 
                                         help="When the number of consecutive windows over the threshold is greater or equal than this number, " \
                                         "the corresponding windows will be colored red in the graph.")
-            logscale_rt = st.checkbox("Log scale", value=False, key=key + "logscale",
+            logscale_rt = st.checkbox("Log scale", value=True, key=key + "logscale",
                                         help="Display Y-axis using a logarithmic scale.")
 
         with col[2]:

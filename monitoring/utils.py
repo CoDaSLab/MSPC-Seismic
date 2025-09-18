@@ -122,6 +122,8 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
         list: List of tuples (NOC name, station).
     """
     noc_names = []
+    if isinstance(stations, str):
+        stations = [stations]
     stations = sorted(stations)
     unmatched_nocs = {}
     os.makedirs(nocs_path, exist_ok=True)
@@ -158,7 +160,6 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
                         for key in additional_matches.keys():
                             if key in noc.metadata and additional_matches[key] != noc.metadata[key]:
                                 add_noc = False
-                                print(key, additional_matches[key], noc.metadata[key])
                                 unmatched_nocs[row["name"]] = 'unavailable'
                                 
                     if add_noc:
@@ -238,7 +239,7 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
     window_shift = window_size if config["features"]["window_shift"] is None else config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
     detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.
     windowing = config["features"]["windowing"]  # Windowing method.
-    feature_types = config["features"]["types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
+    feature_types = config["features"]["types"]  # Types of features
     fft_points = config["features"]["stft_params"]["fft_points"]  # Number of FFT points (spectral resolution)
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)

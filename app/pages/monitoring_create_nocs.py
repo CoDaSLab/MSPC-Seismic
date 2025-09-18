@@ -59,7 +59,7 @@ with COL[0]:
         col = st.columns(2)
         with col[0]:
             noc_name = st.text_input("NOC name", help="The end date will be automatically appended to the name.")
-            noc_type = st.selectbox("NOC type", options=["dynamic", "static", "inactive", "unavailable"],
+            noc_type = st.selectbox("NOC type", options=["dynamic", "static", "inactive", "unavailable"], index=2,
                                     help="- dynamic: updates automatically\n- static: does not update automatically\n" \
                                     "- inactive: is not used for real-time monitoring\n- unavailable: makes it invisible to the app")
         with col[1]:
@@ -87,8 +87,8 @@ with COL[0]:
             noc_name = noc_name + '_' + endtime.strftime("%Y-%m-%d")
             st.session_state.noc_name = noc_name
             noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station,
-                            type=noc_type, preprocessing=prep, n_components=1, percentile_threshold=True,
-                            quantile_threshold=quantile, csv_path=config["paths"]["noc_log"])
+                            type=noc_type, preprocessing=prep, n_components='var', quantile_threshold=quantile, 
+                            csv_path=config["paths"]["noc_log"])
             
         with st.spinner("Saving NOC..."):
             noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))
@@ -102,7 +102,7 @@ with COL[1]:
     with st.expander("Explained variance by number of components", expanded=submit):
         if submit:
             with st.spinner("Calculating..."):
-                plots.plot_var_pca(noc.features, preprocessing=prep)
+                plots.plot_var_pca(noc.load_features(config["paths"]["nocs"]), preprocessing=prep)
         else:
             st.write("Create a NOC first.")   
 

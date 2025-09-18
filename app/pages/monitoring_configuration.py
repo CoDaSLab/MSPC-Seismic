@@ -87,10 +87,10 @@ def noc_maker(config):
 
         if submit:
             with st.spinner("Calculating features..."):
-                features = calculate_fft_rt(starttime, endtime, network=network, station=station, 
-                                            channels=channels, window_size=window,
+                features = calculate_fft_rt(starttime, endtime, network=network, stations=station, 
+                                            channels=channels, window_length=window,
                                             window_shift=shift, detrend=detrend,
-                                            windowing=windowing, fft_points=fft_points, 
+                                            windowing=windowing, n_bins=fft_points, 
                                             merge_method=config["features"]["merge_method"], merge_fill_value=config["features"]["merge_fill_value"],
                                             pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], 
                                             cpus=config["features"]["cpus"], verbose=False, save=False)
@@ -191,9 +191,9 @@ def change_config(config, config_path):
             new_config["features"]["types"] = st.multiselect("Select feature types", options=feature_options, default=feature_options[0],
                                             help="Available feature types are FFT coefficients and derivatives.")
             fft_auto = st.checkbox("Set FFT points automatically", value=True)
-            new_config["features"]["fft_points"] = forms.select_FFT_points(key, new_config["features"]["window_size"])
+            new_config["features"]["stft_params"]["fft_points"] = forms.select_FFT_points(key, new_config["features"]["window_size"])
             if fft_auto:
-                new_config["features"]["fft_points"] = 'auto'
+                new_config["features"]["stft_params"]["fft_points"] = 'auto'
         
         with st.expander("Advanced settings"):
             col1, col2 = st.columns(2)

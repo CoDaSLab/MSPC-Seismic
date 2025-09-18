@@ -227,11 +227,8 @@ def plot_noc_omeda(noc1_name, noc2_name, preprocessing=1, n_components=None, var
     else:
         st.pyplot(fig)
 
-def plot_var_pca(data, max_components=None, preprocessing=1, interactive=False):
+def plot_var_pca(data, max_components=20, preprocessing=1, interactive=False):
     from mspc_pca.plot import var_pca
-
-    if max_components is None:
-        max_components = min(data.shape[0], data.shape[1], 20)
 
     fig, _ = var_pca(data, max_components, with_ckf=True, 
                     with_std=True if preprocessing == 2 else False)

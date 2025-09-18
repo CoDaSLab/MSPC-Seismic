@@ -62,9 +62,9 @@ def change_config(config, config_path):
             new_config["features"]["types"] = st.multiselect("Select feature types", options=feature_options, default=feature_options[0],
                                             help="Available feature types are FFT coefficients and derivatives.")
             fft_auto = st.checkbox("Set FFT points automatically", value=True)
-            new_config["features"]["fft_points"] = forms.select_FFT_points(key, new_config["features"]["window_size"])
+            new_config["features"]["stft_params"]["fft_points"] = forms.select_FFT_points(key, new_config["features"]["window_size"])
             if fft_auto:
-                new_config["features"]["fft_points"] = 'auto'
+                new_config["features"]["stft_params"]["fft_points"] = 'auto'
         
         with st.expander("Advanced settings"):
             col1, col2 = st.columns(2)

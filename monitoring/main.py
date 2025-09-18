@@ -42,10 +42,10 @@ def monitoring(config_path = 'config.json'):
     window_size = config["features"]["window_size"]  # Size in seconds of the windows
     if config["features"]["window_shift"] is None:
         config["features"]["window_shift"] = window_size
-    else: window_shift = config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
+    window_shift = config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
     detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.
     windowing = config["features"]["windowing"]  # Windowing method.
-    feature_types = config["features"]["types"]  # Types of features (one or more of 'ffts', 'deltas_ffts', 'deltas_deltas_ffts')
+    feature_types = config["features"]["types"]  # Types of features
     fft_points = config["features"]["stft_params"]["fft_points"]  # Number of FFT points (spectral resolution)
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
@@ -94,11 +94,17 @@ def monitoring(config_path = 'config.json'):
     no_noc_stations = avail_stations - noc_stations
     combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]
     no_noc_stations = sorted(no_noc_stations)
-    print(combined_stations)
-    print(noc_names)
+
     if len(noc_stations) > 0 and sorted(avail_stations) not in combined_stations:
         no_noc_stations.append(sorted(noc_stations))  # Add combined NOC
     
+    if verbose:
+        print("Station status:")
+        print(f"    Available stations: {avail_stations}")
+        print(f"    Station combinations: {combined_stations}")
+        print(f"    Stations with NOCs: {noc_stations}")
+        print(f"    NOCs to create: {no_noc_stations}")
+
     if len(no_noc_stations) > 0:
         for station in no_noc_stations:
             # Get features to create NOC

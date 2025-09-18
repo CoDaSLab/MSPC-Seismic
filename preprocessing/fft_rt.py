@@ -47,9 +47,7 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     Returns
     -------
         features (dict): A dictionary containing the following extracted features:
-            - 'ffts' (numpy array): FFT coefficients for each time window.
-            - 'deltas_ffts' (numpy array): First-order differences of FFTs.
-            - 'deltas_deltas_ffts' (numpy array): Second-order differences of FFTs.
+            - 'spectrogram_unfold' (numpy array): Unfolded spectrogram.
             - 'missing_rates' (numpy array): Proportion of missing samples in each time window.
             - 'times_label' (list): Observation (row) labels, the corresponding end time for each window.
             - 'freqs_label' (list): Variable (column) labels, the corresponding frequency for each column.
@@ -100,8 +98,7 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     features["station_class"] = station_class
     features["channel_class"] = channel_class
     features["freqs_label"] = freqs_label
-    features["missing_rates"] = np.sum(missing_rate, -1)/X.shape[0]/X.shape[1] # Calculate missing rate per window in calculate_spectrogrma and add here
-    # features["missing_rates"] = np.zeros(Sxxs.shape[3]) # Calculate missing rate per window in calculate_spectrogrma and add here
+    features["missing_rates"] = np.sum(missing_rate, (0, 1))/X.shape[0]/X.shape[1]
 
     if save:
         file_name = "-".join(stations) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')

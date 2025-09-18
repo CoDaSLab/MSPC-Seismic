@@ -45,7 +45,8 @@ with col[1]:
     station, noc_name = forms.select_noc(key + "noc_selector", stations=config["data"]["stations"], noc_log_path=config["paths"]["noc_log"])
 
     # Display NOC details
-    tables.noc_summary(noc_name, config["paths"]["nocs"])
+    if noc_name is not None:
+        tables.noc_summary(noc_name, config["paths"]["nocs"])
 
     with st.form(key + "selector"):
         st.write("##### Select time range to plot:")
@@ -58,7 +59,7 @@ with col[1]:
                             help="Calculates features and statistics using parameters from monitoring configuration. " \
                             "If a previous calculation already exists, you can click on 'Plot' to plot the results directly.")
             
-            logscale = st.checkbox("Log scale", value=False, key = key + "logscale",
+            logscale = st.checkbox("Log scale", value=True, key = key + "logscale",
                                 help="Display Y-axis using a logarithmic scale.")
         with subcol[1]:
             n_consecutive = st.number_input("Number of minimum consecutive windows over threshold", min_value=1, value=3,
@@ -73,15 +74,17 @@ with col[1]:
 with col[0]:
     # Calculate and display D and Q statistics
     if submit:
-        if starttime >= endtime:
+        if noc_name is None:
+            st.error("No NOC selected.")
+        elif starttime >= endtime:
             st.error("Start time cannot be after end time")
         else:
             if calculate:
                 with st.spinner("Calculating features..."):
-                    features = calculate_fft_rt(starttime, endtime, network=config["data"]["network"], station=station, 
-                                                channels=config["data"]["channels"], window_size=config["features"]["window_size"],
+                    features = calculate_fft_rt(starttime, endtime, network=config["data"]["network"], stations=station, 
+                                                channels=config["data"]["channels"], window_length=config["features"]["window_size"],
                                                 window_shift=config["features"]["window_shift"], detrend=config["features"]["detrend"],
-                                                windowing=config["features"]["windowing"], fft_points=config["features"]["fft_points"], 
+                                                windowing=config["features"]["windowing"], n_bins=config["features"]["stft_params"]["fft_points"], 
                                                 merge_method=config["features"]["merge_method"], merge_fill_value=config["features"]["merge_fill_value"],
                                                 pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], 
                                                 cpus=config["features"]["cpus"], verbose=False, save=False)

@@ -1,6 +1,7 @@
 import streamlit as st
 from config.interface import header, logo
 from utils.functions import load_json
+from datetime import datetime, time, timezone, timedelta
 
 def init_app():
     if "app_start" not in st.session_state:
@@ -46,17 +47,17 @@ def init_session_state():
     if 'starttime' not in st.session_state: st.session_state.starttime = None
     if 'endtime' not in st.session_state: st.session_state.endtime = None
 
-    if 'station' not in st.session_state: st.session_state.station = 'PPMA'
-    if 'channel' not in st.session_state: st.session_state.channel = 'HHE'
-    from datetime import datetime, time, timezone, timedelta
-    if 'start_date' not in st.session_state: st.session_state.start_date = datetime.now()-timedelta(days=1)
-    if 'start_time' not in st.session_state: st.session_state.start_time = time(0,0,0)
-    if 'end_date' not in st.session_state: st.session_state.end_date = datetime.now()
-    if 'end_time' not in st.session_state: st.session_state.end_time = time(0,0,0)
-
-    if 'now' not in st.session_state: st.session_state.now = datetime.now(timezone.utc)
-
     config_path = "config.json"
     if 'config_path' not in st.session_state: st.session_state.config_path = config_path
     config = load_json(config_path)
     if 'config' not in st.session_state: st.session_state.config = config
+
+    if 'station' not in st.session_state: st.session_state.station = st.session_state.config["data"]["stations"][0]
+    if 'channel' not in st.session_state: st.session_state.channel = st.session_state.config["data"]["channels"][0]
+
+    if 'start_date' not in st.session_state: st.session_state.start_date = datetime.now(timezone.utc)-timedelta(days=1)
+    if 'start_time' not in st.session_state: st.session_state.start_time = time(0,0,0)
+    if 'end_date' not in st.session_state: st.session_state.end_date = datetime.now(timezone.utc)
+    if 'end_time' not in st.session_state: st.session_state.end_time = time(0,0,0)
+
+    if 'now' not in st.session_state: st.session_state.now = datetime.now(timezone.utc)
