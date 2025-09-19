@@ -80,7 +80,7 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     filenames = get_filenames("C7", stations, channels, starttime.date(), endtime.date())
 
     data = read_files(filenames,
-    lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+    lambda f: process_file(f, verbose=verbose, stime=starttime, etime=endtime),
     starttime, endtime, pad_fill_value,
     verbose=False,)
 
@@ -89,7 +89,9 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
 
     X, freqs_label, station_class, channel_class = unfold_spectrogram(Sxxs, freqs, stations, channels)
 
-    timeUTC = np.arange(starttime, endtime, timedelta(seconds=window_shift), dtype='datetime64[s]').tolist()
+    timeUTC = np.arange(starttime.replace(tzinfo=None) + timedelta(seconds=window_shift), 
+                        endtime.replace(tzinfo=None) + timedelta(seconds=window_shift), 
+                        timedelta(seconds=window_shift), dtype='datetime64[s]').tolist()
     timeUTC=[x.strftime('%Y-%m-%dT%H:%M:%SZ') for x in timeUTC ]
 
     features["streams"] =  data["streams"]

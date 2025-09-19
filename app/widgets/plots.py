@@ -43,13 +43,18 @@ def plot_dq(noc_name, starttime, endtime, logscale=False, plot_train=False,
     from monitoring.mspc_rt import plot_anomalies_DQ
     from monitoring.NOC import NOC
     import os
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
-    test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-    test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    try:
+        test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except:
+        st.error("No data available for the given time range.")
+        return
+    window_size = timedelta(seconds=noc.metadata["window_size"])
 
-    if test_start <= starttime and endtime <= test_end:
+    if test_start - window_size <= starttime and endtime <= test_end + window_size:
         fig, _ = plot_anomalies_DQ(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
                                 criterion = criterion, n_consecutive = n_consecutive, save=False, show=False)
 
@@ -76,8 +81,13 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
 
+    # x-axis limits
+    update_freq = st.session_state.config["monitoring"]["update_frequency"]
+    delay = st.session_state.config["monitoring"]["delay"]
     endtime = datetime.now(timezone.utc)
-    starttime = endtime - time_range
+    minutes = (endtime.minute // update_freq) * update_freq
+    endtime = endtime.replace(minute=minutes, second=0, microsecond=0) - timedelta(minutes=delay)
+    starttime = endtime - time_range 
     
     try:
         fig, ax = plot_anomalies_DQ(noc, starttime, endtime, logscale=logscale, plot_train=plot_train,
@@ -108,8 +118,12 @@ def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5
     from datetime import datetime, timedelta, timezone
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
-    test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-    test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    try:
+        test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    except:
+        st.error("No data available for the given time range.")
+        return
     window_size = timedelta(seconds=noc.metadata["window_size"])
 
     if test_start - window_size <= starttime and endtime <= test_end + window_size:
@@ -136,12 +150,17 @@ def plot_tscore_rt(noc_name, time_range=None, T_weight=None, T_norm_quantile=0.5
     from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
     import os
-    from datetime import datetime, timezone
+    from datetime import datetime, timezone, timedelta
     
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
-
+    
+    # x-axis limits
+    update_freq = st.session_state.config["monitoring"]["update_frequency"]
+    delay = st.session_state.config["monitoring"]["delay"]
     endtime = datetime.now(timezone.utc)
-    starttime = endtime - time_range
+    minutes = (endtime.minute // update_freq) * update_freq
+    endtime = endtime.replace(minute=minutes, second=0, microsecond=0) - timedelta(minutes=delay)
+    starttime = endtime - time_range 
 
     try:
         fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,

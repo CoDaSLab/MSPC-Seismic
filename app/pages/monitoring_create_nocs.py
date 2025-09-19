@@ -87,7 +87,7 @@ with COL[0]:
             noc_name = noc_name + '_' + endtime.strftime("%Y-%m-%d")
             st.session_state.noc_name = noc_name
             noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station,
-                            type=noc_type, preprocessing=prep, n_components='var', quantile_threshold=quantile, 
+                            type=noc_type, preprocessing=prep, n_components=1, quantile_threshold=quantile, 
                             csv_path=config["paths"]["noc_log"])
             noc.set_metadata(starttime, endtime, window, shift, detrend, windowing, fft_points)
             
@@ -121,7 +121,7 @@ with COL[1]:
             # Update NOC
             noc = NOC.NOC.load(os.path.join(config["paths"]["nocs"], st.session_state.noc_name))
             noc.n_components = n_components
-            noc.update()
+            noc.recalculate(config["paths"]["nocs"])
         
         with st.spinner("Saving changes..."):
             noc.save(os.path.join(config["paths"]["nocs"], st.session_state.noc_name).replace('\\', '/'))

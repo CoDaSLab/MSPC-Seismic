@@ -291,7 +291,7 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
                         quantile_threshold = noc_params["quantile_threshold"])
     else:
         new_noc = NOC(new_name, new_features, features['times_label'], network, station, type='dynamic',
-                        preprocessing = 1, n_components = 'ckf', quantile_threshold = 0.99, csv_path=noc_log_path)
+                        preprocessing = 1, n_components = 1, quantile_threshold = 0.99, csv_path=noc_log_path)
     new_noc.set_metadata(starttime, endtime, window_size, window_shift, detrend, windowing, fft_points, 
                             merge_method, merge_fill_value, pad_fill_value)
     new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))

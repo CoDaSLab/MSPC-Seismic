@@ -222,13 +222,13 @@ def monitoring(config_path = 'config.json'):
                                 save_path=plot_filepath, show=False)
 
                 # Update dynamic NOCs
-                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(hour=0, minute=15, second=0, tzinfo=timezone.utc)
                 if noc.type != 'static':
                     if update_start > last_noc_update:
                         if verbose:
                             print(f"Updating {noc}...")
                         # Update NOC
-                        noc_params = {'type': 'dynamic', 'n_components': 'auto', 'preprocessing': noc.preprocessing, 
+                        noc_params = {'type': 'dynamic', 'n_components': 1, 'preprocessing': noc.preprocessing, 
                                       'quantile_threshold': noc.quantile_threshold}
                         noc_end = endtime.replace(hour=0, minute=0, second=0)
                         noc_start = noc_end - timedelta(days=num_days_noc_length)
@@ -286,7 +286,7 @@ def monitoring(config_path = 'config.json'):
                                       save_path=plot_filepath, show=False)
 
                 # Update dynamic NOCs
-                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(hour=0, minute=15, second=0, tzinfo=timezone.utc)
                 if noc.type != 'static':
                     if update_start > last_noc_update:
                         if verbose:
@@ -295,7 +295,7 @@ def monitoring(config_path = 'config.json'):
                         try:
                             _ = NOC.fuse_nocs(cst, nocs_path=nocs_path, log_path=noc_log_path)
                         except Exception as e:
-                            noc_params = {'type': noc.type, 'n_components': 'auto', 'preprocessing': noc.preprocessing, 
+                            noc_params = {'type': noc.type, 'n_components': 1, 'preprocessing': noc.preprocessing, 
                                           'quantile_threshold': noc.quantile_threshold}
                             print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
                             _ = utils.create_noc(station, noc_start, noc_end, config, noc_params=noc_params)

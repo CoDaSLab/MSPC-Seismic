@@ -139,8 +139,8 @@ def read_files(
     starttime, endtime, pad_fill_value,
 
     verbose=False,
-    merge_method="interpolate",
-    merge_fill_value=0,
+    merge_method=0,
+    merge_fill_value="interpolate",
 ):
     """
     Read multiple MiniSEED files in parallel, merge their traces, and return all outputs
@@ -218,7 +218,7 @@ def read_files(
     npts_total = int(round((endtime_global - starttime_global) / dt)) + 1
 
     # Initialize arrays
-    X_tensor = np.full((len(stations), len(channels), npts_total), merge_fill_value, dtype=float)
+    X_tensor = np.full((len(stations), len(channels), npts_total), pad_fill_value, dtype=float)
     mask_tensor = np.ones((len(stations), len(channels), npts_total), dtype=int)
     stats_array = np.empty((len(stations), len(channels)), dtype=object)
     streams_array = np.empty((len(stations), len(channels)), dtype=object)
@@ -230,7 +230,10 @@ def read_files(
         offset = int(round((tr.stats.starttime - starttime_global) / dt))
         npts = tr.stats.npts
         X_tensor[i, j, offset:offset+npts] = tr.data
-        mask_tensor[i, j, offset:offset+npts] = 0
+        if isinstance(tr.data, np.ma.MaskedArray):
+            mask_tensor[i, j, offset:offset+npts] = tr.data.mask
+        else:
+            mask_tensor[i, j, offset:offset+npts] = 0
         stats_array[i, j] = tr.stats
         # Create a Stream for this single trace
         streams_array[i, j] = obspy.Stream(traces=[tr.copy()])

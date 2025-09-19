@@ -1,5 +1,5 @@
 """
-Last update: 21/07/2025
+Last update: 19/09/2025
 
 file name: NOC.py
 
@@ -23,7 +23,7 @@ import pickle
 class NOC:
     def __init__(self, name:str, features:np.ndarray, obs_labels:list = None, 
                  network:str = "", station:str = "", type:str = "", preprocessing:int = 1, 
-                 n_components:int = None, quantile_threshold:float = 0.99, 
+                 n_components:int = 1, quantile_threshold:float = 0.99, 
                  csv_path:str = None):
         """
         Stores and updates information associated with the Normal Operation Conditions (NOC) for
@@ -108,7 +108,20 @@ class NOC:
 
         self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     
+    def recalculate(self, nocs_path):
+        """
+        Recalculate D and Q-statistic values.
+        """
+        # Delete stored D and Q values
+        self.delete_DQ_test()
 
+        # Load features
+        self.features = self.load_features(nocs_path)
+
+        # Calculate D and Q again
+        self.calculate_DQ()
+        self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
+        
     def set_metadata(self, starttime, endtime, window_size, window_shift=None, 
                      detrend=None, windowing=False, fft_points='auto', 
                      merge_method=0, merge_fill_value=None, pad_fill_value=0):
@@ -979,7 +992,7 @@ def compare_nocs(noc1:NOC, noc2:NOC, nocs_path, preprocessing=1, n_components=No
     return omeda_vec, fig, ax
 
 
-def fuse_nocs(noc_names, new_name=None, new_type='dynamic', nocs_path='data/involcan/nocs', 
+def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs_path='data/involcan/nocs', 
               log_path='data/involcan/metadata/noc_list.csv', verbose=False):
     """
     Combine the features of different NOCs along the columns and creates a new NOC. 
@@ -992,6 +1005,8 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', nocs_path='data/invo
         Name of the new NOC.
     new_type (str)
         Type of the new NOC. One of 'dynamic', 'static' or 'inactive'.
+    n_components (int)
+        Number of principal components. Default is 1.
     nocs_path (str)
         Path to the directory where NOCs are saved.
     log_path (str)
@@ -1042,9 +1057,9 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', nocs_path='data/invo
     # Create new NOC
     features = np.hstack(feat_all)
     if new_name is None:
-        new_name = "-".join(stations) + "_" + datetime.strptime(time_range[1], "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
+        new_name = "-".join(stations) + "_" + new_type[0] + "_" + datetime.strptime(time_range[1], "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
     new_noc = NOC(new_name, features, obs_labels, network, stations, new_type, 
-                  preprocessing=prep, n_components='ckf', quantile_threshold=qt, csv_path=log_path)
+                  preprocessing=prep, n_components=n_components, quantile_threshold=qt, csv_path=log_path)
     new_path = os.path.join(nocs_path, new_name)
     new_noc.metadata = ref_param
     new_noc.time_range = time_range
