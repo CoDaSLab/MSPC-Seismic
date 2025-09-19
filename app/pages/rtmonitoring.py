@@ -1,6 +1,5 @@
 import streamlit as st
 from config.init import init_page, init_session_state
-from config.interface import header_rtmonitoring
 
 from widgets import *
 
@@ -13,7 +12,6 @@ import time
 init_page("Real-time monitoring")
 init_session_state()
 st.title("Real-time monitoring")
-header_rtmonitoring()
 # ------------------------
 
 st.subheader("Visualization")
@@ -67,7 +65,7 @@ def real_time_visualization(config, nocs, key):
                         try:
                             plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
                                 n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
-                            tables.noc_summary(noc[0], config["paths"]["nocs"])
+                            other.noc_summary(noc[0], config["paths"]["nocs"])
                             break
                         except pickle.UnpicklingError:
                             time.sleep(5)
@@ -83,7 +81,7 @@ def real_time_visualization(config, nocs, key):
                         try:
                             plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
                                 n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
-                            tables.noc_summary(noc[0], config["paths"]["nocs"])
+                            other.noc_summary(noc[0], config["paths"]["nocs"])
                             break
                         except pickle.UnpicklingError:
                             time.sleep(5)
@@ -93,12 +91,15 @@ def real_time_visualization(config, nocs, key):
         
 
 # ---------- Real-time Visualization ----------
-try:
-    avail_stations = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["monitoring"]["update_frequency"])
-except FileNotFoundError as e:
-    st.error(f"Latest data downloads log not available. More details:\n{e}")
-try:
-    nocs = utils.get_noc_names(config["paths"]["noc_log"], avail_stations)
-    real_time_visualization(config, nocs=nocs, key="monitoring_rt")
-except FileNotFoundError as e:
-    st.error(f"NOC list not available. More details:\n{e}")
+if config["monitoring"]["auto_monitoring"]:
+    try:
+        avail_stations = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["monitoring"]["update_frequency"])
+    except FileNotFoundError as e:
+        st.error(f"Latest data downloads log not available. More details:\n{e}")
+    try:
+        nocs = utils.get_noc_names(config["paths"]["noc_log"], avail_stations)
+        real_time_visualization(config, nocs=nocs, key="monitoring_rt")
+    except FileNotFoundError as e:
+        st.error(f"NOC list not available. More details:\n{e}")
+else:
+    st.error('Real-time monitoring is disabled. Enable it on the "Configuration" page.')

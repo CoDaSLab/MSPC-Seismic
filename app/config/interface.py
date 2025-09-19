@@ -6,7 +6,7 @@ def logo():
 @st.cache_data
 def header():
     # Crear una fila de botones en el encabezado
-    col = st.columns(5)
+    col = st.columns(6)
 
     with col[0]:
         st.page_link("home.py", label="Home", icon="🏠")
@@ -18,7 +18,8 @@ def header():
         st.page_link("./pages/eda_mapping.py", label="Exploratory Data Analysis", icon='📉')
     with col[4]:
         st.page_link("./pages/download_data.py", label="Download data", icon='⬇️')
-
+    with col[5]:
+        st.page_link("./pages/configuration.py", label="Configuration", icon="⚙️")
 
 
 @st.cache_data
@@ -32,14 +33,14 @@ def header_monitoring():
     with col[2]:
         st.page_link("pages/monitoring_create_nocs.py", label = "Create NOCs")
 
-@st.cache_data
-def header_rtmonitoring():
-    col = st.columns(2)
+# @st.cache_data
+# def header_rtmonitoring():
+#     col = st.columns(2)
 
-    with col[0]:
-        st.page_link("pages/rtmonitoring.py", label="Visualization")
-    with col[1]:
-        st.page_link("pages/rtmonitoring_config.py", label="Configuration")
+#     with col[0]:
+#         st.page_link("pages/rtmonitoring.py", label="Visualization")
+#     with col[1]:
+#         st.page_link("pages/rtmonitoring_config.py", label="Configuration")
 
 @st.cache_data
 def header_eda():

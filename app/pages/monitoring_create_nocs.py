@@ -89,6 +89,7 @@ with COL[0]:
             noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station,
                             type=noc_type, preprocessing=prep, n_components='var', quantile_threshold=quantile, 
                             csv_path=config["paths"]["noc_log"])
+            noc.set_metadata(starttime, endtime, window, shift, detrend, windowing, fft_points)
             
         with st.spinner("Saving NOC..."):
             noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))

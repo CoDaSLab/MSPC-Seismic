@@ -46,7 +46,7 @@ with col[1]:
 
     # Display NOC details
     if noc_name is not None:
-        tables.noc_summary(noc_name, config["paths"]["nocs"])
+        other.noc_summary(noc_name, config["paths"]["nocs"])
 
     with st.form(key + "selector"):
         st.write("##### Select time range to plot:")

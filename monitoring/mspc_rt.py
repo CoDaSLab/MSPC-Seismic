@@ -9,7 +9,7 @@ from monitoring.NOC import NOC
 def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, 
          missing_rates=None, plot=False, update_log=True,
          anomaly_log_path="data/involcan/metadata/anomaly_log.csv",
-         nocs_path = "data/involcan/nocs/",  verbose=False):
+         nocs_path = "data/involcan/nocs/", verbose=False):
     """
     Multivariate Statistical Process Control with PCA. Uses NOC instances to calculate
     the D and Q values for test data. Updates the NOC instances.

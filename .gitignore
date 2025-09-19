@@ -29,6 +29,9 @@
 # ignore jobs folder
 jobs
 
+# ignore backups
+backups
+
 # ignore logs 
 /monitoring/logs/
 
