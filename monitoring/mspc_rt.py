@@ -215,13 +215,13 @@ def get_anomalies_DQ(D_test, Q_test, D_threshold, Q_threshold,
 
 def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
                      criterion='consecutive', n_consecutive=3, save=True, save_path="data/involcan/nocs/plots", 
-                     opacity=None, plot_train=True, logscale=False, show=False):
+                     opacity=None, plot_train=True, logscale=False, bar_width=0.8, show=False):
     """
     Plots T-scores and highlights anomalies (according to a criterion) in a different color.
 
     Parameters
     ----------
-    noc (str)
+    noc (NOC)
         NOC instance.
     starttime (datetime)
         Start of the time range to plot (UTC)
@@ -255,6 +255,8 @@ def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile
         If False, only plots T for test data.
     logscale (bool)
         If True, uses a logarithmic scale (default: False).
+    bar_width (float)
+        Width of the bars on the plot (default: 0.8).
     show (bool)
         If True, shows graph (default: False).
     """
@@ -277,7 +279,7 @@ def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile
     event_index = anomaly_ids if len(anomaly_ids) > 0 else None
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     fig, axes = noc.plot_T_test(T_train, T_test, starttime, endtime, threshold_quantiles=T_threshold_quantile, 
-                                plot_train=False, logscale=logscale, event_index=event_index, opacity=opacity)
+                                plot_train=False, logscale=logscale, event_index=event_index, opacity=opacity, bar_width=bar_width)
     plt.tight_layout()
 
     if save:
@@ -288,15 +290,15 @@ def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile
     return fig, axes
 
 
-def plot_anomalies_DQ(noc, starttime, endtime, criterion='consecutive', n_consecutive=3, 
+def plot_anomalies_DQ(noc:NOC, starttime, endtime, criterion='consecutive', n_consecutive=3, 
                    save=True, save_path="data/involcan/nocs/plots", opacity=None,
-                   plot_train=True, logscale=False, show=False):
+                   plot_train=True, logscale=False, bar_width=0.8, show=False):
     """
     Plots D and Q-statistics and highlights anomalies (according to a criterion) in a different color.
 
     Parameters
     ----------
-    noc (str)
+    noc (NOC)
         NOC instance.
     starttime (datetime)
         Start of the time range to plot (UTC)
@@ -322,6 +324,8 @@ def plot_anomalies_DQ(noc, starttime, endtime, criterion='consecutive', n_consec
         If False, only plots D and Q for test data.
     logscale (bool)
         If True, uses a logarithmic scale (default: False).
+    bar_width (float)
+        Width of the bars on the plot (default: 0.8).
     show (bool)
         If True, shows graph (default: False).
     """
@@ -342,7 +346,7 @@ def plot_anomalies_DQ(noc, starttime, endtime, criterion='consecutive', n_consec
     event_index = anomaly_ids if len(anomaly_ids) > 0 else None
     os.makedirs(os.path.dirname(save_path), exist_ok=True)
     fig, axes = noc.plot_DQ_test(starttime, endtime, plot_train=False, logscale=logscale, 
-                                 event_index=event_index, opacity=opacity)
+                                 event_index=event_index, opacity=opacity, bar_width=bar_width)
     plt.tight_layout()
 
     if save:

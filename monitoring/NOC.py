@@ -388,7 +388,7 @@ class NOC:
                 self.test_missing_rates = [rate for rate, date in zip(self.test_missing_rates, time_labels) if date > stop_date]
 
 
-    def plot_DQ(self, logscale=False, event_index=None, opacity=None, ax=None):
+    def plot_DQ(self, logscale=False, event_index=None, opacity=None, bar_width=0.8, ax=None):
         """
         Plots D and Q-statistics and control limits.
 
@@ -400,6 +400,8 @@ class NOC:
             List of indices of observations to highlight in the graph (default: None).
         opacity (list)
             Opacity values for each bar in the plot (default: None).
+        bar_width (float)
+            Width of the bars on the plot (default: 0.8).
         ax (tuple of Axis)
             Axes in which to plot (optional, default: None).
 
@@ -411,7 +413,7 @@ class NOC:
             Tuple of two Axes objects, corresponding to the D and Q plots, respectively.
         """
         fig, axes = plot.plot_DQ(self.D, self.Q, self.D_threshold, self.Q_threshold, labels = self.obs_labels,
-                            logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
+                            logscale=logscale, event_index=event_index, opacity=opacity, bar_width=bar_width, ax=ax)
         
         # Format x-axis labels
         start_day = datetime.strptime(self.obs_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
@@ -447,7 +449,7 @@ class NOC:
 
 
     def plot_DQ_test(self, starttime, endtime, logscale=False, event_index=None, opacity=None,
-                     plot_train=False, ax=None):
+                     plot_train=False, bar_width=0.8, ax=None):
         """
         Plots D and Q-statistics and control limits for train and test.
 
@@ -467,6 +469,8 @@ class NOC:
         plot_train (bool)
             If True, plots both training and test D and Q values. If False,  only plots
             tests values (default: False)
+        bar_width (float)
+            Width of the bars on the plot (default: 0.8).
         ax (tuple of Axis)
             Axes in which to plot (optional, default: None).
 
@@ -503,7 +507,7 @@ class NOC:
         # Plot
         fig, axes = plot.plot_DQ_tt(self.D, self.Q, D_plot, Q_plot, self.D_threshold, self.Q_threshold, 
                                labels = plot_labels, logscale=logscale, plot_train=plot_train,
-                               event_index=event_index, opacity=opacity, ax=ax)
+                               event_index=event_index, opacity=opacity, bar_width=bar_width, ax=ax)
 
         # Format x-axis labels
         start_day = datetime.strptime(plot_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
@@ -538,7 +542,7 @@ class NOC:
         return fig, axes
 
     
-    def plot_T(self, T, threshold_quantiles=None, logscale=False, event_index=None, opacity=None, ax=None):
+    def plot_T(self, T, threshold_quantiles=None, logscale=False, event_index=None, opacity=None, bar_width=0.8, ax=None):
         """
         Plots T-score and control limits.
 
@@ -554,6 +558,8 @@ class NOC:
             List of indices of observations to highlight in the graph (default: None).
         opacity (list)
             Opacity values for each bar in the plot (default: None).
+        bar_width (float)
+            Width of the bars on the plot (default: 0.8).
         ax (Axis)
             Axes in which to plot (optional, default: None).
 
@@ -567,7 +573,7 @@ class NOC:
         if threshold_quantiles is None:
             threshold_quantiles = 1 - self.quantile_threshold
         fig, ax = plot.plot_tscore(T, threshold_quantiles, labels = self.obs_labels,
-                                    logscale=logscale, event_index=event_index, opacity=opacity, ax=ax)
+                                    logscale=logscale, event_index=event_index, opacity=opacity, bar_width=bar_width, ax=ax)
         
         # Format x-axis labels
         start_day = datetime.strptime(self.obs_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')
@@ -602,7 +608,7 @@ class NOC:
 
 
     def plot_T_test(self, T_train, T_test, starttime, endtime, threshold_quantiles=None, logscale=False, event_index=None, opacity=None,
-                     plot_train=False, ax=None):
+                     plot_train=False, bar_width=0.8, ax=None):
         """
         Plots T-scores and control limits for train and test.
 
@@ -628,6 +634,8 @@ class NOC:
         plot_train (bool)
             If True, plots both training and test T values. If False,  only plots
             tests values (default: False)
+        bar_width (float)
+            Width of the bars on the plot (default: 0.8).
         ax (Axis)
             Ax in which to plot (optional, default: None).
 
@@ -665,7 +673,7 @@ class NOC:
             threshold_quantiles = 1 - self.quantile_threshold
         fig, ax = plot.plot_tscore_tt(T_train, T_plot, threshold_quantiles, labels = plot_labels, 
                                         logscale=logscale, plot_train=plot_train,
-                                        event_index=event_index, opacity=opacity, ax=ax)
+                                        event_index=event_index, opacity=opacity, bar_width=bar_width, ax=ax)
 
         # Format x-axis labels
         start_day = datetime.strptime(plot_labels[0], '%Y-%m-%dT%H:%M:%SZ').date().strftime('%Y-%m-%d')

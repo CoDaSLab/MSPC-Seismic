@@ -28,16 +28,25 @@ with st.form(key):
         new_config["paths"]["data"] = st.text_input("Raw signal data directory", value=config["paths"]["data"])
         new_config["paths"]["features"] = st.text_input("Features directory", value=config["paths"]["features"])
         new_config["paths"]["nocs"] = st.text_input("NOCs directory", value=config["paths"]["nocs"])
-    with col2:
         new_config["paths"]["plots"] = st.text_input("Plots directory", value=config["paths"]["plots"])
+    with col2:
         new_config["paths"]["latest_pulls_log"] = st.text_input("Latest pulls log file", value=config["paths"]["latest_pulls_log"])
         new_config["paths"]["noc_log"] = st.text_input("NOC log file", value=config["paths"]["noc_log"])
         new_config["paths"]["anomaly_log"] = st.text_input("Anomaly log file", value=config["paths"]["anomaly_log"])
     
     st.subheader("Stations and channels")
-    new_config["data"]["network"] = st.text_input("Network", value=config["data"]["network"], disabled=True)
+    new_config["data"]["network"] = st.text_input("Network", value=config["data"]["network"], disabled=False)
     new_config["data"]["stations"], new_config["data"]["channels"] = forms.multi_select_station(key, station_list, default_stations=config["data"]["stations"], 
                                                                               default_channels=config["data"]["channels"])
+    
+    st.subheader("Connection")
+    new_config["connection"]["ssh_key_path"] = st.text_input("Path to the SSH key", value=config["connection"]["ssh_key_path"])
+    col1, col2 = st.columns(2)
+    with col1:
+        new_config["connection"]["server_IP"] = st.text_input("Remote server IP address", value=config["connection"]["server_IP"], 
+                                                              help="IP address of the server where seismic data are located.")
+    with col2:
+        new_config["connection"]["server_user"] = st.text_input("Remote server username", value=config["connection"]["server_user"])
     
     st.subheader("Real-time monitoring")
     col1, col2 = st.columns(2)
