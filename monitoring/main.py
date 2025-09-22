@@ -6,7 +6,7 @@ from scipy.io import savemat, loadmat
 from collections import defaultdict
 from pickle import UnpicklingError
 
-from preprocessing.fft_rt import calculate_fft_rt, delete_fft, list_fft_files
+from preprocessing.fft_rt import calculate_fft_rt, delete_fft, list_fft_files, find_features
 from monitoring.mspc_rt import mspc, plot_anomalies_DQ
 from monitoring import NOC
 from monitoring import utils
@@ -50,7 +50,6 @@ def monitoring(config_path = 'config.json'):
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
     pad_fill_value = config["features"]["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
-    cpus = config["features"]["cpus"]  # Number of CPUs used for FFT calculation
     anomaly_criterion = config["monitoring"]["plots"]["anomaly_criterion"]  # Criterion for anomaly detection
     verbose = config["monitoring"]["verbose"]  # Whether to print extra messages.
     num_days_before_delete = config["monitoring"]["num_days_before_delete"]  # Number of days to keep saved features.
@@ -83,9 +82,7 @@ def monitoring(config_path = 'config.json'):
         return
     
     # Load Normal Operation Conditions (NOCs) for all available stations
-    additional_matches = config["features"]
-    additional_matches["window_shift"] = window_shift
-    noc_names = utils.get_noc_names(noc_log_path, avail_stations, additional_matches=additional_matches, 
+    noc_names = utils.get_noc_names(noc_log_path, avail_stations, additional_matches=config["features"], 
                                     nocs_path=nocs_path, edit_csv=True)
 
     # --------------- Create NOC for available stations that do not have one --------------------
@@ -160,21 +157,28 @@ def monitoring(config_path = 'config.json'):
     for station in sorted(avail_stations):
         if verbose:
             print(f"Started process for station {station}.")
+
         # If previous runs failed, attempt to recalculate features. Only attempts to recalculate up to 10 failed runs
         max_failed_runs = 10
         previous_files = list_fft_files(features_path, station, starttime - timedelta(minutes=max_failed_runs * update_frequency), 
                                         starttime, verbose=verbose)
         i = 1
         previous_success = False
+        if len(previous_files) == 0:
+            starttime = starttime - timedelta(minutes=max_failed_runs * update_frequency)
         while i <= len(previous_files) and not previous_success:
             previous_filename = previous_files[-i]
             previous_filepath = os.path.join(features_path, previous_filename).replace('\\', '/')
             if os.path.isfile(previous_filepath):
                 previous_features = loadmat(previous_filepath, squeeze_me=True)
                 previous_missing_rates = previous_features['missing_rates']
-                if np.mean(previous_missing_rates) > max_missing_rate:
-                    if verbose:
-                        print(f"Warning: High missing rates in previous features for station {station}. Recalculating features...")
+                previous_end = datetime.strptime(previous_features["times_label"][-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+                if previous_end < starttime:
+                    print(f"Features for station {station} from a previous execution (ended on {previous_features["times_label"][-1]}) are missing. Recalculating features...")
+                    starttime = starttime - timedelta(minutes=update_frequency)
+                    os.remove(previous_filepath)
+                elif np.mean(previous_missing_rates) > max_missing_rate:
+                    print(f"High missing rates in previous features for station {station} (ended on {previous_features["times_label"][-1]}). Recalculating features...")
                     # If previous features have high missing rates, recalculate them and delete previous file
                     starttime = starttime - timedelta(minutes=update_frequency)
                     os.remove(previous_filepath)
@@ -190,7 +194,7 @@ def monitoring(config_path = 'config.json'):
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
                                     window_size, window_shift, detrend=detrend, windowing=windowing, n_bins=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,
-                                    pad_fill_value = pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
+                                    pad_fill_value = pad_fill_value, data_path=data_path, verbose=verbose)
 
         # Save features files
         features['config'] = config_str
@@ -254,7 +258,7 @@ def monitoring(config_path = 'config.json'):
                 noc_params = {'type': noc_info["type"], 'n_components': noc_info["n_components"], 
                               'preprocessing': noc_info["preprocessing"], 'quantile_threshold': noc_info["quantile_threshold"]}
                 noc_start = datetime.strptime(noc_info["start_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-                noc_end = datetime.strptime(noc_info["start_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+                noc_end = datetime.strptime(noc_info["end_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
                 _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=True)
             
         starttime = starttime_original
@@ -265,25 +269,30 @@ def monitoring(config_path = 'config.json'):
     for cst in combined_stations:
         if verbose:
             print(f"Started process for combined stations {cst}.")
-        features = utils.find_features(features_path, cst, lowest_starttime, endtime, feature_types=feature_types,
-                                       additional_matches=config["features"], max_missing_rate=max_missing_rate, 
-                                       verbose=verbose)
         
-        # Perform MSPC for all NOCs associated with the station
-        test_data = np.hstack([features[key] for key in feature_types])
-        mspc(combined_nocs[tuple(cst)], test_data, starttime, endtime, window_size, window_shift, 
-            missing_rates=features['missing_rates'], plot=False, update_log=True, 
-            anomaly_log_path=anomaly_log_path, nocs_path=nocs_path, verbose=verbose)
+        combined_endtime = endtime - timedelta(minutes=update_frequency) if delay < update_frequency else endtime
+        features = find_features(features_path, cst, lowest_starttime, combined_endtime, 
+                                 feature_types=feature_types, additional_matches=config["features"], 
+                                 max_missing_rate=max_missing_rate, verbose=verbose)
         
+        if features:
+            # Perform MSPC for all NOCs associated with the station
+            test_data = np.hstack([features[key] for key in feature_types])
+            mspc(combined_nocs[tuple(cst)], test_data, starttime, combined_endtime, window_size, window_shift, 
+                missing_rates=features['missing_rates'], plot=False, update_log=True, 
+                anomaly_log_path=anomaly_log_path, nocs_path=nocs_path, verbose=verbose)
+        else:
+            print(f"No combined data available for stations {cst}. One or more stations might be unavailable.")        
+            
         for noc_path in combined_nocs[tuple(cst)]:
             try:
                 noc = NOC.NOC.load(noc_path)
                 if save_plots:
                     # Save MSPC plot
-                    plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + endtime.strftime('%Y%m%dT%H%M%SZ')
+                    plot_filename = noc.name + '_' + plot_start.strftime('%Y%m%dT%H%M%SZ') + '_' + combined_endtime.strftime('%Y%m%dT%H%M%SZ')
                     plot_filepath = os.path.join(plots_path, plot_filename)
-                    plot_anomalies_DQ(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
-                                      save_path=plot_filepath, show=False)
+                    plot_anomalies_DQ(noc, plot_start, combined_endtime, criterion=anomaly_criterion, save=True,
+                                    save_path=plot_filepath, show=False)
 
                 # Update dynamic NOCs
                 last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(hour=0, minute=15, second=0, tzinfo=timezone.utc)
@@ -296,7 +305,7 @@ def monitoring(config_path = 'config.json'):
                             _ = NOC.fuse_nocs(cst, nocs_path=nocs_path, log_path=noc_log_path)
                         except Exception as e:
                             noc_params = {'type': noc.type, 'n_components': 1, 'preprocessing': noc.preprocessing, 
-                                          'quantile_threshold': noc.quantile_threshold}
+                                        'quantile_threshold': noc.quantile_threshold}
                             print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
                             _ = utils.create_noc(station, noc_start, noc_end, config, noc_params=noc_params)
                         # Make previous NOC inactive
@@ -317,9 +326,9 @@ def monitoring(config_path = 'config.json'):
 
                 noc_info = utils.noc_info(name, noc_log_path)
                 noc_params = {'type': noc_info["type"], 'n_components': noc_info["n_components"], 
-                              'preprocessing': noc_info["preprocessing"], 'quantile_threshold': noc_info["quantile_threshold"]}
+                            'preprocessing': noc_info["preprocessing"], 'quantile_threshold': noc_info["quantile_threshold"]}
                 noc_start = datetime.strptime(noc_info["start_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-                noc_end = datetime.strptime(noc_info["start_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
+                noc_end = datetime.strptime(noc_info["end_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
                 _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=True)
 
     # ---------------------------- Delete old files -------------------------------

@@ -244,7 +244,6 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
     pad_fill_value = config["features"]["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
-    cpus = config["features"]["cpus"]  # Number of CPUs used for FFT calculation
     verbose = config["monitoring"]["verbose"]  # Whether to print extra messages.
 
     if isinstance(station, list):
@@ -281,7 +280,7 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
         features = calculate_fft_rt(starttime, endtime, network, station, channels, 
                                     window_size, window_shift, detrend=detrend, windowing=windowing, n_bins=fft_points, 
                                     merge_method=merge_method, merge_fill_value=merge_fill_value,
-                                    pad_fill_value=pad_fill_value, data_path=data_path, cpus=cpus, verbose=verbose)
+                                    pad_fill_value=pad_fill_value, data_path=data_path, verbose=verbose)
     
     # Create new NOC
     new_features = np.hstack([features[key] for key in feature_types])

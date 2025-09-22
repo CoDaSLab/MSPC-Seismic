@@ -6,14 +6,13 @@ from scipy.io import savemat, loadmat
 from collections import defaultdict
 import json
 
-from preprocessing.SISMO import SISMO
 from preprocessing.sismo import *
 from data.scripts.get_filenames import get_filenames
 
 def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HHN', 'HHZ'], 
                     window_length=10, window_shift=None, detrend=False, windowing=False, n_bins='auto', 
                     merge_method=0, merge_fill_value = None, pad_fill_value=False,
-                    data_path="data/involcan/mseed", cpus=1, verbose=False, save=False, 
+                    data_path="data/involcan/mseed", verbose=False, save=False, 
                     save_path="data/involcan/features"):
     """
     Extracts FFT coefficients and derivatives from seismic signals over a specified time range 
@@ -39,7 +38,6 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
         pad_fill_value (any): Value used to fill gaps at the start or end of the time range if
             the signal is contained within the given time range. If False, no padding is applied.
         data_path (str): Directory path containing seismic data (default: "data/involcan/mseed").
-        cpus (int): Number of CPU cores to use for processing (default: 1).
         verbose (bool): Whether to print detailed messages during feature extraction (default: False).
         save (bool): Whether to save the features in a .mat file (default: False).
         save_path (str): Path to the directory where features are stored (default: "data/involcan/features").
@@ -77,15 +75,15 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
         window_shift = window_length
 
     features = {}
-    filenames = get_filenames("C7", stations, channels, starttime.date(), endtime.date())
+    filenames = get_filenames(network, stations, channels, starttime.date(), endtime.date())
 
     data = read_files(filenames,
     lambda f: process_file(f, verbose=verbose, stime=starttime, etime=endtime),
     starttime, endtime, pad_fill_value,
-    verbose=False,)
+    verbose=False, merge_method=merge_method, merge_fill_value=merge_fill_value)
 
     if n_bins == 'auto': n_bins=None
-    Sxxs, times, freqs, missing_rate = calculate_spectrogram(data, window_length, window_shift, n_bins,)
+    Sxxs, times, freqs, missing_rate = calculate_spectrogram(data, window_length, window_shift, n_bins, window=windowing, detrend=detrend)
 
     X, freqs_label, station_class, channel_class = unfold_spectrogram(Sxxs, freqs, stations, channels)
 
@@ -100,7 +98,7 @@ def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HH
     features["station_class"] = station_class
     features["channel_class"] = channel_class
     features["freqs_label"] = freqs_label
-    features["missing_rates"] = np.sum(missing_rate, (0, 1))/X.shape[0]/X.shape[1]
+    features["missing_rates"] = np.sum(missing_rate, (0, 1))/len(stations)/len(channels)
 
     if save:
         file_name = "-".join(stations) + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ')

@@ -75,7 +75,7 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
                 print(f"Could not run MSPC on the NOC at {noc}: {e}")
                 continue
         if verbose:
-            print(f"Calculating for NOC {noc.name}...")
+            print(f"Calculating MSPC for NOC {noc.name}...")
 
         # Calculate D and Q statistics
         D_test, Q_test = noc.calculate_DQ_test(test, end_times, missing_rates=missing_rates,

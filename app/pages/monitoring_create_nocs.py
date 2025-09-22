@@ -76,8 +76,7 @@ with COL[0]:
                                         window_shift=shift, detrend=detrend,
                                         windowing=windowing, n_bins=fft_points, 
                                         merge_method=config["features"]["merge_method"], merge_fill_value=config["features"]["merge_fill_value"],
-                                        pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], 
-                                        cpus=config["features"]["cpus"], verbose=False, save=False)
+                                        pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], verbose=False, save=False)
             
             train_data = np.hstack([features[k] for k in feature_types])
         

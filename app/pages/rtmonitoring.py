@@ -50,7 +50,10 @@ def real_time_visualization(config, nocs, key):
 
         with col[2]:
             weight_rt = st.slider("T-score weight", 0.0, 1.0, step=0.05)
-            st.form_submit_button("Refresh", type='primary', use_container_width=True)
+            refresh = st.form_submit_button("Refresh", type='primary', use_container_width=True)
+    
+    if refresh:
+        st.cache_resource.clear()
 
     # Arrange graphs (2 per row)
     for i, noc in enumerate(nocs):

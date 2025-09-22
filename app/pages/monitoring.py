@@ -86,8 +86,7 @@ with col[0]:
                                                 window_shift=config["features"]["window_shift"], detrend=config["features"]["detrend"],
                                                 windowing=config["features"]["windowing"], n_bins=config["features"]["stft_params"]["fft_points"], 
                                                 merge_method=config["features"]["merge_method"], merge_fill_value=config["features"]["merge_fill_value"],
-                                                pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], 
-                                                cpus=config["features"]["cpus"], verbose=False, save=False)
+                                                pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], verbose=False, save=False)
 
                 with st.spinner("Perfoming MSPC..."):
                     noc_path = os.path.join(config["paths"]["nocs"], noc_name)
