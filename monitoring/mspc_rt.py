@@ -123,7 +123,7 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
             print(row)
     
     if verbose:
-        print(f"Finished all MSPC calculations. Time taken: {datetime.now() - time0}.")
+        print(f"Finished MSPC calculations. Time taken: {datetime.now() - time0}.")
     
 
 def get_anomalies(test, threshold, criterion='consecutive', n_consecutive=3):

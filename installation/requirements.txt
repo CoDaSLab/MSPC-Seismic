@@ -1,5 +1,6 @@
 obspy
 matplotlib
+plotly
 pandas
 streamlit
 librosa

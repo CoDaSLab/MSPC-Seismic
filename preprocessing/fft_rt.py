@@ -278,6 +278,9 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         stations = [stations]
 
     time0 = datetime.now()
+
+    if verbose:
+        print(f"Starting feature search for stations {stations} from {starttime} to {endtime}...")
     
     # Initialize features dictionary
     features_all = {}
@@ -287,7 +290,7 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
     for station in stations:
         features[station] = defaultdict(list)
         if verbose:
-            print(f"Searching for features for station {station}...")
+            print(f"    Searching for features for station {station}...")
         # Find feature files
         files = list_fft_files(path, station, starttime, endtime, intersect=True, verbose=verbose)
         first_match = True
@@ -332,7 +335,7 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
             if np.mean(features[station]["missing_rates"]) < max_missing_rate:
                 avail_stations.append(station)
                 if verbose:
-                    print(f"Features found for station {station}.")
+                    print(f"    Features found for station {station}.")
                     
     if not avail_stations:
         if verbose:

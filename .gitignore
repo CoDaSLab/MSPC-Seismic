@@ -10,7 +10,6 @@
 /data/*/features/**
 /data/*/nocs/**
 /data/involcan/metadata/ivc.dat
-/data/involcan/metadata/stations_lp.dat
 /data/*/mseed/**
 /data/*/DAS/**
 /tests/data/**/*

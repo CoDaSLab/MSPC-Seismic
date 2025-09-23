@@ -85,15 +85,12 @@ def monitoring(config_path = 'config.json'):
     noc_names = utils.get_noc_names(noc_log_path, avail_stations, additional_matches=config["features"], 
                                     nocs_path=nocs_path, edit_csv=True)
 
-    # --------------- Create NOC for available stations that do not have one --------------------
+    # --------------- Create NOC for individual stations that do not have one --------------------
 
     noc_stations = set([sta for _, sta in noc_names if isinstance(sta, str)])
     no_noc_stations = avail_stations - noc_stations
     combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]
     no_noc_stations = sorted(no_noc_stations)
-
-    if len(noc_stations) > 0 and sorted(avail_stations) not in combined_stations:
-        no_noc_stations.append(sorted(noc_stations))  # Add combined NOC
     
     if verbose:
         print("Station status:")
@@ -102,6 +99,7 @@ def monitoring(config_path = 'config.json'):
         print(f"    Stations with NOCs: {noc_stations}")
         print(f"    NOCs to create: {no_noc_stations}")
 
+    # Create NOCs for individual stations
     if len(no_noc_stations) > 0:
         for station in no_noc_stations:
             # Get features to create NOC
@@ -123,13 +121,33 @@ def monitoring(config_path = 'config.json'):
                     except Exception as e:
                         print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
                         noc = utils.create_noc(sts, noc_start, noc_end, config)
+                    combined_stations.append(noc.station)
                 else:
                     noc = utils.create_noc(station, noc_start, noc_end, config)
+                    noc_stations.add(station)
 
                 noc_names.append((noc.name, noc.station))
             except Exception as e:
                 if verbose:
-                    print(f"NOC for station {station} could not be created: {e}.")
+                    print(f"NOC for station {station} could not be created: {e}")
+
+    # ---------------------------- Create combined NOC of all stations ------------------------------
+
+    noc_names_combined = utils.get_noc_names(noc_log_path, sorted(noc_stations), noc_types=["dynamic"], additional_matches=config["features"],
+                                             nocs_path=nocs_path)
+    st_names = [st for _, st in noc_names_combined if isinstance(st, str)]
+    combined_st_names = [st for _, st in noc_names_combined if isinstance(st, list)]
+
+    if len(np.unique(st_names)) == len(st_names) and len(combined_st_names) == 0:
+        nocs_to_fuse = [noc for noc, st in noc_names_combined if isinstance(st, str)]
+        try:
+            noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path)
+        except Exception as e:
+            print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
+            noc = utils.create_noc(sts, noc_start, noc_end, config)
+        
+        combined_stations.append(noc.station)
+        noc_names.append((noc.name, noc.station))
 
     nocs = defaultdict(list)
     combined_nocs = defaultdict(list)
@@ -161,7 +179,7 @@ def monitoring(config_path = 'config.json'):
         # If previous runs failed, attempt to recalculate features. Only attempts to recalculate up to 10 failed runs
         max_failed_runs = 10
         previous_files = list_fft_files(features_path, station, starttime - timedelta(minutes=max_failed_runs * update_frequency), 
-                                        starttime, verbose=verbose)
+                                        starttime, intersect=True, verbose=verbose)
         i = 1
         previous_success = False
         if len(previous_files) == 0:
@@ -224,23 +242,9 @@ def monitoring(config_path = 'config.json'):
                     plot_filepath = os.path.join(plots_path, plot_filename)
                     plot_anomalies_DQ(noc, plot_start, endtime, criterion=anomaly_criterion, save=True,
                                 save_path=plot_filepath, show=False)
-
-                # Update dynamic NOCs
-                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(hour=0, minute=15, second=0, tzinfo=timezone.utc)
-                if noc.type != 'static':
-                    if update_start > last_noc_update:
-                        if verbose:
-                            print(f"Updating {noc}...")
-                        # Update NOC
-                        noc_params = {'type': 'dynamic', 'n_components': 1, 'preprocessing': noc.preprocessing, 
-                                      'quantile_threshold': noc.quantile_threshold}
-                        noc_end = endtime.replace(hour=0, minute=0, second=0)
-                        noc_start = noc_end - timedelta(days=num_days_noc_length)
-                        _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=False)
-                        
-                        # Make previous NOC inactive
-                        noc.type = 'inactive'
-
+                    
+                # Make old NOCs unavailable
+                last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(hour=0, minute=15, second=0, tzinfo=timezone.utc)           
                 if delete_date > last_noc_update:
                     noc.type = 'unavailable'
 
@@ -248,6 +252,23 @@ def monitoring(config_path = 'config.json'):
                 noc.delete_DQ_test(delete_date)
                 noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
                 noc.write_csv(noc_log_path)
+
+                # Update dynamic NOCs
+                if noc.type != 'static':
+                    if update_start > last_noc_update:
+                        if verbose:
+                            print(f"Updating {noc}...")
+                        # Make previous NOC inactive
+                        noc.type = 'inactive'
+                        noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
+                        noc.write_csv(noc_log_path)
+
+                        # Update NOC
+                        noc_params = {'type': 'dynamic', 'n_components': 1, 'preprocessing': noc.preprocessing, 
+                                      'quantile_threshold': noc.quantile_threshold}
+                        noc_end = endtime.replace(hour=0, minute=0, second=0)
+                        noc_start = noc_end - timedelta(days=num_days_noc_length)
+                        _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=False)
 
             except UnpicklingError:
                 # Recreate a NOC if it fails to load
@@ -273,12 +294,12 @@ def monitoring(config_path = 'config.json'):
         combined_endtime = endtime - timedelta(minutes=update_frequency) if delay < update_frequency else endtime
         features = find_features(features_path, cst, lowest_starttime, combined_endtime, 
                                  feature_types=feature_types, additional_matches=config["features"], 
-                                 max_missing_rate=max_missing_rate, verbose=verbose)
+                                 max_missing_rate=1, verbose=verbose)
         
         if features:
             # Perform MSPC for all NOCs associated with the station
             test_data = np.hstack([features[key] for key in feature_types])
-            mspc(combined_nocs[tuple(cst)], test_data, starttime, combined_endtime, window_size, window_shift, 
+            mspc(combined_nocs[tuple(cst)], test_data, lowest_starttime, combined_endtime, window_size, window_shift, 
                 missing_rates=features['missing_rates'], plot=False, update_log=True, 
                 anomaly_log_path=anomaly_log_path, nocs_path=nocs_path, verbose=verbose)
         else:
@@ -293,31 +314,49 @@ def monitoring(config_path = 'config.json'):
                     plot_filepath = os.path.join(plots_path, plot_filename)
                     plot_anomalies_DQ(noc, plot_start, combined_endtime, criterion=anomaly_criterion, save=True,
                                     save_path=plot_filepath, show=False)
-
-                # Update dynamic NOCs
+                
+                # Make old NOCs unavailable
                 last_noc_update = datetime.strptime(noc.last_update_time, '%Y-%m-%dT%H:%M:%SZ').replace(hour=0, minute=15, second=0, tzinfo=timezone.utc)
-                if noc.type != 'static':
-                    if update_start > last_noc_update:
-                        if verbose:
-                            print(f"Updating {noc}...")
-                        # Update NOC
-                        try:
-                            _ = NOC.fuse_nocs(cst, nocs_path=nocs_path, log_path=noc_log_path)
-                        except Exception as e:
-                            noc_params = {'type': noc.type, 'n_components': 1, 'preprocessing': noc.preprocessing, 
-                                        'quantile_threshold': noc.quantile_threshold}
-                            print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
-                            _ = utils.create_noc(station, noc_start, noc_end, config, noc_params=noc_params)
-                        # Make previous NOC inactive
-                        noc.type = 'inactive'
-
                 if delete_date > last_noc_update:
                     noc.type = 'unavailable'
-
+                       
                 # Delete old D and Q-statistic test values and save changes
                 noc.delete_DQ_test(delete_date)
                 noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
                 noc.write_csv(noc_log_path)
+
+                # Update dynamic NOCs
+                if noc.type != 'static':
+                    if update_start > last_noc_update:
+                        if verbose:
+                            print(f"Updating {noc}...")
+
+                        # Make previous NOC inactive
+                        noc.type = 'inactive'
+                        noc.save(os.path.join(nocs_path, noc.name).replace('\\', '/'))
+                        noc.write_csv(noc_log_path)
+
+                        # Update NOC
+                        noc_end = combined_endtime.replace(hour=0, minute=0, second=0)
+                        noc_start = noc_end - timedelta(days=num_days_noc_length)
+                        noc_params = {'type': noc.type, 'n_components': 1, 'preprocessing': noc.preprocessing, 
+                                    'quantile_threshold': noc.quantile_threshold}
+                        noc_names = utils.get_noc_names(noc_log_path, cst, noc_types=["dynamic"], additional_matches=config["features"],
+                                                            nocs_path=nocs_path)
+                        st_names = [st for _, st in noc_names if isinstance(st, str)]
+
+                        if len(np.unique(st_names)) == len(st_names):
+                            nocs_to_fuse = [noc for noc, st in noc_names if isinstance(st, str)]
+                            try:
+                                _ = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path)
+                            except Exception as e:
+                                print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
+                                _ = utils.create_noc(cst, noc_start, noc_end, config, noc_params=noc_params)
+                        else:
+                            if verbose:
+                                print(f"    Creating combined NOC...")
+                            _ = utils.create_noc(cst, noc_start, noc_end, config, noc_params=noc_params)
+
 
             except UnpicklingError:
                 # Recreate a NOC if it fails to load
