@@ -58,8 +58,8 @@ def real_time_visualization(config, nocs, key):
         st.cache_resource.clear()
 
     # Arrange graphs (2 per row)
+    col1, col2 = st.columns(2) 
     for i, noc in enumerate(nocs):
-        col1, col2 = st.columns(2) 
         if type(noc[1])==list:
             with col1:
                 with st.spinner("Loading graph..."):
@@ -75,22 +75,26 @@ def real_time_visualization(config, nocs, key):
                             graph_attempt += 1
                     else:
                         st.error(f"Failed to load graph for NOC {noc[0]}.")
-            with col2:
-                if selected_points["selection"]["points"]:
-                    st.subheader("oMEDA")
-                    from monitoring.NOC import NOC
-                    nocs_path = config["paths"]["nocs"]
-                    features_path = config["paths"]["features"]
-                    omeda_noc = NOC.load(f"{nocs_path}/{noc[0]}")
-                    starttime = selected_points["selection"]["points"][0]["x"]
-                    endtime = selected_points["selection"]["points"][-1]["x"]
-                    omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(nocs_path, features_path, starttime, endtime)
+            try:
+                with col2:
+                    exploration_on, starttime, endtime = False, None, None
+                    if selected_points["selection"]["points"]:
+                        exploration_on = True
+                        st.subheader("oMEDA")
+                        from monitoring.NOC import NOC
+                        nocs_path = config["paths"]["nocs"]
+                        features_path = config["paths"]["features"]
+                        omeda_noc = NOC.load(f"{nocs_path}/{noc[0]}")
+                        starttime = selected_points["selection"]["points"][0]["x"]
+                        endtime = selected_points["selection"]["points"][-1]["x"]
+                        omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(nocs_path, features_path, starttime, endtime)
 
 
-                    fig = plots.plot_omeda(omeda_vec, stations_class, channel_class)
-                    st.plotly_chart(fig, use_container_width=True)
+                        fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label)
+                        st.plotly_chart(fig, use_container_width=True)
+            except Exception as e: 
+                col2.error(f"Error computing oMEDA. {e}")
                     # omeda()
-                    
         # if i%2==0:
         #     with col1:
         #         with st.spinner("Loading graph..."):
@@ -122,7 +126,35 @@ def real_time_visualization(config, nocs, key):
         #                     graph_attempt += 1
         #             else:
         #                 st.error(f"Failed to load graph for NOC {noc[0]}.")
-        
+    
+    return exploration_on, starttime, endtime
+@st.fragment()
+def exploration(starttime, endtime):
+    col1, col2 = st.columns(2)
+    stations = col1.multiselect("Choose stations", config["data"]["stations"])
+    visualization_options = ["Raw signal", "Spectrogram", "MSPC"]
+    visualizations = col2.multiselect("Choose visualizations", visualization_options)
+
+
+    if len(visualizations)>0:
+        col = st.columns(len(visualizations))
+
+        for i in range(len(visualizations)):
+            with col[i]:
+                if visualizations[i] == visualization_options[0]: plot_raw_signal(stations, starttime, endtime)
+                if visualizations[i] == visualization_options[1]: plot_spectrogram(stations, starttime, endtime)
+                if visualizations[i] == visualization_options[2]: plot_mspc(stations, starttime, endtime)
+
+
+def plot_raw_signal(stations, starttime, endtime):
+    return
+
+def plot_spectrogram(stations, starttime, endtime):
+    return
+
+def plot_mspc(stations, starttime, endtime):
+    return
+
 
 # ---------- Real-time Visualization ----------
 if config["monitoring"]["auto_monitoring"]:
@@ -132,7 +164,8 @@ if config["monitoring"]["auto_monitoring"]:
         st.error(f"Latest data downloads log not available. More details:\n{e}")
     try:
         nocs = utils.get_noc_names(config["paths"]["noc_log"], avail_stations)
-        real_time_visualization(config, nocs=nocs, key="monitoring_rt")
+        exploration_on, starttime, endtime = real_time_visualization(config, nocs=nocs, key="monitoring_rt")
+        if exploration_on: exploration(starttime, endtime)
     except FileNotFoundError as e:
         st.error(f"NOC list not available. More details:\n{e}")
 else:

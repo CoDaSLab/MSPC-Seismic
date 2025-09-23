@@ -280,7 +280,7 @@ def plot_var_pca(data, max_components=20, preprocessing=1, interactive=False):
     else:
         st.pyplot(fig)
 
-def plot_omeda(omeda_vec, stations, channels, colors=["#3B96FF", "#32A006", "#FF7B00"]):
+def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF", "#32A006", "#FF7B00"], nticks=5):
     import numpy as np
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
@@ -294,36 +294,58 @@ def plot_omeda(omeda_vec, stations, channels, colors=["#3B96FF", "#32A006", "#FF
     vmin = np.min(omeda_vec)
     vmax = np.max(omeda_vec)
 
-    # Crear figura con subplots organizados como (filas=channels, columnas=stations)
+    # Crear figura con subplots
     fig = make_subplots(
         rows=n_channels,
         cols=n_stations,
         shared_xaxes=True,
         shared_yaxes=True,
-        subplot_titles=[f"{st}" for st in unique_stations] * n_channels
+        subplot_titles=[f"{st}" for st in unique_stations] * n_channels # Only for first row
     )
 
-    for i, ch in enumerate(unique_channels):  # filas: canales
-        for j, st in enumerate(unique_stations):  # columnas: estaciones
-            id_start = n_vars * (i * n_stations + j)
-            id_end = n_vars * (i * n_stations + j + 1)
+    for j, st in enumerate(unique_stations):  # columnas: estaciones
+        for i, ch in enumerate(unique_channels):  # filas: canales
+            id_start = n_vars * (j * n_channels + i)
+            id_end = n_vars * (j * n_channels + i + 1)
             vec = omeda_vec[id_start:id_end]
+
+            x_vals = np.arange(len(vec))
+            hovertext = None
+
+            # Si se pasan labels
+            if vars_label is not None:
+                hovertext = [f"{vars_label[k]}: {vec[k]:.3e}" for k in range(len(vec))]
+                tickvals = np.linspace(0, len(vec)-1, nticks, dtype=int)
+                ticktext = [vars_label[k] for k in tickvals]
+                fig.update_xaxes(tickvals=tickvals, ticktext=ticktext, row=i+1, col=j+1)
 
             fig.add_trace(
                 go.Bar(
-                    x=np.arange(len(vec)),
+                    x=x_vals,
                     y=vec,
                     name=f"{ch}",
                     marker=dict(color=colors[i % len(colors)]),
-                    showlegend=(j == 0),  # Solo mostrar leyenda una vez por canal
+                    showlegend=(j == 0),
+                    hovertext=hovertext,
+                    hoverinfo="text" if vars_label is not None else "y+x"
                 ),
                 row=i + 1,
                 col=j + 1,
-            )
+                )
 
-    # Actualizar layout
+    # Sincronizar zoom
+    for i in range(n_channels):
+        for j in range(n_stations):
+            fig.update_xaxes(matches='x', row=i+1, col=j+1)
+            fig.update_yaxes(matches='y', row=i+1, col=j+1)
+
+    # Layout
     fig.update_yaxes(range=[vmin, vmax])
-    fig.update_xaxes(title_text="Frequency (Hz)", row=n_channels, col=(n_stations // 2) + 1)
+    fig.update_xaxes(title_text="Frequency", row=n_channels, col=(n_stations // 2) + 1)
     fig.update_yaxes(title_text='difference', row=(n_channels // 2) + 1, col=1)
+
+    for ann in fig.layout.annotations:
+        if ann.y != 1.0:  
+            ann.text = ""
 
     return fig

@@ -39,7 +39,7 @@ if "start_date" not in st.session_state:
 key = "on_demand"
 col = st.columns(2)
 
-with col[1]:
+with col[0]:
     st.write("##### Select a station and Normal Operation Conditions (NOC):")
     # Select NOC
     station, noc_name = forms.select_noc(key + "noc_selector", stations=config["data"]["stations"], noc_log_path=config["paths"]["noc_log"])
@@ -66,12 +66,12 @@ with col[1]:
                                     key = key + "consecutive_windows", 
                                     help="When the number of consecutive windows over the threshold is greater or equal than this number, " \
                                     "the corresponding windows will be colored red in the graph.")
-            weight = st.slider("T-score weight", 0.0, 1.0, step=0.05)
+            weight = st.slider("T-score weight", 0.0, 1.0, step=0.05, value=0.5)
             
         submit = st.form_submit_button("Plot", type = "primary", use_container_width=True,
                                         help="Plot T-scores. If no previous calculations exist, check the 'Run calculations' box and try again.")
 
-with col[0]:
+with col[1]:
     # Calculate and display D and Q statistics
     if submit:
         if noc_name is None:

@@ -956,7 +956,8 @@ class NOC:
 
         if self.preprocessing == 2: #autoscaling
             scaler = StandardScaler(with_std = True)
-            test = scaler.fit_transform(test)
+        else: scaler = StandardScaler(with_std = False)
+        test = scaler.fit_transform(test)
 
         model = PCA(1)
         pca = model.fit(test)
