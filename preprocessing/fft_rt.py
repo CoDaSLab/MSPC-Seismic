@@ -254,7 +254,7 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
     endtime (str or datetime)
         The end date of the range (UTC).
     feature_types (list)
-        List of features (e.g. "ffts") to retrieve.
+        List of features (e.g. "spectrogram_unfold") to retrieve.
     additional_matches (dict)
         Other parameters that the file needs to match. Default is None.
     max_missing_rate (float)
@@ -387,7 +387,7 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         all_station_class.extend(features[st]["station_class"])
     features_all["freqs_label"] = np.array(all_freqs_label)
     features_all["channel_class"] = np.array(all_channel_class)
-    features_all["station_class"] = np.array(all_channel_class)
+    features_all["station_class"] = np.array(all_station_class)
 
     if verbose:
         print(f"Search complete. Features found for the following stations: {avail_stations}. " \

@@ -931,6 +931,45 @@ class NOC:
                 writer.writeheader()
                 writer.writerows(rows)
 
+    def omeda(self, nocs_path:str, features_path:str, starttime:datetime, endtime:datetime):
+
+        from preprocessing.fft_rt import find_features
+        metadata = self.metadata
+        del metadata["start_time"]
+        del metadata["end_time"]
+        metadata["stft_params"] = {}
+        metadata["stft_params"]["fft_points"] = metadata["fft_points"]
+        del metadata["fft_points"]
+        features_dic = find_features(features_path, self.station, starttime, endtime,["spectrogram_unfold"], metadata)
+
+        features_noc = self.load_features(nocs_path)
+        features_test = features_dic["spectrogram_unfold"]
+
+
+        test = np.vstack((features_noc, features_test))
+        dummy = np.ones(len(features_noc)+len(features_test))
+        dummy[0:len(features_noc)-1] = -1
+
+        from mspc_pca.omeda import omeda
+        from sklearn.decomposition import PCA
+        from sklearn.preprocessing import StandardScaler
+
+        if self.preprocessing == 2: #autoscaling
+            scaler = StandardScaler(with_std = True)
+            test = scaler.fit_transform(test)
+
+        model = PCA(1)
+        pca = model.fit(test)
+        loadings = pca.components_.T
+
+        omeda_vec = omeda(test, dummy, loadings, plot=False)
+
+        freqs_label = features_dic["freqs_label"]
+        channel_class = features_dic["channel_class"] 
+        stations_class = features_dic["station_class"] 
+        return omeda_vec, freqs_label, channel_class, stations_class
+
+
     def __str__(self):
         return f"NOC: {self.name}"
 
@@ -1077,3 +1116,4 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     print(f"NOCs for stations {stations} fused.")
     
     return new_noc
+

@@ -8,6 +8,8 @@ from datetime import datetime, timezone, timedelta
 import pickle
 import time
 
+from mspc_pca.omeda import omeda
+
 # --- Application start ---
 init_page("Real-time monitoring")
 init_session_state()
@@ -49,7 +51,7 @@ def real_time_visualization(config, nocs, key):
                                         help="Display Y-axis using a logarithmic scale.")
 
         with col[2]:
-            weight_rt = st.slider("T-score weight", 0.0, 1.0, step=0.05)
+            weight_rt = st.slider("T-score weight", 0.0, 1.0, value=0.5, step=0.05)
             refresh = st.form_submit_button("Refresh", type='primary', use_container_width=True)
     
     if refresh:
@@ -57,16 +59,14 @@ def real_time_visualization(config, nocs, key):
 
     # Arrange graphs (2 per row)
     for i, noc in enumerate(nocs):
-        if i % 2 == 0:
-            col1, col2 = st.columns(2) 
-
-            # Left column
+        col1, col2 = st.columns(2) 
+        if type(noc[1])==list:
             with col1:
                 with st.spinner("Loading graph..."):
                     graph_attempt = 0
                     while graph_attempt < 3:
                         try:
-                            plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
+                            selected_points = plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
                                 n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
                             other.noc_summary(noc[0], config["paths"]["nocs"])
                             break
@@ -75,22 +75,53 @@ def real_time_visualization(config, nocs, key):
                             graph_attempt += 1
                     else:
                         st.error(f"Failed to load graph for NOC {noc[0]}.")
-        else:
-            # Right column
             with col2:
-                with st.spinner("Loading graph..."):
-                    graph_attempt = 0
-                    while graph_attempt < 3:
-                        try:
-                            plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
-                                n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
-                            other.noc_summary(noc[0], config["paths"]["nocs"])
-                            break
-                        except pickle.UnpicklingError:
-                            time.sleep(5)
-                            graph_attempt += 1
-                    else:
-                        st.error(f"Failed to load graph for NOC {noc[0]}.")
+                if selected_points["selection"]["points"]:
+                    st.subheader("oMEDA")
+                    from monitoring.NOC import NOC
+                    nocs_path = config["paths"]["nocs"]
+                    features_path = config["paths"]["features"]
+                    omeda_noc = NOC.load(f"{nocs_path}/{noc[0]}")
+                    starttime = selected_points["selection"]["points"][0]["x"]
+                    endtime = selected_points["selection"]["points"][-1]["x"]
+                    omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(nocs_path, features_path, starttime, endtime)
+
+
+                    fig = plots.plot_omeda(omeda_vec, stations_class, channel_class)
+                    st.plotly_chart(fig, use_container_width=True)
+                    # omeda()
+                    
+        # if i%2==0:
+        #     with col1:
+        #         with st.spinner("Loading graph..."):
+        #             graph_attempt = 0
+        #             while graph_attempt < 3:
+        #                 try:
+        #                     plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
+        #                         n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
+        #                     other.noc_summary(noc[0], config["paths"]["nocs"])
+        #                     break
+        #                 except pickle.UnpicklingError:
+        #                     time.sleep(5)
+        #                     graph_attempt += 1
+        #             else:
+        #                 st.error(f"Failed to load graph for NOC {noc[0]}.")
+        # else:
+        #     # Right column
+        #     with col2:
+        #         with st.spinner("Loading graph..."):
+        #             graph_attempt = 0
+        #             while graph_attempt < 3:
+        #                 try:
+        #                     plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
+        #                         n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
+        #                     other.noc_summary(noc[0], config["paths"]["nocs"])
+        #                     break
+        #                 except pickle.UnpicklingError:
+        #                     time.sleep(5)
+        #                     graph_attempt += 1
+        #             else:
+        #                 st.error(f"Failed to load graph for NOC {noc[0]}.")
         
 
 # ---------- Real-time Visualization ----------

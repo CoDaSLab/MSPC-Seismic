@@ -213,7 +213,7 @@ def get_anomalies_DQ(D_test, Q_test, D_threshold, Q_threshold,
     return anomaly_D_ids, anomaly_Q_ids
 
 
-def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+def plot_anomalies_T_matplotlib(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
                      criterion='consecutive', n_consecutive=3, save=True, save_path="data/involcan/nocs/plots", 
                      opacity=None, plot_train=True, logscale=False, bar_width=0.8, show=False):
     """
@@ -288,6 +288,118 @@ def plot_anomalies_T(noc:NOC, starttime, endtime, T_weight=None, T_norm_quantile
         plt.show()
     
     return fig, axes
+
+def plot_anomalies_T(
+    noc,
+    starttime,
+    endtime,
+    T_weight=None,
+    T_norm_quantile=0.5,
+    T_threshold_quantile=None,
+    criterion="consecutive",
+    n_consecutive=3,
+    plot_train=True,
+    logscale=False,
+    show=False,
+):
+    """
+    Calcula T-scores y muestra un gráfico interactivo Plotly con anomalías y umbral.
+
+    Parámetros
+    ----------
+    noc : NOC
+        Instancia de NOC.
+    starttime : datetime
+        Inicio del rango temporal (UTC).
+    endtime : datetime
+        Fin del rango temporal (UTC).
+    T_weight : float
+        Peso para el cálculo de T-score.
+    T_norm_quantile : float
+        Cuantil usado para normalización (default: 0.5).
+    T_threshold_quantile : float
+        Cuantil de T-scores usado como threshold. Si None, usa `noc.quantile_threshold`.
+    criterion : str
+        Criterio para detectar anomalías ("consecutive").
+    n_consecutive : int
+        Nº de observaciones consecutivas por encima del threshold para anomalía.
+    plot_train : bool
+        Si True, incluye datos de entrenamiento (default: True).
+    logscale : bool
+        Si True, eje Y en escala logarítmica.
+    show : bool
+        Si True, muestra gráfico directamente (usado fuera de Streamlit).
+    """
+    import numpy as np
+    import pandas as pd
+    import plotly.express as px
+    from datetime import datetime, timezone
+
+    # === Calcular T ===
+    T_train, T_test = noc.calculate_T_test(weight=T_weight, norm_quantile=T_norm_quantile)
+    if T_threshold_quantile is None:
+        T_threshold_quantile = noc.quantile_threshold
+    T_threshold = np.quantile(T_train, T_threshold_quantile)
+
+    # Fechas asociadas a los valores de test
+    time_labels = [
+        datetime.strptime(label, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+        for label in noc.test_labels
+    ]
+
+    # Filtrar rango temporal
+    T_plot = [value for value, date in zip(T_test, time_labels) if starttime < date <= endtime]
+    timestamps = [date for date in time_labels if starttime < date <= endtime]
+
+    # Detectar anomalías
+    anomaly_ids = get_anomalies(T_plot, T_threshold, criterion=criterion, n_consecutive=n_consecutive)
+    anomaly_ids = sorted(list(anomaly_ids))
+
+    # Construir DataFrame
+    df = pd.DataFrame({"timestamp": timestamps, "tscore": T_plot})
+    df["anomaly"] = df.index.isin(anomaly_ids)
+
+    # === Gráfico con Plotly ===
+    fig_plotly = px.bar(
+        df,
+        x="timestamp",
+        y="tscore",
+        color="anomaly",
+        color_discrete_map={True: "red", False: "steelblue"},
+        title=f"{noc.name} - T-score (α={T_weight})",
+    )
+
+    # Configuración de ejes y layout
+    fig_plotly.update_layout(
+        xaxis_title="Tiempo",
+        yaxis_title="T-score",
+        dragmode="select",
+        showlegend=False,
+        shapes=[
+            dict(
+                type="line",
+                xref="paper",
+                x0=0,
+                x1=1,
+                yref="y",
+                y0=T_threshold,
+                y1=T_threshold,
+                line=dict(color="red", width=2, dash="dash"),
+            )
+        ],
+
+    )
+
+    # Escala logarítmica si se pide
+    if logscale:
+        fig_plotly.update_yaxes(type="log")
+
+    # Notación científica en eje Y
+    fig_plotly.update_yaxes(tickformat=".1e")
+
+
+    return fig_plotly
+
 
 
 def plot_anomalies_DQ(noc:NOC, starttime, endtime, criterion='consecutive', n_consecutive=3, 

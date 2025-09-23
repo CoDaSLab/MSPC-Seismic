@@ -3,8 +3,8 @@ from datetime import datetime, timedelta, timezone
 from config.init import init_session_state
 
 init_session_state()
-upd_freq = st.session_state.config["monitoring"]["update_frequency"]
-rt_plots_cache_time = 0.8 * timedelta(minutes = upd_freq)
+update_freq = st.session_state.config["monitoring"]["update_frequency"]
+rt_plots_cache_time = 0.8 * timedelta(minutes = update_freq)
 
 def set_yaxis(key):
     col = st.columns(2)
@@ -146,40 +146,58 @@ def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5
     else:
         st.error("No calculation available for the given time range.")
 
-@st.cache_resource(ttl=rt_plots_cache_time, show_spinner=False)
-def plot_tscore_rt(noc_name, time_range=None, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
-                logscale=False, plot_train=False, criterion = 'consecutive', n_consecutive = 3, 
-                nocs_path="data/involcan/nocs", interactive=False):
+# @st.cache_resource(ttl=rt_plots_cache_time, show_spinner=False)
+def plot_tscore_rt(
+    noc_name,
+    time_range=None,
+    T_weight=None,
+    T_norm_quantile=0.5,
+    T_threshold_quantile=None,
+    logscale=False,
+    plot_train=False,
+    criterion="consecutive",
+    n_consecutive=3,
+    nocs_path="data/involcan/nocs",
+):
     from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
     import os
-    
-    noc = NOC.load(os.path.join(nocs_path, noc_name).replace('\\', '/'))
-    
-    # x-axis limits
-    update_freq = st.session_state.config["monitoring"]["update_frequency"]
+    from datetime import datetime, timezone
+
+    # Cargar NOC
+    noc = NOC.load(os.path.join(nocs_path, noc_name).replace("\\", "/"))
     delay = st.session_state.config["monitoring"]["delay"]
+
     endtime = datetime.now(timezone.utc)
     minutes = (endtime.minute // update_freq) * update_freq
     endtime = endtime.replace(minute=minutes, second=0, microsecond=0) - timedelta(minutes=delay)
     starttime = endtime - time_range 
 
     try:
-        fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,
-                                  logscale=logscale, plot_train=plot_train, criterion = criterion, 
-                                  n_consecutive = n_consecutive, bar_width=1, save=False, show=False)
-        ax.set_title(noc.name)
-        ax.set_ylabel(f"T-score ($\\alpha = {T_weight}$)")
+        # Ahora la función devuelve Plotly fig, df y threshold
+        fig_plotly = plot_anomalies_T(
+            noc,
+            starttime,
+            endtime,
+            T_weight,
+            T_norm_quantile,
+            T_threshold_quantile,
+            logscale=logscale,
+            plot_train=plot_train,
+            criterion=criterion,
+            n_consecutive=n_consecutive,
+            show=False,
+        )
+        
+        selected_points = st.plotly_chart(fig_plotly, use_container_width=True, on_select = "rerun")
 
-        if interactive:
-            import mpld3
-            import streamlit.components.v1 as components
-            fig_html = mpld3.fig_to_html(fig)
-            components.html(fig_html, height=600)
-        else:
-            st.pyplot(fig)
+        # Devolver datos útiles para procesar después
+        return selected_points
+
     except AssertionError:
         st.error("No recent data available.")
+        return None, None
+
 
 
 def plot_dq_noc(noc_name, logscale=False, nocs_path="data/involcan/nocs", interactive=False):
@@ -261,3 +279,51 @@ def plot_var_pca(data, max_components=20, preprocessing=1, interactive=False):
         components.html(fig_html, height=600)
     else:
         st.pyplot(fig)
+
+def plot_omeda(omeda_vec, stations, channels, colors=["#3B96FF", "#32A006", "#FF7B00"]):
+    import numpy as np
+    import plotly.graph_objects as go
+    from plotly.subplots import make_subplots
+
+    unique_stations = np.unique(stations)
+    unique_channels = np.unique(channels)
+    n_stations = len(unique_stations)
+    n_channels = len(unique_channels)
+
+    n_vars = len(omeda_vec) // (n_channels * n_stations)
+    vmin = np.min(omeda_vec)
+    vmax = np.max(omeda_vec)
+
+    # Crear figura con subplots organizados como (filas=channels, columnas=stations)
+    fig = make_subplots(
+        rows=n_channels,
+        cols=n_stations,
+        shared_xaxes=True,
+        shared_yaxes=True,
+        subplot_titles=[f"{st}" for st in unique_stations] * n_channels
+    )
+
+    for i, ch in enumerate(unique_channels):  # filas: canales
+        for j, st in enumerate(unique_stations):  # columnas: estaciones
+            id_start = n_vars * (i * n_stations + j)
+            id_end = n_vars * (i * n_stations + j + 1)
+            vec = omeda_vec[id_start:id_end]
+
+            fig.add_trace(
+                go.Bar(
+                    x=np.arange(len(vec)),
+                    y=vec,
+                    name=f"{ch}",
+                    marker=dict(color=colors[i % len(colors)]),
+                    showlegend=(j == 0),  # Solo mostrar leyenda una vez por canal
+                ),
+                row=i + 1,
+                col=j + 1,
+            )
+
+    # Actualizar layout
+    fig.update_yaxes(range=[vmin, vmax])
+    fig.update_xaxes(title_text="Frequency (Hz)", row=n_channels, col=(n_stations // 2) + 1)
+    fig.update_yaxes(title_text='difference', row=(n_channels // 2) + 1, col=1)
+
+    return fig
