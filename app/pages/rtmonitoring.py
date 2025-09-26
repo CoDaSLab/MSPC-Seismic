@@ -97,7 +97,7 @@ def real_time_visualization(config, nocs, key):
                         omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(nocs_path, features_path, starttime, endtime)
 
 
-                        fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label)
+                        fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=True)
                         st.plotly_chart(fig, use_container_width=True)
             except Exception as e: 
                 col2.error(f"Error computing oMEDA. {e}")

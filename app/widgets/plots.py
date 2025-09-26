@@ -415,6 +415,10 @@ def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF"
     n_channels = len(unique_channels)
 
     n_vars = len(omeda_vec) // (n_channels * n_stations)
+
+    if logscale:
+        omeda_vec = np.abs(omeda_vec)+1
+        omeda_vec = np.log(omeda_vec)
     vmin = np.min(omeda_vec)
     vmax = np.max(omeda_vec)
 
@@ -457,7 +461,8 @@ def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF"
                 col=j + 1,
                 )
     
-    if logscale: fig.update_xaxes(type="log")
+    # if logscale:
+    #     fig.update_yaxes(type="log")
 
     # Sincronizar zoom
     for i in range(n_channels):
