@@ -374,6 +374,7 @@ def plot_anomalies_T(
         xaxis_title="Tiempo",
         yaxis_title="T-score",
         dragmode="select",
+        selectdirection='h',  # solo horizontal (eje X)
         showlegend=False,
         shapes=[
             dict(
@@ -389,6 +390,7 @@ def plot_anomalies_T(
         ],
 
     )
+
 
     # Escala logarítmica si se pide
     if logscale:

@@ -91,7 +91,7 @@ def get_filenames(network=None, station=None, channel=None, start_day=None, end_
     return filenames
 
 
-def process_file(filename, verbose=False, stime=None, etime=None):
+def process_file(filename, verbose=False, stime=None, etime=None, demean=True):
     """
     Read a MiniSEED file using ObsPy and return a Stream object.
 
@@ -126,6 +126,8 @@ def process_file(filename, verbose=False, stime=None, etime=None):
         st = obspy.read(f"{data_path}/{filename}", starttime=stime, endtime=etime)
         if len(st) == 0:
             st = obspy.read(f"{data_path}/{filename}")
+        if demean == True:
+            st.detrend(type="demean")
         return st
     except FileNotFoundError:
         print(f"File '{filename}' not found. It will be skipped.")
@@ -325,7 +327,7 @@ def calculate_spectrogram(data: dict, window_length, shift, n_bins=None, window=
 
     for i in range(Ns): # Loop for every sensor
         for j in range(Nc): # Loop for every channel
-            time, freq, Sxx = features.spectrogram(data["X_tensor"][0,0], sr, window_samples, hop, window, padding, detrend, n_bins)
+            time, freq, Sxx = features.spectrogram(data["X_tensor"][i,j], sr, window_samples, hop, window, padding, detrend, n_bins)
             Sxxs[i,j,:,:] = Sxx[:,1:]
             times[i,j,:]  = time[1:]
             freqs[i,j,:]  = freq
@@ -399,15 +401,16 @@ if __name__ == "__main__":
     starttime = UTCDateTime(2025, 9, 14, 0)
     endtime = UTCDateTime(2025, 9, 16, 0)
 
-    stations = ["PPMA"]
-    channels = ["HHE"]
+    stations = ["PSAB"]
+    channels = ["HHE", "HHN"]
 
     filenames = get_filenames("C7", stations, channels, starttime.datetime, endtime.datetime)
     print(filenames)
 
     data = read_files(
         filenames,
-        process_file=lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+        lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+        starttime, endtime, 0,
         verbose=True,
     )
 
@@ -423,14 +426,15 @@ if __name__ == "__main__":
 
     timeUTC = np.arange(starttime, endtime, timedelta(seconds=shift), dtype='datetime64[s]')
 
-    Sxxs, times, freqs = calculate_spectrogram(data, window_length, shift, n_bins,)
+    Sxxs, times, freqs, _ = calculate_spectrogram(data, window_length, shift, n_bins,)
 
 
     X, freq_label, station_class, channel_class = unfold_spectrogram(Sxxs, freqs, stations, channels)
 
 
     i, j = 0,0
-    fig, _ , _ = plot.spectrogram(times[i,j], freqs[i,j], Sxxs[i,j].T, logscale=True)
+    print(times.shape, freqs.shape, Sxxs.shape)
+    fig, _ , _ = plot.spectrogram(times[i,j], freqs[i,j], Sxxs[i,j], logscale=True)
     fig.show()
 
     timeUTC = np.arange(starttime, endtime, timedelta(seconds=shift), dtype='datetime64[s]').tolist()

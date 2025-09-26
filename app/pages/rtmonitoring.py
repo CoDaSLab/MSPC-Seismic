@@ -59,6 +59,7 @@ def real_time_visualization(config, nocs, key):
 
     # Arrange graphs (2 per row)
     col1, col2 = st.columns(2) 
+    exploration_on, starttime, endtime = False, None, None
     for i, noc in enumerate(nocs):
         if type(noc[1])==list:
             with col1:
@@ -75,9 +76,9 @@ def real_time_visualization(config, nocs, key):
                             graph_attempt += 1
                     else:
                         st.error(f"Failed to load graph for NOC {noc[0]}.")
+                        
             try:
                 with col2:
-                    exploration_on, starttime, endtime = False, None, None
                     if selected_points["selection"]["points"]:
                         exploration_on = True
                         st.subheader("oMEDA")
@@ -87,6 +88,12 @@ def real_time_visualization(config, nocs, key):
                         omeda_noc = NOC.load(f"{nocs_path}/{noc[0]}")
                         starttime = selected_points["selection"]["points"][0]["x"]
                         endtime = selected_points["selection"]["points"][-1]["x"]
+                        try:
+                            starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                        except: starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
+                        try:
+                            endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                        except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                         omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(nocs_path, features_path, starttime, endtime)
 
 
@@ -133,24 +140,23 @@ def exploration(starttime, endtime):
     col1, col2 = st.columns(2)
     stations = col1.multiselect("Choose stations", config["data"]["stations"])
     visualization_options = ["Raw signal", "Spectrogram", "MSPC"]
-    visualizations = col2.multiselect("Choose visualizations", visualization_options)
+    visualizations = col2.multiselect("Choose visualizations", visualization_options, default = visualization_options[:-1])
 
-
-    if len(visualizations)>0:
+    if len(visualizations)>0 and len(stations)>0:
         col = st.columns(len(visualizations))
 
         for i in range(len(visualizations)):
             with col[i]:
-                if visualizations[i] == visualization_options[0]: plot_raw_signal(stations, starttime, endtime)
-                if visualizations[i] == visualization_options[1]: plot_spectrogram(stations, starttime, endtime)
+                if visualizations[i] == visualization_options[0]:
+                    fig = plots.plot_raw_signal(stations, starttime, endtime)
+                    st.pyplot(fig)
+
+                if visualizations[i] == visualization_options[1]:
+                    fig = plots.plot_spectrogram(stations, starttime, endtime)
+                    st.pyplot(fig)
                 if visualizations[i] == visualization_options[2]: plot_mspc(stations, starttime, endtime)
 
 
-def plot_raw_signal(stations, starttime, endtime):
-    return
-
-def plot_spectrogram(stations, starttime, endtime):
-    return
 
 def plot_mspc(stations, starttime, endtime):
     return
@@ -165,7 +171,11 @@ if config["monitoring"]["auto_monitoring"]:
     try:
         nocs = utils.get_noc_names(config["paths"]["noc_log"], avail_stations)
         exploration_on, starttime, endtime = real_time_visualization(config, nocs=nocs, key="monitoring_rt")
-        if exploration_on: exploration(starttime, endtime)
+        _,_, center, _ = st.columns(4)
+        explore = center.checkbox("Explore")
+        if exploration_on:
+            if explore: exploration(starttime, endtime)
+
     except FileNotFoundError as e:
         st.error(f"NOC list not available. More details:\n{e}")
 else:

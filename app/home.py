@@ -61,10 +61,13 @@ def station_health_check():
 
     return
 
-def anomaly_log():
+def anomaly_log(head = None):
     anomaly_log_path = st.session_state.config["paths"]["anomaly_log"]
     anomalies = pd.read_csv(anomaly_log_path)
-    anomalies
+    if head is None:
+        st.dataframe(anomalies)
+    else:
+        st.dataframe(anomalies.head(head))
     return
 
 
@@ -81,7 +84,7 @@ with COL[1]:
     st.markdown("<h3 style='text-align: center;'>Anomaly log</h3>", unsafe_allow_html=True)
     # anomalies = pd.read_csv("data/involcan/metadata/anomaly_log.csv")
     # anomalies
-    anomaly_log()
+    anomaly_log(100)
 
 
 

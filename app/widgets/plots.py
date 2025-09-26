@@ -29,6 +29,104 @@ def plot_seismogram(S, ylim, interactive):
     else:
         st.pyplot(fig)
 
+def plot_raw_signal(stations, starttime, endtime,
+                    network="C7", channels=["HHE", "HHN", "HHZ"]):
+    from preprocessing.sismo import get_filenames, read_files, process_file
+    from obspy import UTCDateTime, Stream
+    starttime = UTCDateTime(starttime)
+    endtime = UTCDateTime(endtime)
+    filenames = get_filenames(network, stations, channels, starttime.datetime, endtime.datetime)
+    data = read_files(
+        filenames,
+        lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+        starttime, endtime, 0,
+        verbose=False,)
+
+    st = Stream()
+    for row in data["streams"]:
+        for stream in row:
+            st.extend(stream)
+
+    import numpy as np
+    ymin = np.min(data["X_tensor"])*1.05
+    ymax = np.max(data["X_tensor"])*1.05
+
+    fig = st.plot(handle=True, equal_scale=True, ylim=(ymin, ymax));
+    for ax in fig.axes:
+        ax.set_ylim(ymin, ymax)
+    return fig
+
+def plot_spectrogram(stations, starttime, endtime,
+                    network="C7", channels=["HHE", "HHN", "HHZ"], config_path="config.json"):
+    from preprocessing.sismo import get_filenames, read_files, process_file, calculate_spectrogram
+    from obspy import UTCDateTime
+    starttime = UTCDateTime(starttime)
+    endtime = UTCDateTime(endtime)
+    filenames = get_filenames(network, stations, channels, starttime.datetime, endtime.datetime)
+    data = read_files(
+        filenames,
+        lambda f: process_file(f, verbose=True, stime=starttime, etime=endtime),
+        starttime, endtime, 0,
+        verbose=False,)
+
+    stations.sort()
+
+
+    from utils.functions import load_json
+    config = load_json(config_path)
+    window_length = config["features"]["window_size"]
+    shift = config["features"]["window_shift"]
+    window = config["features"]["windowing"]
+    detrend = config["features"]["detrend"]
+    n_bins = config["features"]["stft_params"]["fft_points"]
+
+    if n_bins=="auto": n_bins=None
+
+    Sxxs, times, freqs, _ = calculate_spectrogram(data, window_length, shift, n_bins, window, detrend=detrend)
+    Sxxs+=1 # evitamos problemas con la escala logarítmica.
+    from msa.visualization import plot
+    import matplotlib.pyplot as plt
+    import matplotlib.dates as mdates
+    fig, ax = plt.subplots(len(stations), len(channels),
+                             sharex=True, sharey=True)
+    
+    import numpy as np
+    if len(stations)==1: ax = ax[np.newaxis, :]
+    if len(channels)==1: ax = ax[:, np.newaxis]
+
+    timeUTC = np.arange(starttime, endtime, timedelta(seconds=shift), dtype='datetime64[s]')
+    skip:int = int(len(times[0][0])/3)
+    if skip == 0: skip = 1
+    start = 0
+    locs = times[0][0][start::skip]
+    timeUTC_label = timeUTC[start::skip]
+    date_formatter = mdates.DateFormatter('%d-%b %H:%M')
+    formatted_labels = [date_formatter(mdates.date2num(t)) for t in timeUTC_label]
+
+    vmin = np.min(Sxxs)
+    vmax = np.max(Sxxs)
+
+    for i, station in enumerate(stations):
+        for j, channel in enumerate(channels):
+            if j == 0: ax[i, j].set_ylabel(f"{station}", fontsize = 10)
+            if i == 0:
+                ax[i, j].set_xlabel(f"{channel}", fontsize = 10)
+                ax[i, j].xaxis.set_label_position('top')     
+            _,_, mesh = plot.spectrogram(times[i,j], freqs[i,j], Sxxs[i,j], cmap="nipy_spectral",
+                                    logscale=True, ax = ax[i,j], vmin=vmin, vmax = vmax, ylim=(0,50));
+
+
+            ax[i][j].set_xticks(locs[:], labels=formatted_labels[:], rotation=-90,fontsize=10);
+            ax[i][j].set_yticks([0,25, 50], ['0Hz','25Hz', '50Hz'],fontsize=10);
+
+    tbox = ax[ 0,0].get_position()
+    bbox = ax[-1,0].get_position()
+    cax = fig.add_axes([0.92, bbox.y0, 0.02, tbox.y1-bbox.y0])
+    cbar = fig.colorbar(mesh, cax=cax,)
+    cbar.ax.tick_params(labelsize=12)
+
+    return fig
+
 def plot_fft(S, window_id, ylim, interactive):
     import mpld3
     import streamlit.components.v1 as components
@@ -113,9 +211,10 @@ def plot_dq_rt(noc_name, time_range=None, logscale=False, plot_train=False, crit
         st.error("No recent data available.")
 
 
-def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5, T_threshold_quantile=None,
+def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5,
+                T_threshold_quantile=None,
                     logscale=False, plot_train=False,criterion = 'consecutive', n_consecutive = 3, 
-                    nocs_path="data/involcan/nocs", interactive=False):
+                    nocs_path="data/involcan/nocs"):
     from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
     import os
@@ -130,21 +229,26 @@ def plot_tscore(noc_name, starttime, endtime, T_weight=None, T_norm_quantile=0.5
     window_size = timedelta(seconds=noc.metadata["window_size"])
 
     if test_start - window_size <= starttime and endtime <= test_end + window_size:
-        fig, ax = plot_anomalies_T(noc, starttime, endtime, T_weight, T_norm_quantile, T_threshold_quantile,
-                                  logscale=logscale, plot_train=plot_train, criterion = criterion, 
-                                  n_consecutive = n_consecutive, bar_width=1, save=False, show=False)
-        ax.set_title("")
-        ax.set_ylabel(f"T-score ($\\alpha = {T_weight}$)")
+        fig_plotly = plot_anomalies_T(
+            noc,
+            starttime,
+            endtime,
+            T_weight,
+            T_norm_quantile,
+            T_threshold_quantile,
+            logscale=logscale,
+            plot_train=plot_train,
+            criterion=criterion,
+            n_consecutive=n_consecutive,
+            show=False,
+        )
+        selected_points = st.plotly_chart(fig_plotly, use_container_width=True, on_select = "rerun")
 
-        if interactive:
-            import mpld3
-            import streamlit.components.v1 as components
-            fig_html = mpld3.fig_to_html(fig)
-            components.html(fig_html, height=600)
-        else:
-            st.pyplot(fig)
+        return selected_points
+
     else:
         st.error("No calculation available for the given time range.")
+        return None
 
 # @st.cache_resource(ttl=rt_plots_cache_time, show_spinner=False)
 def plot_tscore_rt(
@@ -174,7 +278,6 @@ def plot_tscore_rt(
     starttime = endtime - time_range 
 
     try:
-        # Ahora la función devuelve Plotly fig, df y threshold
         fig_plotly = plot_anomalies_T(
             noc,
             starttime,
@@ -196,7 +299,7 @@ def plot_tscore_rt(
 
     except AssertionError:
         st.error("No recent data available.")
-        return None, None
+        return None
 
 
 
@@ -280,7 +383,7 @@ def plot_var_pca(data, max_components=20, preprocessing=1, interactive=False):
     else:
         st.pyplot(fig)
 
-def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF", "#32A006", "#FF7B00"], nticks=5):
+def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF", "#32A006", "#FF7B00"], nticks=5, logscale=False):
     import numpy as np
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
@@ -332,6 +435,8 @@ def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF"
                 row=i + 1,
                 col=j + 1,
                 )
+    
+    if logscale: fig.update_xaxes(type="log")
 
     # Sincronizar zoom
     for i in range(n_channels):
