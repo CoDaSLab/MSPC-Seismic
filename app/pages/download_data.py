@@ -14,7 +14,7 @@ COL = st.columns(1)
 
 with COL[0]:
 
-    stations = st.session_state.config["data"]["stations"]
+    stations = load_stations()
 
     key = "download_data"
     starttime, endtime = select_time(key)
@@ -35,7 +35,7 @@ with COL[0]:
             successful_downloads, failed_downloads = download_files_rt(
                 starttime, endtime,
                 ip[0], user[0], network[0],
-                stations, channels, key_path=ssh_key[0],
+                stations, channels, data_path=data_path[0], key_path=ssh_key[0],
                 update_latest=False)
             
             st.success(f"{successful_downloads} files were downloaded")

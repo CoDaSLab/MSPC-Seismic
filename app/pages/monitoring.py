@@ -81,18 +81,22 @@ with col[1]:
         else:
             if calculate:
                 with st.spinner("Calculating features..."):
-                    features = calculate_fft_rt(starttime, endtime, network=config["data"]["network"], stations=station, 
-                                                channels=config["data"]["channels"], window_length=config["features"]["window_size"],
-                                                window_shift=config["features"]["window_shift"], detrend=config["features"]["detrend"],
-                                                windowing=config["features"]["windowing"], n_bins=config["features"]["stft_params"]["fft_points"], 
-                                                merge_method=config["features"]["merge_method"], merge_fill_value=config["features"]["merge_fill_value"],
-                                                pad_fill_value=config["features"]["pad_fill_value"], data_path=config["paths"]["data"], verbose=False, save=False)
+                    from monitoring.NOC import NOC
+                    nocs_path = st.session_state.config["paths"]["nocs"]
+                    noc = NOC.load(os.path.join(nocs_path, noc_name))
+                    metadata = noc.metadata
+                    features = calculate_fft_rt(starttime, endtime, network=config["data"]["network"], stations=noc.station, 
+                                                channels=config["data"]["channels"], window_length=metadata["window_size"],
+                                                window_shift=metadata["window_shift"], detrend=metadata["detrend"],
+                                                windowing=metadata["windowing"], n_bins=metadata["fft_points"], 
+                                                merge_method=metadata["merge_method"], merge_fill_value=metadata["merge_fill_value"],
+                                                pad_fill_value=metadata["pad_fill_value"], data_path=config["paths"]["data"], verbose=False, save=False)
 
                 with st.spinner("Perfoming MSPC..."):
                     noc_path = os.path.join(config["paths"]["nocs"], noc_name)
                     test = np.hstack([features[key] for key in config["features"]["types"]])
-                    mspc_rt.mspc([noc_path], test, starttime, endtime, window_size=config["features"]["window_size"],
-                                window_shift=config["features"]["window_shift"], missing_rates=features["missing_rates"],
+                    mspc_rt.mspc([noc_path], test, starttime, endtime, window_size=metadata["window_size"],
+                                window_shift=metadata["window_shift"], missing_rates=features["missing_rates"],
                                 plot=False, update_log=False, nocs_path=config["paths"]["nocs"], verbose=False)
 
             with st.spinner("Plotting results..."):

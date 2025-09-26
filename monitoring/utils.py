@@ -161,6 +161,7 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
                             if key in noc.metadata and additional_matches[key] != noc.metadata[key]:
                                 add_noc = False
                                 unmatched_nocs[row["name"]] = 'unavailable'
+                                print(f"Parameter {key} for NOC {noc.name} is {noc.metadata[key]}, but should be {additional_matches[key]}.")
                                 
                     if add_noc:
                         noc_names.append((row['name'], station))

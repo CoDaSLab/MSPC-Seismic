@@ -1,4 +1,7 @@
 import streamlit as st
+from config.init import *
+init_session_state()
+config = st.session_state.config
 
 def select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
     col = st.columns(2)
@@ -37,14 +40,17 @@ def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'],
 
     return stations, channels
 
-def select_noc(key, stations, noc_log_path = "data/involcan/metadata/noc_list.csv"):
+def select_noc(key, stations, allow_multiple_stations=True, noc_log_path = config["paths"]["noc_log"]):
     from monitoring.utils import get_noc_names
     
     col = st.columns(2)
     station = col[0].selectbox('Station', stations, key=f"station_{key}",
                               index = stations.index(st.session_state.station))
-    nocs = [noc for noc, st in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))
-            if isinstance(st, str)]
+    if allow_multiple_stations:
+        nocs = [noc for noc, _ in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))]
+    else:
+        nocs = [noc for noc, st in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))
+                if isinstance(st, str)]
     noc = col[1].selectbox('NOC', reversed(nocs), key=f"noc_{key}")
 
     return station, noc
@@ -113,8 +119,8 @@ def select_windowing(key, default=False):
 
     index = windowing_options.index(default)
     windowing = st.selectbox('Windowing:', windowing_options, index=index, key=f"windowing_{key}")
-    if windowing != False:
-        windowing = scipy.signal.windows.__dict__[windowing]
+    # if windowing != False:
+    #     windowing = scipy.signal.windows.__dict__[windowing]
 
     return windowing
 

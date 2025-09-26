@@ -89,8 +89,8 @@ def monitoring(config_path = 'config.json'):
 
     noc_stations = set([sta for _, sta in noc_names if isinstance(sta, str)])
     no_noc_stations = avail_stations - noc_stations
-    combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]
     no_noc_stations = sorted(no_noc_stations)
+    combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]
     
     if verbose:
         print("Station status:")
@@ -117,7 +117,7 @@ def monitoring(config_path = 'config.json'):
                             sts.append(st)
                             nocs_to_fuse.append(name)
                     try:
-                        noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path)
+                        noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path, verbose=verbose)
                     except Exception as e:
                         print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
                         noc = utils.create_noc(sts, noc_start, noc_end, config)
@@ -138,13 +138,13 @@ def monitoring(config_path = 'config.json'):
     st_names = [st for _, st in noc_names_combined if isinstance(st, str)]
     combined_st_names = [st for _, st in noc_names_combined if isinstance(st, list)]
 
-    if len(np.unique(st_names)) == len(st_names) and len(combined_st_names) == 0:
+    if (len(np.unique(st_names)) == len(st_names) and len(combined_st_names) == 0) or sorted(noc_stations) not in combined_stations:
         nocs_to_fuse = [noc for noc, st in noc_names_combined if isinstance(st, str)]
         try:
-            noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path)
+            noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path, verbose=verbose)
         except Exception as e:
             print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
-            noc = utils.create_noc(sts, noc_start, noc_end, config)
+            noc = utils.create_noc(st_names, noc_start, noc_end, config)
         
         combined_stations.append(noc.station)
         noc_names.append((noc.name, noc.station))

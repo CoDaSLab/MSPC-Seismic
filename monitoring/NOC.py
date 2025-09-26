@@ -902,8 +902,8 @@ class NOC:
                 'preprocessing': self.preprocessing,
                 'n_components': self.n_components,
                 'quantile_threshold': self.quantile_threshold,
-                'D_threshold': np.round(self.D_threshold, 4),
-                'Q_threshold': np.round(self.Q_threshold, 4),
+                'D_threshold': np.round(self.D_threshold, 6),
+                'Q_threshold': np.round(self.Q_threshold, 6),
                 'start_time': starttime,
                 'end_time': endtime,
                 'last_update_time': self.last_update_time
