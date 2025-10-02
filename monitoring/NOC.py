@@ -10,6 +10,8 @@ real-time monitoring using MSPC-PCA.
 """
 
 import os
+import re
+import json
 import numpy as np
 from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
@@ -19,12 +21,16 @@ import csv
 from datetime import datetime, timezone
 import pickle
 
+CONFIG_PATH = 'config.json'
+
+with open(CONFIG_PATH, 'r') as f:
+    config = json.load(f)
 
 class NOC:
     def __init__(self, name:str, features:np.ndarray, obs_labels:list = None, 
-                 network:str = "", station:str = "", type:str = "", preprocessing:int = 1, 
+                 network:str = config["data"]["network"], station:str = "", type:str = "", preprocessing:int = 1, 
                  n_components:int = 1, quantile_threshold:float = 0.99, 
-                 csv_path:str = None):
+                 csv_path:str = config["paths"]["noc_log"]):
         """
         Stores and updates information associated with the Normal Operation Conditions (NOC) for
         real-time monitoring using Principal Component Analysis-based Multivariate Statistical 
@@ -108,7 +114,7 @@ class NOC:
 
         self.last_update_time = datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%SZ')
     
-    def recalculate(self, nocs_path):
+    def recalculate(self, nocs_path=config["paths"]["nocs"]):
         """
         Recalculate D and Q-statistic values.
         """
@@ -793,11 +799,32 @@ class NOC:
         ----------
         filepath (str)
             Path to the output file.
+        log_path (str)
+            Path to the NOC list file.
         filetype (str)
             'mat' for .mat file, 'pickle' for using pickle (default: 'pickle')
         """
         # Create directory if it does not exist
         os.makedirs(os.path.dirname(filepath), exist_ok=True)
+
+        old_name = self.name
+
+        # Delete old NOC file if NOC name changed
+        dir_name, file_name = os.path.split(filepath)
+        save_name = re.sub(r'_.?_', f'_{self.type[0]}_', file_name)
+        if save_name != old_name:
+            old_filepath = os.path.join(dir_name, old_name)
+            self.remove_from_csv(self.csv_path)
+            if os.path.exists(old_filepath):
+                os.remove(old_filepath)
+            # Rename features file
+            old_features_name = os.path.join(dir_name, f'features_{old_name}')
+            save_features_name = os.path.join(dir_name, f'features_{save_name}')
+            if os.path.exists(old_features_name):
+                os.rename(old_features_name, save_features_name)
+        filepath = os.path.join(os.path.dirname(filepath), save_name)
+        # Change name to match type
+        self.name = save_name
 
         if self.features is None:
             self.features = np.array([])
@@ -828,6 +855,9 @@ class NOC:
             with open(filepath, 'wb') as f:
                 pickle.dump(self, f)
 
+        # Update CSV
+        self.write_csv()
+
 
     @staticmethod
     def load(filepath, include_dq=True) -> "NOC":
@@ -855,7 +885,7 @@ class NOC:
         
         return noc
     
-    def load_features(self, nocs_path='data/involcan/nocs/'):
+    def load_features(self, nocs_path=config["paths"]["nocs"]):
         path = os.path.join(nocs_path, f"features_{self.name}").replace('\\', '/')
         with open(path, 'rb') as f:
             feat = pickle.load(f)
@@ -902,8 +932,8 @@ class NOC:
                 'preprocessing': self.preprocessing,
                 'n_components': self.n_components,
                 'quantile_threshold': self.quantile_threshold,
-                'D_threshold': np.round(self.D_threshold, 6),
-                'Q_threshold': np.round(self.Q_threshold, 6),
+                'D_threshold': self.D_threshold,
+                'Q_threshold': self.Q_threshold,
                 'start_time': starttime,
                 'end_time': endtime,
                 'last_update_time': self.last_update_time
@@ -931,7 +961,28 @@ class NOC:
                 writer.writeheader()
                 writer.writerows(rows)
 
-    def omeda(self, nocs_path:str, features_path:str, starttime:datetime, endtime:datetime):
+    def remove_from_csv(self, path=None):
+        """
+        Deletes information about the NOC from the list of NOCs.
+        """
+        path = self.csv_path if path is None else path
+
+        if os.path.isfile(path):
+            rows_kept = []
+            with open(path, mode="r", newline="", encoding="utf-8") as csvfile:
+                reader = csv.DictReader(csvfile)
+                fieldnames = reader.fieldnames
+                for row in reader:
+                    if row["name"] != self.name:
+                        rows_kept.append(row)
+
+            # Re-add unchanged rows to CSV
+            with open(path, mode="w", newline="", encoding="utf-8") as csvfile:
+                writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows_kept)
+
+    def omeda(self, starttime:datetime, endtime:datetime, nocs_path:str=config["paths"]["nocs"], features_path:str=config["paths"]["features"]):
 
         from preprocessing.fft_rt import find_features
         metadata = self.metadata
@@ -940,7 +991,8 @@ class NOC:
         metadata["stft_params"] = {}
         metadata["stft_params"]["fft_points"] = metadata["fft_points"]
         del metadata["fft_points"]
-        features_dic = find_features(features_path, self.station, starttime, endtime,["spectrogram_unfold"], metadata)
+        features_dic = find_features(features_path, self.station, starttime, endtime, ["spectrogram_unfold"], 
+                                     max_missing_rate=config["monitoring"]["max_missing_rate"], additional_matches=metadata)
 
         features_noc = self.load_features(nocs_path)
         features_test = features_dic["spectrogram_unfold"]
@@ -978,7 +1030,7 @@ class NOC:
 # Additional functions
 from mspc_pca.omeda import omeda
 
-def compare_nocs(noc1:NOC, noc2:NOC, nocs_path, preprocessing=1, n_components=None, var_labels=None, var_classes=None, ax=None):
+def compare_nocs(noc1:NOC, noc2:NOC, nocs_path=config["paths"]["nocs"], preprocessing=1, n_components=None, var_labels=None, var_classes=None, ax=None):
     """
     Compares two NOCs using oMEDA.
 
@@ -1040,8 +1092,8 @@ def compare_nocs(noc1:NOC, noc2:NOC, nocs_path, preprocessing=1, n_components=No
     return omeda_vec, fig, ax
 
 
-def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs_path='data/involcan/nocs', 
-              log_path='data/involcan/metadata/noc_list.csv', verbose=False):
+def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs_path=config["paths"]["nocs"], 
+              log_path=config["paths"]["noc_log"], verbose=False):
     """
     Combine the features of different NOCs along the columns and creates a new NOC. 
 

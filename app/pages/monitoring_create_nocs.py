@@ -41,8 +41,8 @@ with COL[0]:
 
         col = st.columns(2)
         with col[0]:
-            detrend = forms.select_detrend(key)
-            windowing = forms.select_windowing(key)
+            detrend = forms.select_detrend(key, default=config["features"]["detrend"])
+            windowing = forms.select_windowing(key, default=config["features"]["windowing"])
         with col[1]:
             fft_auto = st.checkbox("Set FFT points automatically", value=True)
             fft_points = forms.select_FFT_points(key, window)
@@ -88,11 +88,11 @@ with COL[0]:
             noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station,
                             type=noc_type, preprocessing=prep, n_components=1, quantile_threshold=quantile, 
                             csv_path=config["paths"]["noc_log"])
-            noc.set_metadata(starttime, endtime, window, shift, detrend, windowing, fft_points)
+            noc.set_metadata(starttime, endtime, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
+                             merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
             
         with st.spinner("Saving NOC..."):
             noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))
-            noc.write_csv()
         
         st.success("NOC created successfully. Select the number of principal components to complete the NOC's configuration.",
                     icon="✔️")

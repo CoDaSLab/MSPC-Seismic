@@ -55,7 +55,7 @@ with col[0]:
         
         subcol = st.columns(2)
         with subcol[0]:
-            calculate = st.checkbox("Run calculations", value=False,
+            calculate = st.checkbox("Run calculations", value=True,
                             help="Calculates features and statistics using parameters from monitoring configuration. " \
                             "If a previous calculation already exists, you can click on 'Plot' to plot the results directly.")
             

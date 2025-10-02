@@ -224,6 +224,85 @@ def delete_old_files(directory_path: str, date_format: str, cutoff_date: str) ->
                     continue  # Skip files with invalid dates
 
 
+def delete_old_nocs(directory_path: str, date_format: str, cutoff_date: str, log_path: str, noc_types: tuple) -> None:
+    """
+    Deletes NOC files in the given directory whose names end with a date in the specified format,
+    only if the date is earlier than the given cutoff date. Also removes the corresponding
+    rows from the NOC list CSV file.
+
+    Parameters
+    ----------
+        directory_path (str): 
+            Path to the directory to scan.
+        date_format (str): 
+            Date format to match at the end of file names (e.g., '%Y-%m-%d').
+        cutoff_date (str): 
+            The cutoff date in the same format as date_format.
+        log_path (str):
+            Path to the NOC list CSV file.
+        noc_types (tuple):
+            Types of NOC to delete, e.g. ('dynamic', 'static').
+    """
+    if not os.path.isdir(directory_path):
+        raise ValueError(f"Directory does not exist: {directory_path}")
+
+    if isinstance(cutoff_date, str):
+        cutoff_date = datetime.strptime(cutoff_date, date_format).replace(tzinfo=timezone.utc)
+
+    # Convert the date format to a regex pattern
+    regex_date = date_format \
+        .replace('%Y', r'\d{4}') \
+        .replace('%m', r'\d{2}') \
+        .replace('%d', r'\d{2}') \
+        .replace('%H', r'\d{2}') \
+        .replace('%M', r'\d{2}') \
+        .replace('%S', r'\d{2}')
+    
+    type_letters = [t[0] for t in noc_types]
+
+    if type_letters:
+        allowed_letters = "".join(type_letters)
+        pattern = re.compile(rf"^(.*)_([{allowed_letters}])_({regex_date})$")
+    else:
+        pattern = re.compile(rf"^(.*)({regex_date})$")
+
+    files_to_delete = []
+
+    # Search for old files
+    for file_name in os.listdir(directory_path):
+        full_path = os.path.join(directory_path, file_name)
+
+        if os.path.isfile(full_path):
+            name_without_ext, _ = os.path.splitext(file_name)
+            match = pattern.match(name_without_ext)
+            if match:
+                # Date is at the end of file name
+                date_str = match.groups()[-1]  
+                try:
+                    file_date = datetime.strptime(date_str, date_format).replace(tzinfo=timezone.utc)
+                    if file_date < cutoff_date:
+                        os.remove(full_path)
+                        files_to_delete.append(name_without_ext)  # Save to remove from CSV
+                except ValueError:
+                    continue  # Skip files con fecha inválida
+
+    # Update CSV if files were deleted
+    if files_to_delete and os.path.isfile(log_path):
+        rows_kept = []
+        with open(log_path, mode="r", newline="", encoding="utf-8") as csvfile:
+            reader = csv.DictReader(csvfile)
+            fieldnames = reader.fieldnames
+            for row in reader:
+                if row["name"] not in files_to_delete:
+                    rows_kept.append(row)
+
+        # Re-add unchanged rows to CSV
+        with open(log_path, mode="w", newline="", encoding="utf-8") as csvfile:
+            writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
+            writer.writeheader()
+            writer.writerows(rows_kept)
+
+
 def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_params:dict=None, 
                attempt_find:bool=False):
     """

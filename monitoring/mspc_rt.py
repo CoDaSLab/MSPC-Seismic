@@ -371,7 +371,7 @@ def plot_anomalies_T(
 
     # Configuración de ejes y layout
     fig_plotly.update_layout(
-        xaxis_title="Tiempo",
+        xaxis_title="UTC Time",
         yaxis_title="T-score",
         dragmode="select",
         selectdirection='h',  # solo horizontal (eje X)

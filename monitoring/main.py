@@ -196,7 +196,8 @@ def monitoring(config_path = 'config.json'):
                     starttime = starttime - timedelta(minutes=update_frequency)
                     os.remove(previous_filepath)
                 elif np.mean(previous_missing_rates) > max_missing_rate:
-                    print(f"High missing rates in previous features for station {station} (ended on {previous_features["times_label"][-1]}). Recalculating features...")
+                    if verbose:
+                        print(f"High missing rates in previous features for station {station} (ended on {previous_features["times_label"][-1]}). Recalculating features...")
                     # If previous features have high missing rates, recalculate them and delete previous file
                     starttime = starttime - timedelta(minutes=update_frequency)
                     os.remove(previous_filepath)
@@ -374,7 +375,7 @@ def monitoring(config_path = 'config.json'):
     if verbose:
         print(f"Deleting files created before {delete_date}...")
     # Delete old NOCs
-    utils.delete_old_files(nocs_path, '%Y-%m-%d', delete_date)
+    utils.delete_old_nocs(nocs_path, '%Y-%m-%d', delete_date, noc_log_path, noc_types=('dynamic', 'unavailable'))
 
     # Delete old plots
     utils.delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
