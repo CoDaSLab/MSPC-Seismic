@@ -1,0 +1,94 @@
+{
+  "paths": {
+    "data": "data/involcan/mseed",
+    "features": "data/involcan/features",
+    "nocs": "data/involcan/nocs",
+    "plots": "data/involcan/nocs/plots",
+    "latest_pulls_log": "data/involcan/metadata/latest_pulls.csv",
+    "noc_log": "data/involcan/metadata/noc_list.csv",
+    "anomaly_log": "data/involcan/metadata/anomaly_log.csv"
+  },
+  "connection": {
+    "ssh_key_path": "~/.ssh/id_ed25519",
+    "server_IP": "server_IP",
+    "server_user": "user"
+  },
+  "monitoring": {
+    "auto_monitoring": true,
+    "update_frequency": 5,
+    "delay": 5,
+    "num_days_before_delete": 10.0,
+    "num_days_noc_update_frequency": 1.0,
+    "num_days_noc_length": 4.0,
+    "max_missing_rate": 0.1,
+    "verbose": true,
+    "criteria": {
+      "type": "consecutive",
+      "amount": 3
+    },
+    "plots": {
+      "save": true,
+      "num_hours": 1.0,
+      "anomaly_criterion": "consecutive"
+    }
+  },
+  "features": {
+    "window_size": 5,
+    "window_shift": 5,
+    "windowing": false,
+    "detrend": "constant",
+    "types": [
+      "spectrogram_unfold"
+    ],
+    "merge_method": 1,
+    "merge_fill_value": "interpolate",
+    "pad_fill_value": 0,
+    "cpus": 8,
+    "stft_params": {
+      "fft_points": "auto"
+    }
+  },
+  "data": {
+    "network": "C7",
+    "stations": [
+      "PSAB",
+      "PLPI",
+      "PA00",
+      "PA01",
+      "PA02",
+      "PA03",
+      "PA04",
+      "PA05",
+      "PA06",
+      "PA07",
+      "PA08",
+      "PA09",
+      "PAB",
+      "PBB2",
+      "PBBA",
+      "PCOR",
+      "PFUE",
+      "PFVI",
+      "PGAR",
+      "PML2",
+      "PMLU",
+      "PMOZ",
+      "PN01",
+      "PN02",
+      "PPAS",
+      "PPMA",
+      "PN04",
+      "PN03"
+    ],
+    "channels": [
+      "HHE",
+      "HHN",
+      "HHZ"
+    ],
+    "starttime": "auto",
+    "endtime": "auto"
+  },
+  "metadata": {
+    "running": false
+  }
+}
