@@ -59,9 +59,10 @@ with COL[0]:
         col = st.columns(2)
         with col[0]:
             noc_name = st.text_input("NOC name", help="The end date will be automatically appended to the name.")
-            noc_type = st.selectbox("NOC type", options=["dynamic", "static", "inactive", "unavailable"], index=2,
+            noc_type = st.selectbox("NOC type", options=["dynamic", "static", "exploratory"], index=2,
                                     help="- dynamic: updates automatically\n- static: does not update automatically\n" \
-                                    "- inactive: is not used for real-time monitoring\n- unavailable: makes it invisible to the app")
+                                    "- exploratory: is not used for real-time monitoring")
+                                    #"- inactive: is no longer used for real-time monitoring\n- unavailable: makes it invisible to the app") # debug options
         with col[1]:
             prep = forms.select_preprocessing(key)
             quantile = st.number_input("Quantile", min_value=0.0, value=0.99, max_value=1.0,
@@ -102,7 +103,7 @@ with COL[1]:
     with st.expander("Explained variance by number of components", expanded=submit):
         if submit:
             with st.spinner("Calculating..."):
-                plots.plot_var_pca(noc.load_features(config["paths"]["nocs"]), preprocessing=prep)
+                plots.plot_var_pca(noc.load_features(), preprocessing=prep)
         else:
             st.write("Create a NOC first.")   
 
@@ -120,7 +121,7 @@ with COL[1]:
             # Update NOC
             noc = NOC.NOC.load(os.path.join(config["paths"]["nocs"], st.session_state.noc_name))
             noc.n_components = n_components
-            noc.recalculate(config["paths"]["nocs"])
+            noc.recalculate()
         
         with st.spinner("Saving changes..."):
             noc.save(os.path.join(config["paths"]["nocs"], st.session_state.noc_name).replace('\\', '/'))

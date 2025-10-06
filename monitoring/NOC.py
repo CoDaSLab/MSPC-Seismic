@@ -1104,7 +1104,7 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     new_name (str)
         Name of the new NOC.
     new_type (str)
-        Type of the new NOC. One of 'dynamic', 'static' or 'inactive'.
+        Type of the new NOC. One of 'dynamic', 'static', 'exploratory', 'inactive' or 'unavailable'.
     n_components (int)
         Number of principal components. Default is 1.
     nocs_path (str)

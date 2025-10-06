@@ -47,9 +47,9 @@ def select_noc(key, stations, allow_multiple_stations=True, noc_log_path = confi
     station = col[0].selectbox('Station', stations, key=f"station_{key}",
                               index = stations.index(st.session_state.station))
     if allow_multiple_stations:
-        nocs = [noc for noc, _ in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))]
+        nocs = [noc for noc, _ in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'exploratory', 'inactive'))]
     else:
-        nocs = [noc for noc, st in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'inactive'))
+        nocs = [noc for noc, st in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'exploratory', 'inactive'))
                 if isinstance(st, str)]
     noc = col[1].selectbox('NOC', reversed(nocs), key=f"noc_{key}")
 

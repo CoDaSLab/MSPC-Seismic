@@ -375,7 +375,7 @@ def monitoring(config_path = 'config.json'):
     if verbose:
         print(f"Deleting files created before {delete_date}...")
     # Delete old NOCs
-    utils.delete_old_nocs(nocs_path, '%Y-%m-%d', delete_date, noc_log_path, noc_types=('dynamic', 'unavailable'))
+    utils.delete_old_nocs(nocs_path, '%Y-%m-%d', delete_date, noc_log_path, noc_types=('dynamic', 'inactive', 'unavailable'))
 
     # Delete old plots
     utils.delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
