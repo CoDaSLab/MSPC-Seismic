@@ -315,6 +315,20 @@ def delete_old_nocs(directory_path: str, date_format: str, cutoff_date: str, log
             writer.writerows(rows_kept)
 
 
+def delete_mseeds(directory_path:str, networks:list, stations:list, channels:list, 
+                  start_day:datetime, end_day:datetime):
+    """
+    Deletes MSEED files that fall inside a time range.
+    """
+    from preprocessing.sismo import get_filenames
+
+    files = get_filenames(networks, stations, channels, start_day, end_day)
+    for file in files:
+        filename = os.path.join(directory_path, file).replace('\\', '/')
+        if os.path.exists(filename):
+            os.remove(filename)
+
+
 def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_params:dict=None, 
                attempt_find:bool=False):
     """

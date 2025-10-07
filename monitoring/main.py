@@ -172,6 +172,7 @@ def monitoring(config_path = 'config.json'):
 
     # --------------------------- MSPC for individual stations ---------------------------
 
+    updated_noc = False
     for station in sorted(avail_stations):
         if verbose:
             print(f"Started process for station {station}.")
@@ -270,6 +271,7 @@ def monitoring(config_path = 'config.json'):
                         noc_end = endtime.replace(hour=0, minute=0, second=0)
                         noc_start = noc_end - timedelta(days=num_days_noc_length)
                         _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=False)
+                        updated_noc = True
 
             except UnpicklingError:
                 # Recreate a NOC if it fails to load
@@ -357,6 +359,7 @@ def monitoring(config_path = 'config.json'):
                             if verbose:
                                 print(f"    Creating combined NOC...")
                             _ = utils.create_noc(cst, noc_start, noc_end, config, noc_params=noc_params)
+                        updated_noc = True
 
 
             except UnpicklingError:
@@ -372,13 +375,20 @@ def monitoring(config_path = 'config.json'):
                 _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=True)
 
     # ---------------------------- Delete old files -------------------------------
-    if verbose:
-        print(f"Deleting files created before {delete_date}...")
-    # Delete old NOCs
-    utils.delete_old_nocs(nocs_path, '%Y-%m-%d', delete_date, noc_log_path, noc_types=('dynamic', 'inactive', 'unavailable'))
+    
+    if updated_noc:  # Old files are deleted with the same frequency as NOC updates
+        if verbose:
+            print(f"Deleting files created before {delete_date}...")
 
-    # Delete old plots
-    utils.delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+        # Delete old NOCs
+        utils.delete_old_nocs(nocs_path, '%Y-%m-%d', delete_date, noc_log_path, noc_types=('dynamic', 'inactive', 'unavailable'))
+
+        # Delete old plots
+        utils.delete_old_files(plots_path, '%Y%m%dT%H%M%SZ', delete_date)
+
+        # Delete old mseed (raw data) files
+        utils.delete_mseeds(data_path, network, stations, channels, start_day=delete_date - timedelta(days=10), 
+                            end_day=delete_date)
 
     print(f"Updated process control. Total time: {datetime.now() - time0}.")
 
