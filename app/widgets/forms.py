@@ -41,15 +41,15 @@ def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'],
     return stations, channels
 
 def select_noc(key, stations, allow_multiple_stations=True, noc_log_path = config["paths"]["noc_log"]):
-    from monitoring.utils import get_noc_names
+    from monitoring.utils import check_nocs
     
     col = st.columns(2)
     station = col[0].selectbox('Station', stations, key=f"station_{key}",
                               index = stations.index(st.session_state.station))
     if allow_multiple_stations:
-        nocs = [noc for noc, _ in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'exploratory', 'inactive'))]
+        nocs = [noc for noc, _ in check_nocs(noc_log_path, station, noc_types=('static', 'dynamic', 'exploratory', 'inactive'))]
     else:
-        nocs = [noc for noc, st in get_noc_names(noc_log_path, station, noc_types=('static', 'dynamic', 'exploratory', 'inactive'))
+        nocs = [noc for noc, st in check_nocs(noc_log_path, station, noc_types=('static', 'dynamic', 'exploratory', 'inactive'))
                 if isinstance(st, str)]
     noc = col[1].selectbox('NOC', reversed(nocs), key=f"noc_{key}")
 

@@ -27,7 +27,7 @@ starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc),
                                             update_frequency=config["monitoring"]["update_frequency"],
                                             delay = config["monitoring"]["delay"])
 
-nocs = utils.get_noc_names(config["paths"]["noc_log"], config["data"]["stations"])
+nocs = utils.check_nocs(config["paths"]["noc_log"], config["data"]["stations"])
 
 if "start_date" not in st.session_state:
     st.session_state.start_date = datetime.date(starttime)

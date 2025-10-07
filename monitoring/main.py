@@ -82,7 +82,8 @@ def monitoring(config_path = 'config.json'):
         return
     
     # Load Normal Operation Conditions (NOCs) for all available stations
-    noc_names = utils.get_noc_names(noc_log_path, avail_stations, additional_matches=config["features"], 
+    noc_names = utils.check_nocs(noc_log_path, avail_stations, noc_length=num_days_noc_length, 
+                                    additional_matches=config["features"], 
                                     nocs_path=nocs_path, edit_csv=True)
 
     # --------------- Create NOC for individual stations that do not have one --------------------
@@ -103,8 +104,7 @@ def monitoring(config_path = 'config.json'):
     if len(no_noc_stations) > 0:
         for station in no_noc_stations:
             # Get features to create NOC
-            if verbose:
-                print(f"Creating new NOC for station {station}...")
+            print(f"Creating new NOC for station {station}...")
             noc_end = endtime.replace(hour=0, minute=0, second=0)
             noc_start = noc_end - timedelta(days=num_days_noc_length)
             try:
@@ -128,12 +128,12 @@ def monitoring(config_path = 'config.json'):
 
                 noc_names.append((noc.name, noc.station))
             except Exception as e:
-                if verbose:
-                    print(f"NOC for station {station} could not be created: {e}")
+                print(f"NOC for station {station} could not be created: {e}")
 
     # ---------------------------- Create combined NOC of all stations ------------------------------
 
-    noc_names_combined = utils.get_noc_names(noc_log_path, sorted(noc_stations), noc_types=["dynamic"], additional_matches=config["features"],
+    noc_names_combined = utils.check_nocs(noc_log_path, sorted(noc_stations), noc_types=["dynamic"], 
+                                             noc_length=num_days_noc_length, additional_matches=config["features"],
                                              nocs_path=nocs_path)
     st_names = [st for _, st in noc_names_combined if isinstance(st, str)]
     combined_st_names = [st for _, st in noc_names_combined if isinstance(st, list)]
@@ -342,8 +342,8 @@ def monitoring(config_path = 'config.json'):
                         noc_start = noc_end - timedelta(days=num_days_noc_length)
                         noc_params = {'type': noc.type, 'n_components': 1, 'preprocessing': noc.preprocessing, 
                                     'quantile_threshold': noc.quantile_threshold}
-                        noc_names = utils.get_noc_names(noc_log_path, cst, noc_types=["dynamic"], additional_matches=config["features"],
-                                                            nocs_path=nocs_path)
+                        noc_names = utils.check_nocs(noc_log_path, cst, noc_types=["dynamic"], noc_length=num_days_noc_length,
+                                                        additional_matches=config["features"], nocs_path=nocs_path)
                         st_names = [st for _, st in noc_names if isinstance(st, str)]
 
                         if len(np.unique(st_names)) == len(st_names):

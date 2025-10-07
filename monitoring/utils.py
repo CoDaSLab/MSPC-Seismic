@@ -96,11 +96,11 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
     return avail_stations
 
 
-def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = None, 
-                  noc_types=('static', 'dynamic'), additional_matches=None, nocs_path='data/involcan/nocs',
-                  edit_csv = False):
+def check_nocs(csv_path = "data/involcan/metadata/noc_list.csv", stations = None, 
+                  noc_types=('static', 'dynamic'), noc_length=None, additional_matches=None, 
+                  nocs_path='data/involcan/nocs', edit_csv = False):
     """
-    Finds the names of the NOCs in the list associated with the stations.
+    Finds the names of the NOCs in the list that meet certain conditions.
 
     Parameters
     ----------
@@ -110,6 +110,8 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
         List of stations.
     noc_types (list or tuple)
         Types of NOC to look for. Default is 'static' and 'dynamic'.
+    noc_length (int)
+        Expected length (in days) of training data. Only checked for dynamic NOCs.
     additional_matches (dict)
         Optional. Extra conditions that the NOC metadata need to match.
     nocs_path (str)
@@ -135,15 +137,15 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
                 add_noc = False
                 if row['type'] in noc_types:
                     try:
-                        # In case the row["station"] is a list of stations
+                        # In case that row["station"] is a list of stations
                         station = ast.literal_eval(row["station"])
                     except (ValueError, SyntaxError):
                         station = row["station"]
                     
                     # Check station matches
                     if isinstance(station, list):
-                        stations_in_list = [s for s in station if s in stations]
-                        if len(stations_in_list) > 0:
+                        stations_in_list = [s in stations for s in station]
+                        if all(stations_in_list):
                             add_noc = True
                         else:
                             unmatched_nocs[row["name"]] = 'inactive'
@@ -153,6 +155,17 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
                             stations_in_list = station
                         else:
                             unmatched_nocs[row["name"]] = 'inactive'
+                    
+                    # Check time range
+                    if noc_length and row["type"] == 'dynamic':
+                        stime = datetime.strptime(row["start_time"], "%Y-%m-%dT%H:%M:%SZ")
+                        etime = datetime.strptime(row["end_time"], "%Y-%m-%dT%H:%M:%SZ")
+                        difference = etime - stime
+                        days = difference.total_seconds() / 86400
+                        if not np.isclose(days, noc_length):
+                            add_noc = False
+                            unmatched_nocs[row["name"]] = 'unavailable'
+                            print(f"NOC {row["name"]} should have a length of {noc_length} days, not {days}.")
 
                     # Check additional matches
                     if additional_matches:
@@ -161,7 +174,7 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
                             if key in noc.metadata and additional_matches[key] != noc.metadata[key]:
                                 add_noc = False
                                 unmatched_nocs[row["name"]] = 'unavailable'
-                                print(f"Parameter {key} for NOC {noc.name} is {noc.metadata[key]}, but should be {additional_matches[key]}.")
+                                print(f"Parameter {key} for NOC {noc.name} should be {noc.metadata[key]}, not {additional_matches[key]}.")
                                 
                     if add_noc:
                         noc_names.append((row['name'], station))
@@ -172,7 +185,6 @@ def get_noc_names(csv_path = "data/involcan/metadata/noc_list.csv", stations = N
                 noc = NOC.load(os.path.join(nocs_path, name).replace('\\', '/'))
                 noc.type = unmatched_nocs[name]
                 noc.save(os.path.join(nocs_path, name).replace('\\', '/'))
-                noc.write_csv(csv_path)
 
     return noc_names
 

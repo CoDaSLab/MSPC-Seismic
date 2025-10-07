@@ -5,7 +5,7 @@ from widgets import *
 from utils.functions import load_stations
 
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 import json
 
 # --- Application start ---
@@ -114,6 +114,7 @@ with st.form(key):
                 # Save backup
                 backup_folder = os.path.join(os.path.dirname(config_path), "backups/config/")
                 new_config["metadata"]["running"] = False
+                new_config["metadata"]["creation_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
                 os.makedirs(backup_folder, exist_ok=True)
                 with open(backup_folder + "config_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".json", "w") as f:
                     json.dump(config, f, indent=4)

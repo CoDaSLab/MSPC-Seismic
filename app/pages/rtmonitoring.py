@@ -167,7 +167,7 @@ if config["monitoring"]["auto_monitoring"]:
     except FileNotFoundError as e:
         st.error(f"Latest data downloads log not available. More details:\n{e}")
     try:
-        nocs = utils.get_noc_names(config["paths"]["noc_log"], avail_stations)
+        nocs = utils.check_nocs(config["paths"]["noc_log"], avail_stations)
         exploration_on, starttime, endtime = real_time_visualization(config, nocs=nocs, key="monitoring_rt")
         _,_, center, _ = st.columns(4)
         explore = center.checkbox("Explore")
