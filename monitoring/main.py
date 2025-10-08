@@ -84,7 +84,7 @@ def monitoring(config_path = 'config.json'):
     # Load Normal Operation Conditions (NOCs) for all available stations
     noc_names = utils.check_nocs(noc_log_path, avail_stations, noc_length=num_days_noc_length, 
                                     additional_matches=config["features"], 
-                                    nocs_path=nocs_path, edit_csv=True)
+                                    nocs_path=nocs_path, edit_csv=True, verbose=verbose)
 
     # --------------- Create NOC for individual stations that do not have one --------------------
 
@@ -134,7 +134,7 @@ def monitoring(config_path = 'config.json'):
 
     noc_names_combined = utils.check_nocs(noc_log_path, sorted(noc_stations), noc_types=["dynamic"], 
                                              noc_length=num_days_noc_length, additional_matches=config["features"],
-                                             nocs_path=nocs_path)
+                                             nocs_path=nocs_path, verbose=verbose)
     st_names = [st for _, st in noc_names_combined if isinstance(st, str)]
     combined_st_names = [st for _, st in noc_names_combined if isinstance(st, list)]
 
@@ -148,6 +148,17 @@ def monitoring(config_path = 'config.json'):
         
         combined_stations.append(noc.station)
         noc_names.append((noc.name, noc.station))
+
+        # Make other multi-station NOCs inactive
+        if len(combined_stations) > 1:
+            nocs_inactive = [noc for noc, st in noc_names_combined if isinstance(st, list)]
+            for noc_name in nocs_inactive:
+                noc_path = os.path.join(nocs_path, noc_name).replace('\\', '/')
+                noc = NOC.NOC.load(noc_path)
+                if verbose:
+                    print(f"NOC {noc.name} does not contain all available stations. Deactivating NOC.")
+                noc.type = 'inactive'
+                noc.save(noc_path)
 
     nocs = defaultdict(list)
     combined_nocs = defaultdict(list)
@@ -345,7 +356,7 @@ def monitoring(config_path = 'config.json'):
                         noc_params = {'type': noc.type, 'n_components': 1, 'preprocessing': noc.preprocessing, 
                                     'quantile_threshold': noc.quantile_threshold}
                         noc_names = utils.check_nocs(noc_log_path, cst, noc_types=["dynamic"], noc_length=num_days_noc_length,
-                                                        additional_matches=config["features"], nocs_path=nocs_path)
+                                                        additional_matches=config["features"], nocs_path=nocs_path, verbose=verbose)
                         st_names = [st for _, st in noc_names if isinstance(st, str)]
 
                         if len(np.unique(st_names)) == len(st_names):

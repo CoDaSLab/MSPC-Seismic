@@ -799,8 +799,6 @@ class NOC:
         ----------
         filepath (str)
             Path to the output file.
-        log_path (str)
-            Path to the NOC list file.
         filetype (str)
             'mat' for .mat file, 'pickle' for using pickle (default: 'pickle')
         """

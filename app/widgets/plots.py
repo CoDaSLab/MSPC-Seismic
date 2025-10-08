@@ -224,51 +224,52 @@ def plot_tscore(
     criterion="consecutive",
     n_consecutive=3,
     nocs_path="data/involcan/nocs",
+    key=None,
 ):
     from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
     import os
-    from datetime import datetime, timezone, timedelta
+    # from datetime import datetime, timezone, timedelta
 
     # Cargar NOC
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace("\\", "/"))
 
+    # try:
+    #     test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    #     test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
+    # except Exception:
+    #     st.error("No data available for the given time range.")
+    #     return None
+
+    # window_size = timedelta(seconds=noc.metadata["window_size"])
+
+    # if test_start - window_size <= starttime and endtime <= test_end + window_size:
     try:
-        test_start = datetime.strptime(noc.test_labels[0], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-        test_end = datetime.strptime(noc.test_labels[-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-    except Exception:
-        st.error("No data available for the given time range.")
+        # Devuelve fig_plotly y datos útiles
+        fig_plotly = plot_anomalies_T(
+            noc,
+            starttime,
+            endtime,
+            T_weight,
+            T_norm_quantile,
+            T_threshold_quantile,
+            logscale=logscale,
+            plot_train=plot_train,
+            criterion=criterion,
+            n_consecutive=n_consecutive,
+            show=False,
+        )
+
+        selected_points = st.plotly_chart(fig_plotly, use_container_width=True, key=key, on_select="rerun")
+
+        return selected_points
+
+    except AssertionError as e:
+        st.error(f"Error computing anomalies in the given time range: {e}")
         return None
-
-    window_size = timedelta(seconds=noc.metadata["window_size"])
-
-    if test_start - window_size <= starttime and endtime <= test_end + window_size:
-        try:
-            # Devuelve fig_plotly y datos útiles
-            fig_plotly = plot_anomalies_T(
-                noc,
-                starttime,
-                endtime,
-                T_weight,
-                T_norm_quantile,
-                T_threshold_quantile,
-                logscale=logscale,
-                plot_train=plot_train,
-                criterion=criterion,
-                n_consecutive=n_consecutive,
-                show=False,
-            )
-
-            selected_points = st.plotly_chart(fig_plotly, use_container_width=True, on_select="rerun")
-
-            return selected_points
-
-        except AssertionError as e:
-            st.error(f"Error computing anomalies in the given time range: {e}")
-            return None
-    else:
-        st.error("No calculation available for the given time range.")
-        return None
+    # else:
+    #     st.error("No calculation available for the given time range.")
+    #     return None
 
 
 # @st.cache_resource(ttl=rt_plots_cache_time, show_spinner=False)

@@ -98,7 +98,7 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
 
 def check_nocs(csv_path = "data/involcan/metadata/noc_list.csv", stations = None, 
                   noc_types=('static', 'dynamic'), noc_length=None, additional_matches=None, 
-                  nocs_path='data/involcan/nocs', edit_csv = False):
+                  nocs_path='data/involcan/nocs', edit_csv = False, verbose=False):
     """
     Finds the names of the NOCs in the list that meet certain conditions.
 
@@ -119,6 +119,9 @@ def check_nocs(csv_path = "data/involcan/metadata/noc_list.csv", stations = None
     edit_csv (str)
         If additional_matches is given, marks NOCs that do not match the conditions
         as unavailable.
+    verbose (bool)
+        If True, displays messages. Default is False.
+
     Returns
     -------
         list: List of tuples (NOC name, station).
@@ -165,7 +168,8 @@ def check_nocs(csv_path = "data/involcan/metadata/noc_list.csv", stations = None
                         if not np.isclose(days, noc_length):
                             add_noc = False
                             unmatched_nocs[row["name"]] = 'unavailable'
-                            print(f"NOC {row["name"]} should have a length of {noc_length} days, not {days}.")
+                            if verbose:
+                                print(f"NOC {row["name"]} should have a length of {noc_length} days, not {days}.")
 
                     # Check additional matches
                     if additional_matches:
@@ -174,7 +178,8 @@ def check_nocs(csv_path = "data/involcan/metadata/noc_list.csv", stations = None
                             if key in noc.metadata and additional_matches[key] != noc.metadata[key]:
                                 add_noc = False
                                 unmatched_nocs[row["name"]] = 'unavailable'
-                                print(f"Parameter {key} for NOC {noc.name} should be {noc.metadata[key]}, not {additional_matches[key]}.")
+                                if verbose:
+                                    print(f"Parameter {key} for NOC {noc.name} should be {noc.metadata[key]}, not {additional_matches[key]}.")
                                 
                     if add_noc:
                         noc_names.append((row['name'], station))

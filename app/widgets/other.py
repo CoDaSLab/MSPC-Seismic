@@ -1,4 +1,5 @@
 import streamlit as st
+from widgets import plots
 
 def noc_summary(noc_name, nocs_path="data/involcan/nocs"):
     """
@@ -58,3 +59,28 @@ def monitoring_status():
         """,
         unsafe_allow_html=True
     )
+
+@st.fragment()
+def exploration(starttime, endtime, station_list):
+    _,_, center, _ = st.columns(4)
+    explore = center.checkbox("Explore")
+    
+    if explore:
+        col1, col2 = st.columns(2)
+        stations = col1.multiselect("Choose stations", station_list)
+        visualization_options = ["Raw signal", "Spectrogram", "MSPC"]
+        visualizations = col2.multiselect("Choose visualizations", visualization_options, default = visualization_options[:-1])
+
+        if len(visualizations)>0 and len(stations)>0:
+            col = st.columns(len(visualizations))
+
+            for i in range(len(visualizations)):
+                with col[i]:
+                    if visualizations[i] == visualization_options[0]:
+                        fig = plots.plot_raw_signal(stations, starttime, endtime)
+                        st.pyplot(fig)
+
+                    if visualizations[i] == visualization_options[1]:
+                        fig = plots.plot_spectrogram(stations, starttime, endtime)
+                        st.pyplot(fig)
+                    if visualizations[i] == visualization_options[2]: pass # plot_mspc(stations, starttime, endtime)

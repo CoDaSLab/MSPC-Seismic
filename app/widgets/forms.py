@@ -3,7 +3,7 @@ from config.init import *
 init_session_state()
 config = st.session_state.config
 
-def select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
+def select_station(key, station_list=config["data"]["stations"], channel_list=config["data"]["channels"]):
     col = st.columns(2)
     default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
     station = col[0].selectbox('Station', station_list, key=f"station_{key}",
@@ -18,7 +18,7 @@ def select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
 
     return station, channel
 
-def select_station_multi_channel(key, station_list, channel_list=['HHE', 'HHN', 'HHZ']):
+def select_station_multi_channel(key, station_list=config["data"]["stations"], channel_list=config["data"]["channels"]):
     col = st.columns(2)
     default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
     station = col[0].selectbox('Station', station_list, key=f"station_{key}",
@@ -29,8 +29,8 @@ def select_station_multi_channel(key, station_list, channel_list=['HHE', 'HHN', 
 
     return station, channels
 
-def multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'],
-                         default_stations=None, default_channels=None):
+def multi_select_station(key, station_list=config["data"]["stations"], channel_list=config["data"]["channels"],
+                         default_stations=None, default_channels=config["data"]["channels"]):
     col = st.columns(2)
 
     stations = col[0].multiselect('Stations', station_list, key=f"station_{key}",
@@ -56,14 +56,19 @@ def select_noc(key, stations, allow_multiple_stations=True, noc_log_path = confi
     return station, noc
 
 
-def select_time(key):
+def select_time(key, default_start=None, default_end=None):
     from datetime import datetime, timedelta
+
+    default_start_date = st.session_state.start_date if default_start is None else default_start
+    default_start_time = st.session_state.start_time if default_start is None else default_start
+    default_end_date = st.session_state.end_date if default_end is None else default_end
+    default_end_time = st.session_state.end_time if default_end is None else default_end
 
     col = st.columns(2)
     start_date = col[0].date_input("Select a start day", key=f'start_date_{key}',
-                                   value=st.session_state.start_date)
+                                   value=default_start_date)
     start_time = col[1].time_input("Select a start time", key=f'start_time_{key}',
-                                    value = st.session_state.start_time,
+                                    value = default_start_time,
                                     step=timedelta(minutes=5))
 
     starttime = datetime.combine(start_date, start_time)
@@ -71,9 +76,9 @@ def select_time(key):
     st.session_state.start_time = start_time
 
     end_date = col[0].date_input("Select an end day", key=f'end_date_{key}',
-                                value=st.session_state.end_date)
+                                value=default_end_date)
     end_time = col[1].time_input("Select an end time", key=f'end_time_{key}', 
-                                 value = st.session_state.end_time,
+                                 value = default_end_time,
                                  step=timedelta(minutes=5))
                                  
     endtime = datetime.combine(end_date, end_time)
