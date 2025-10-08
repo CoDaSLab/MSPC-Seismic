@@ -13,14 +13,14 @@ script_path=sys.argv[0]
 repo_path = os.path.abspath(os.path.join(script_path, "..", ".."))
 
 # Path to the JSON configuration file and path to the monitoring script
-CONFIG_JSON = repo_path+"/monitoring/config.json"
+CONFIG_JSON = repo_path+"/config.json"
 COMMANDS = [repo_path+"/monitoring/monitoring.sh"]
 
 # Read configuration from the JSON file
 def read_config(json_path):
     with open(json_path, 'r') as file:
         data = json.load(file)
-        return data.get("general", {}).get("update_frequency")
+        return data.get("monitoring", {}).get("update_frequency")
 
 # Get the current crontab content
 def get_current_crontab():
