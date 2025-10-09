@@ -320,9 +320,7 @@ class NOC:
         elif self.preprocessing == 3:
             vars_per_block = test.shape[1] // self.n_blocks
             reshaped = test.reshape(test.shape[0], self.n_blocks, vars_per_block)
-            block_vars = np.var(reshaped, axis=0, ddof=1).sum(axis=1)
-            ssqs = np.sqrt(block_vars)  # (n_blocks,)
-            X_test_norm = (reshaped / ssqs[None, :, None]).reshape(test.shape)
+            X_test_norm = (reshaped / self.sqrt_sumsq[None, :, None]).reshape(test.shape)
         
         scores_test = self.pca.transform(X_test_norm)
         
@@ -1039,10 +1037,7 @@ class NOC:
             scaler = StandardScaler(with_std = False) 
             test = scaler.fit_transform(test)
         elif preprocessing == 3: # Block-scaling
-            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
-            n_stations = 1 if isinstance(self.station, str) else len(self.station)
-            n_blocks = n_channels * n_stations
-            test, _ = block_scaling(test, n_blocks)
+            test, _ = block_scaling(test, self.n_blocks)
         
         model = PCA(n_components = 1)
         pca = model.fit(test)
