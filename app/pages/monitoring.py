@@ -123,7 +123,7 @@ with COL[1]:
                                                 data_path=config["paths"]["data"])
                 with st.spinner("Training model..."):
                     noc = NOC(noc_name, features_train["spectrogram_unfold"], features_train["times_label"], network=network, 
-                              station=stations if len(stations)>1 else stations[0],
+                              station=stations if len(stations)>1 else stations[0], channels=channels,
                               type='exploratory', preprocessing=prep, n_components=1, quantile_threshold=quantile, 
                               csv_path=config["paths"]["noc_log"])
                     noc.set_metadata(starttime_train, endtime_train, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
@@ -175,7 +175,7 @@ with COL[1]:
                 except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                 with st.spinner("Calculating oMEDA..."):
                     omeda_vec, freqs_label, channel_class, stations_class = noc.omeda(starttime, endtime, nocs_path)
-                    fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=True)
+                    fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
 
                 st.plotly_chart(fig, key=key + 'omeda', use_container_width=True)
         except Exception as e: 

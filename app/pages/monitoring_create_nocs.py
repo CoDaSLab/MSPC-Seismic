@@ -86,9 +86,9 @@ with COL[0]:
                 noc_name = station + '_' + noc_type[0]
             noc_name = noc_name + '_' + endtime.strftime("%Y-%m-%d")
             st.session_state.noc_name = noc_name
-            noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station,
-                            type=noc_type, preprocessing=prep, n_components=1, quantile_threshold=quantile, 
-                            csv_path=config["paths"]["noc_log"])
+            noc = NOC.NOC(noc_name, train_data, features["times_label"], network=network, station=station, channels=channels,
+                            type=noc_type, preprocessing=prep, n_components=config["features"]["noc_params"]["n_components"], 
+                            quantile_threshold=quantile, csv_path=config["paths"]["noc_log"])
             noc.set_metadata(starttime, endtime, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
                              merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
             

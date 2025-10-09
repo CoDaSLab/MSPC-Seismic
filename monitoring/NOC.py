@@ -1,7 +1,7 @@
 """
-Last update: 19/09/2025
+Last update: 9-Oct-2025
 
-file name: NOC.py
+File name: NOC.py
 
 Description:
 This file contains the code for the NOC class.
@@ -28,7 +28,7 @@ with open(CONFIG_PATH, 'r') as f:
 
 class NOC:
     def __init__(self, name:str, features:np.ndarray, obs_labels:list = None, 
-                 network:str = config["data"]["network"], station:str = "", type:str = "", preprocessing:int = 1, 
+                 network:str = config["data"]["network"], station = "", channels = "", type:str = "", preprocessing:int = 1, 
                  n_components:int = 1, quantile_threshold:float = 0.99, 
                  csv_path:str = config["paths"]["noc_log"]):
         """
@@ -44,6 +44,8 @@ class NOC:
             Network code.
         station (str)
             Station code or list of station codes.
+        channels (str)
+            Channel or list of channels.
         type (str)
             Type of NOC (static or dynamic).
         features (numpy array)
@@ -74,6 +76,7 @@ class NOC:
         self.name = name
         self.network = network
         self.station = station
+        self.channels = channels
         self.type = type
         self.features = features
         self.features_shape = features.shape
@@ -165,8 +168,15 @@ class NOC:
         if self.preprocessing == 2:
             scaler = StandardScaler(with_std=True)
             X = scaler.fit_transform(self.features)
-        else:
-            X = self.features.copy()
+        elif self.preprocessing == 1:
+            scaler = StandardScaler(with_std=False)
+            X = scaler.fit_transform(self.features)
+        elif self.preprocessing == 3:
+            # Block-scaling
+            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
+            n_stations = 1 if isinstance(self.station, str) else len(self.station)
+            n_blocks = self.features_shape[1] // (n_channels * n_stations)
+            X, _ = block_scaling(self.features, n_blocks)
 
         pca = PCA(n_components=max_components)
         X_fit = pca.fit_transform(X)
@@ -216,6 +226,12 @@ class NOC:
             X_norm = self.features - self.mean
         elif self.preprocessing == 2:
             X_norm = (self.features - self.mean) / self.std
+        elif self.preprocessing == 3:
+            # Block-scaling
+            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
+            n_stations = 1 if isinstance(self.station, str) else len(self.station)
+            self.n_blocks = n_channels * n_stations
+            X_norm, self.sqrt_sumsq = block_scaling(self.features, self.n_blocks)
 
         # PCA
         pca = PCA(n_components=self.n_components)
@@ -301,6 +317,12 @@ class NOC:
             X_test_norm = test - self.mean
         elif self.preprocessing == 2:
             X_test_norm = (test - self.mean) / self.std
+        elif self.preprocessing == 3:
+            vars_per_block = test.shape[1] // self.n_blocks
+            reshaped = test.reshape(test.shape[0], self.n_blocks, vars_per_block)
+            block_vars = np.var(reshaped, axis=0, ddof=1).sum(axis=1)
+            ssqs = np.sqrt(block_vars)  # (n_blocks,)
+            X_test_norm = (reshaped / ssqs[None, :, None]).reshape(test.shape)
         
         scores_test = self.pca.transform(X_test_norm)
         
@@ -776,6 +798,7 @@ class NOC:
             print(f"    Stations: {self.station}")
         else:
             print(f"    Station: {self.station}")
+        print(f"    Channels: {self.channels}")
         print(f"    NOC type: {self.type}")
         print(f"    Updated on: {self.last_update_time}")
         
@@ -924,6 +947,7 @@ class NOC:
                 'name': self.name,
                 'network': self.network,
                 'station': self.station,
+                'channels': self.channels,
                 'type': self.type,
                 'n_windows': self.features_shape[0],
                 'n_variables': self.features_shape[1],
@@ -980,9 +1004,14 @@ class NOC:
                 writer.writeheader()
                 writer.writerows(rows_kept)
 
-    def omeda(self, starttime:datetime, endtime:datetime, nocs_path:str=config["paths"]["nocs"], features_path:str=config["paths"]["features"]):
+    def omeda(self, starttime:datetime, endtime:datetime, nocs_path:str=config["paths"]["nocs"], 
+              features_path:str=config["paths"]["features"], preprocessing=3):
 
         from preprocessing.fft_rt import find_features
+
+        if preprocessing is None:
+            preprocessing = self.preprocessing
+
         metadata = self.metadata
         del metadata["start_time"]
         del metadata["end_time"]
@@ -995,7 +1024,6 @@ class NOC:
         features_noc = self.load_features(nocs_path)
         features_test = features_dic["spectrogram_unfold"]
 
-
         test = np.vstack((features_noc, features_test))
         dummy = np.ones(len(features_noc)+len(features_test))
         dummy[0:len(features_noc)-1] = -1
@@ -1004,12 +1032,19 @@ class NOC:
         from sklearn.decomposition import PCA
         from sklearn.preprocessing import StandardScaler
 
-        if self.preprocessing == 2: #autoscaling
+        if preprocessing == 2: #autoscaling
             scaler = StandardScaler(with_std = True)
-        else: scaler = StandardScaler(with_std = False)
-        test = scaler.fit_transform(test)
-
-        model = PCA(1)
+            test = scaler.fit_transform(test)
+        elif preprocessing == 1: # mean-centering
+            scaler = StandardScaler(with_std = False) 
+            test = scaler.fit_transform(test)
+        elif preprocessing == 3: # Block-scaling
+            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
+            n_stations = 1 if isinstance(self.station, str) else len(self.station)
+            n_blocks = n_channels * n_stations
+            test, _ = block_scaling(test, n_blocks)
+        
+        model = PCA(n_components = 1)
         pca = model.fit(test)
         loadings = pca.components_.T
 
@@ -1069,16 +1104,24 @@ def compare_nocs(noc1:NOC, noc2:NOC, nocs_path=config["paths"]["nocs"], preproce
     noc2_features = noc2.load_features(nocs_path)
     features_all = np.vstack((noc1_features, noc2_features))
 
+    channels = noc1.channels
+    station = noc1.station
+
     # Dummy variable for omeda
     dummy = np.ones(len(features_all))
     dummy[len(noc1_features):] = -1
     
     if preprocessing == 1:
         scaler = StandardScaler(with_std=False)
+        features_all = scaler.fit_transform(features_all)
     elif preprocessing == 2:
         scaler = StandardScaler(with_std=True)
-    
-    features_all = scaler.fit_transform(features_all)
+        features_all = scaler.fit_transform(features_all)
+    elif preprocessing == 3: # Block-scaling
+        n_channels = 1 if isinstance(channels, str) else len(channels)
+        n_stations = 1 if isinstance(station, str) else len(station)
+        n_blocks = n_channels * n_stations
+        features_all, _ = block_scaling(features_all, n_blocks)
 
     pca_model = PCA(n_components=n_components)
     scores = pca_model.fit_transform(features_all)
@@ -1133,6 +1176,7 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
             prep = noc.preprocessing
             qt = noc.quantile_threshold
             time_range = noc.time_range
+            channels = noc.channels
         else:
             # Check parameters used for feature extraction
             if np.any(feat_shape != ref_shape):
@@ -1156,7 +1200,7 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     features = np.hstack(feat_all)
     if new_name is None:
         new_name = "-".join(stations) + "_" + new_type[0] + "_" + datetime.strptime(time_range[1], "%Y-%m-%dT%H:%M:%SZ").strftime("%Y-%m-%d")
-    new_noc = NOC(new_name, features, obs_labels, network, stations, new_type, 
+    new_noc = NOC(new_name, features, obs_labels, network, stations, channels, new_type, 
                   preprocessing=prep, n_components=n_components, quantile_threshold=qt, csv_path=log_path)
     new_path = os.path.join(nocs_path, new_name)
     new_noc.metadata = ref_param
@@ -1168,3 +1212,16 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     
     return new_noc
 
+
+def block_scaling(data, n_blocks):
+    """
+    Performs block variance scaling on the data. Assumes blocks of equal number of variables.
+    """
+    vars_per_block = data.shape[1] // n_blocks
+
+    reshaped = data.reshape(data.shape[0], n_blocks, vars_per_block)
+    block_vars = np.var(reshaped, axis=0, ddof=1).sum(axis=1)
+    ssqs = np.sqrt(block_vars)  # (n_blocks,)
+    data_norm = (reshaped / ssqs[None, :, None]).reshape(data.shape)
+
+    return data_norm, ssqs

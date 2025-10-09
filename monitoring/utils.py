@@ -396,16 +396,15 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
     # Create new NOC
     new_features = np.hstack([features[key] for key in feature_types])
     if noc_params:
-        new_noc = NOC(new_name, new_features, features['times_label'], network, station, type=noc_params["type"],
+        new_noc = NOC(new_name, new_features, features['times_label'], network, station, channels, type=noc_params["type"],
                         preprocessing = noc_params["preprocessing"], n_components = noc_params["n_components"], 
                         quantile_threshold = noc_params["quantile_threshold"])
     else:
-        new_noc = NOC(new_name, new_features, features['times_label'], network, station, type='dynamic',
+        new_noc = NOC(new_name, new_features, features['times_label'], network, station, channels, type='dynamic',
                         preprocessing = 1, n_components = 1, quantile_threshold = 0.99, csv_path=noc_log_path)
     new_noc.set_metadata(starttime, endtime, window_size, window_shift, detrend, windowing, fft_points, 
                             merge_method, merge_fill_value, pad_fill_value)
     new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
-    new_noc.write_csv(noc_log_path)
 
     if verbose:
         print(f"Created NOC {new_noc.name}. Time taken: {datetime.now() - time0}.")

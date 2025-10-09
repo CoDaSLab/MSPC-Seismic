@@ -43,9 +43,13 @@
     "merge_method": 1,
     "merge_fill_value": "interpolate",
     "pad_fill_value": 0,
-    "cpus": 8,
     "stft_params": {
       "fft_points": "auto"
+    },
+    "noc_params": {
+      "preprocessing": 1,
+      "n_components": 1,
+      "quantile_threshold": 0.99
     }
   },
   "data": {

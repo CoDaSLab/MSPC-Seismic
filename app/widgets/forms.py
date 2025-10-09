@@ -146,8 +146,12 @@ def select_FFT_points(key, window_size = 10, srate = 100):
     return FFT_points
 
 def select_preprocessing(key):
-    prep_options = ['mean-centering', 'autoscaling']
-    prep = st.selectbox('Preprocessing', prep_options, key=f"preprocess_{key}", index=0)
+    prep_options = ['mean-centering', 'autoscaling', 'block-scaling']
+    prep = st.selectbox('Preprocessing', prep_options, key=f"preprocess_{key}",
+                        index=config["features"]["noc_params"]["preprocessing"]-1)
 
-    prep_num = 1 if prep == 'mean-centering' else 2
+    if prep == 'mean-centering': prep_num = 1
+    elif prep == 'autoscaling': prep_num = 2
+    elif prep == 'block-scaling': prep_num = 3
+
     return prep_num

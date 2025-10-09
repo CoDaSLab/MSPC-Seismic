@@ -50,6 +50,8 @@ def monitoring(config_path = 'config.json'):
     merge_method = config["features"]["merge_method"]  # Trace merging method (see ObsPy documentation)
     merge_fill_value = config["features"]["merge_fill_value"]  # Value for filling a gap in the middle of a signal ('interpolate' for interpolation)
     pad_fill_value = config["features"]["pad_fill_value"]  # Value for filling a signal if it does not start at 'starttime' or end at 'endtime'
+    noc_params = config["features"]["noc_params"]  # Default parameters for NOC creation
+    noc_params["type"] = "dynamic"
     anomaly_criterion = config["monitoring"]["plots"]["anomaly_criterion"]  # Criterion for anomaly detection
     verbose = config["monitoring"]["verbose"]  # Whether to print extra messages.
     num_days_before_delete = config["monitoring"]["num_days_before_delete"]  # Number of days to keep saved features.
@@ -117,13 +119,13 @@ def monitoring(config_path = 'config.json'):
                             sts.append(st)
                             nocs_to_fuse.append(name)
                     try:
-                        noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path, verbose=verbose)
+                        noc = NOC.fuse_nocs(nocs_to_fuse, n_components=noc_params["n_components"], verbose=verbose)
                     except Exception as e:
                         print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
-                        noc = utils.create_noc(sts, noc_start, noc_end, config)
+                        noc = utils.create_noc(sts, noc_start, noc_end, config, noc_params)
                     combined_stations.append(noc.station)
                 else:
-                    noc = utils.create_noc(station, noc_start, noc_end, config)
+                    noc = utils.create_noc(station, noc_start, noc_end, config, noc_params)
                     noc_stations.add(station)
 
                 noc_names.append((noc.name, noc.station))
@@ -141,10 +143,10 @@ def monitoring(config_path = 'config.json'):
     if (len(np.unique(st_names)) == len(st_names) and len(combined_st_names) == 0) or sorted(noc_stations) not in combined_stations:
         nocs_to_fuse = [noc for noc, st in noc_names_combined if isinstance(st, str)]
         try:
-            noc = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path, verbose=verbose)
+            noc = NOC.fuse_nocs(nocs_to_fuse, n_components=noc_params["n_components"], verbose=verbose)
         except Exception as e:
             print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
-            noc = utils.create_noc(st_names, noc_start, noc_end, config)
+            noc = utils.create_noc(st_names, noc_start, noc_end, config, noc_params)
         
         combined_stations.append(noc.station)
         noc_names.append((noc.name, noc.station))
@@ -277,11 +279,11 @@ def monitoring(config_path = 'config.json'):
                         noc.write_csv(noc_log_path)
 
                         # Update NOC
-                        noc_params = {'type': 'dynamic', 'n_components': 1, 'preprocessing': noc.preprocessing, 
-                                      'quantile_threshold': noc.quantile_threshold}
+                        updated_noc_params = {'type': 'dynamic', 'n_components': noc_params["n_components"], 
+                                              'preprocessing': noc.preprocessing, 'quantile_threshold': noc.quantile_threshold}
                         noc_end = endtime.replace(hour=0, minute=0, second=0)
                         noc_start = noc_end - timedelta(days=num_days_noc_length)
-                        _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=False)
+                        _ = utils.create_noc(station, noc_start, noc_end, config, updated_noc_params, attempt_find=False)
                         updated_noc = True
 
             except UnpicklingError:
@@ -290,11 +292,11 @@ def monitoring(config_path = 'config.json'):
                 print(f"NOC {name} failed to load. Recreating NOC...")
 
                 noc_info = utils.noc_info(name, noc_log_path)
-                noc_params = {'type': noc_info["type"], 'n_components': noc_info["n_components"], 
-                              'preprocessing': noc_info["preprocessing"], 'quantile_threshold': noc_info["quantile_threshold"]}
+                updated_noc_params = {'type': noc_info["type"], 'n_components': noc_info["n_components"], 
+                                    'preprocessing': noc_info["preprocessing"], 'quantile_threshold': noc_info["quantile_threshold"]}
                 noc_start = datetime.strptime(noc_info["start_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
                 noc_end = datetime.strptime(noc_info["end_time"], '%Y-%m-%dT%H:%M:%SZ').replace(tzinfo=timezone.utc)
-                _ = utils.create_noc(station, noc_start, noc_end, config, noc_params, attempt_find=True)
+                _ = utils.create_noc(station, noc_start, noc_end, config, updated_noc_params, attempt_find=True)
             
         starttime = starttime_original
         endtime = endtime_original
@@ -362,7 +364,7 @@ def monitoring(config_path = 'config.json'):
                         if len(np.unique(st_names)) == len(st_names):
                             nocs_to_fuse = [noc for noc, st in noc_names if isinstance(st, str)]
                             try:
-                                _ = NOC.fuse_nocs(nocs_to_fuse, nocs_path=nocs_path, log_path=noc_log_path)
+                                _ = NOC.fuse_nocs(nocs_to_fuse, n_components=noc_params["n_components"], verbose=verbose)
                             except Exception as e:
                                 print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
                                 _ = utils.create_noc(cst, noc_start, noc_end, config, noc_params=noc_params)
