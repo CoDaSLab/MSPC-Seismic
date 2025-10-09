@@ -1201,7 +1201,6 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     new_noc.metadata = ref_param
     new_noc.time_range = time_range
     new_noc.save(new_path)
-    new_noc.write_csv(log_path)
 
     print(f"NOCs for stations {stations} fused.")
     

@@ -4,13 +4,15 @@ from config.interface import header_monitoring
 
 from widgets import *
 
-from preprocessing.fft_rt import calculate_fft_rt
+from preprocessing.fft_rt import calculate_fft_rt, find_features
 from monitoring import mspc_rt, utils
-from monitoring.NOC import NOC
+from monitoring.NOC import NOC, fuse_nocs
 
+import json
 import numpy as np
 import os
 from datetime import datetime, timezone, timedelta
+from scipy.io import savemat
 
 # --- Application start ---
 init_page("Monitoring - Visualization")
@@ -24,15 +26,15 @@ st.subheader("On-demand visualization")
 
 config = st.session_state.config
 
-_, default_endtime_test = utils.start_and_end_times(datetime.now(timezone.utc), 
-                                            update_frequency=config["monitoring"]["update_frequency"],
-                                            delay = 2*config["monitoring"]["delay"])
-default_starttime_test = default_endtime_test - timedelta(hours=config["monitoring"]["plots"]["num_hours"])
-if "start_date" not in st.session_state:
-    st.session_state.start_date = default_starttime_test
-    st.session_state.start_time = default_starttime_test
-    st.session_state.end_date = default_endtime_test
-    st.session_state.end_time = default_endtime_test
+if "default_starttime_test" not in st.session_state:
+    _, st.session_state.default_endtime_test = utils.start_and_end_times(datetime.now(timezone.utc), 
+                                                                        update_frequency=config["monitoring"]["update_frequency"],
+                                                                        delay = 2*config["monitoring"]["delay"])
+    st.session_state.default_starttime_test = st.session_state.default_endtime_test - timedelta(hours=config["monitoring"]["plots"]["num_hours"])
+    st.session_state.start_date = st.session_state.default_starttime_test
+    st.session_state.start_time = st.session_state.default_starttime_test
+    st.session_state.end_date = st.session_state.default_endtime_test
+    st.session_state.end_time = st.session_state.default_endtime_test
 
 exploration_on = False
 key = "on_demand"
@@ -52,8 +54,10 @@ with COL[0]:
         starttime_train, endtime_train = forms.select_time(key + '_train', default_start=noc_start_day, default_end=current_day)
 
         st.write("##### Select test time range:")
-        starttime_test, endtime_test = forms.select_time(key + "_test", default_start=default_starttime_test, 
-                                                         default_end=default_endtime_test)
+        starttime_test, endtime_test = forms.select_time(key + "_test", default_start=st.session_state.default_starttime_test, 
+                                                         default_end=st.session_state.default_endtime_test)
+        st.session_state.default_starttime_test = starttime_test
+        st.session_state.default_endtime_test = endtime_test
         
         subcol = st.columns(2)
         with subcol[0]:
@@ -100,8 +104,16 @@ with COL[1]:
         elif starttime_test >= endtime_test or starttime_train >= endtime_train:
             st.error("Start time cannot be after end time.")
         else:
+            # Parameter dictionaries for NOC and features metadata
+            config_temp = config
+            config_temp["features"]["window_size"] = window
+            config_temp["features"]["window_shift"] = shift
+            config_temp["features"]["detrend"] = detrend
+            config_temp["features"]["windowing"] = windowing
+            config_temp["features"]["stft_params"]["fft_points"] = fft_points
             add_match = {'start_time': starttime_train.strftime('%Y-%m-%dT%H:%M:%SZ'), 'end_time': endtime_train.strftime('%Y-%m-%dT%H:%M:%SZ'), 
                         'window_size':window, 'window_shift':shift, 'detrend':detrend, 'windowing':windowing, 'fft_points': fft_points}
+            
             nocs_and_sts = utils.check_nocs(config["paths"]["noc_log"], stations, noc_types=('static', 'dynamic', 'inactive', 'exploratory'),
                                             additional_matches=add_match, nocs_path=config["paths"]["nocs"])
             
@@ -115,42 +127,71 @@ with COL[1]:
                 # st.success(f"An existing trained model ({noc_name}) for this period will be used.")
             else:
                 # st.warning(f"No trained model for this period was found. A new one will be created.")
-                with st.spinner("Calculating training features..."):
-                    noc_name = "-".join(stations) + '_e_' + endtime_test.strftime("%Y-%m-%d")
-                    features_train = calculate_fft_rt(starttime_train, endtime_train, network, stations, channels,
-                                                window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
-                                                merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"], 
-                                                data_path=config["paths"]["data"])
-                with st.spinner("Training model..."):
-                    noc = NOC(noc_name, features_train["spectrogram_unfold"], features_train["times_label"], network=network, 
-                              station=stations if len(stations)>1 else stations[0], channels=channels,
-                              type='exploratory', preprocessing=prep, n_components=1, quantile_threshold=quantile, 
-                              csv_path=config["paths"]["noc_log"])
+                noc_name = "-".join(stations) + '_e_' + endtime_test.strftime("%Y-%m-%d")
+                indiv_noc_names = []
+                for sta in stations:
+                    indiv_noc_name = sta + '_e_' + endtime_test.strftime("%Y-%m-%d")
+                    with st.spinner(f"Calculating training features for station {sta}..."):
+                        features_train = calculate_fft_rt(starttime_train, endtime_train, network, sta, channels,
+                                                        window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
+                                                        merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"], 
+                                                        data_path=config["paths"]["data"])
+                            
+                    with st.spinner(f"Training model for station {sta}..."):
+                        noc = NOC(indiv_noc_name, features_train["spectrogram_unfold"], features_train["times_label"], network=network, 
+                                  station=sta, channels=channels, type='exploratory', preprocessing=prep, 
+                                  n_components=config["features"]["noc_params"]["n_components"], quantile_threshold=quantile, 
+                                  csv_path=config["paths"]["noc_log"])
+                        noc.set_metadata(starttime_train, endtime_train, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
+                                         merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
+                        noc.save(os.path.join(config["paths"]["nocs"], indiv_noc_name).replace('\\', '/'))
+                    
+                    indiv_noc_names.append(indiv_noc_name)
+                
+                if len(stations) > 1:
+                    # Create combined NOC
+                    noc = fuse_nocs(indiv_noc_names, new_type='exploratory', n_components=config["features"]["noc_params"]["n_components"])
                     noc.set_metadata(starttime_train, endtime_train, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
-                                    merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
+                                        merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
                     noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))
 
-            with st.spinner("Calculating test features..."):
-                nocs_path = st.session_state.config["paths"]["nocs"]
-                noc = NOC.load(os.path.join(nocs_path, noc_name))
-                metadata = noc.metadata
-                features_test = calculate_fft_rt(starttime_test, endtime_test, network=network, stations=stations, 
-                                                channels=channels, window_length=metadata["window_size"],
-                                                window_shift=metadata["window_shift"], detrend=metadata["detrend"],
-                                                windowing=metadata["windowing"], n_bins=metadata["fft_points"], 
-                                                merge_method=metadata["merge_method"], merge_fill_value=metadata["merge_fill_value"],
-                                                pad_fill_value=metadata["pad_fill_value"], data_path=config["paths"]["data"])
+            for sta in stations:
+                with st.spinner(f"Calculating test features for station {sta}..."):
+                    nocs_path = st.session_state.config["paths"]["nocs"]
+                    noc = NOC.load(os.path.join(nocs_path, noc_name))
+                    metadata = noc.metadata
+                    features_test = calculate_fft_rt(starttime_test, endtime_test, network=network, stations=sta, 
+                                                    channels=channels, window_length=metadata["window_size"],
+                                                    window_shift=metadata["window_shift"], detrend=metadata["detrend"],
+                                                    windowing=metadata["windowing"], n_bins=metadata["fft_points"], 
+                                                    merge_method=metadata["merge_method"], merge_fill_value=metadata["merge_fill_value"],
+                                                    pad_fill_value=metadata["pad_fill_value"], data_path=config["paths"]["data"])
+                    # Save features files
+                    features_test['config'] = json.dumps(config_temp)
+                    file_name = sta + '_' + starttime_test.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime_test.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
+                    mat_path = os.path.join(config["paths"]["features"], file_name).replace('\\', '/')
+                    savemat(mat_path, features_test)
 
             with st.spinner("Perfoming MSPC..."):
                 noc_path = os.path.join(config["paths"]["nocs"], noc_name)
-                mspc_rt.mspc([noc_path], features_test["spectrogram_unfold"], starttime_test, endtime_test, window_size=metadata["window_size"],
-                            window_shift=metadata["window_shift"], missing_rates=features_test["missing_rates"],
-                            plot=False, update_log=False, nocs_path=config["paths"]["nocs"], verbose=False)
-            
-            st.session_state.tscore_kwargs = {'noc_name':noc_name, 'starttime':starttime_test.replace(tzinfo=timezone.utc), 
-                                                'endtime': endtime_test.replace(tzinfo=timezone.utc), 'T_weight':weight, 'logscale':logscale,
-                                                'n_consecutive':n_consecutive, 'nocs_path':nocs_path}
-            st.session_state.tscore_plot = True
+                del add_match["start_time"], add_match["end_time"], add_match["fft_points"]
+                features = find_features(config["paths"]["features"], stations, 
+                                         starttime_test.replace(tzinfo=timezone.utc), endtime_test.replace(tzinfo=timezone.utc), 
+                                         feature_types=["spectrogram_unfold"], additional_matches=add_match, max_missing_rate=1, verbose=True)
+        
+                if features:
+                    # Perform MSPC for all NOCs associated with the station
+                    test_data = features["spectrogram_unfold"]
+                    mspc_rt.mspc([noc_path], features["spectrogram_unfold"], starttime_test, endtime_test, window_size=metadata["window_size"],
+                                window_shift=metadata["window_shift"], missing_rates=features["missing_rates"],
+                                plot=False, update_log=False, nocs_path=config["paths"]["nocs"], verbose=False)
+                    
+                    st.session_state.tscore_kwargs = {'noc_name':noc_name, 'starttime':starttime_test.replace(tzinfo=timezone.utc), 
+                                                        'endtime': endtime_test.replace(tzinfo=timezone.utc), 'T_weight':weight, 'logscale':logscale,
+                                                        'n_consecutive':n_consecutive, 'nocs_path':nocs_path}
+                    st.session_state.tscore_plot = True
+                else:
+                    st.error("Test features not found.")
 
     if 'tscore_plot' in st.session_state and st.session_state.tscore_plot:
         with st.spinner("Plotting results..."):

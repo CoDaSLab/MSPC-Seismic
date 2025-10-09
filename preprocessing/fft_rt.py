@@ -305,6 +305,8 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
                     if 'config' in feat.keys():
                         config = json.loads(feat["config"])
                         if additional_matches[key] != config["features"][key]:
+                            if verbose:
+                                print(f"        Parameter {key} should be {additional_matches[key]}, but is {config["features"][key]}.")
                             match = False
             if match:                
                 for key in feature_types:

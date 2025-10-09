@@ -1,4 +1,9 @@
 import pandas as pd
+from config.init import init_session_state
+import streamlit as st
+
+init_session_state()
+config = st.session_state.config
 
 def load_data(filepath, sep=',', header='infer'):
     return pd.read_csv(filepath,sep=sep, header=header)
@@ -29,22 +34,21 @@ def load_files(filepath="data/involcan/metadata/available_files.csv"):
     files = pd.read_csv(filepath)
     return files
 
-def load_last_pulls(filepath="data/involcan/metadata/latest_pulls.csv"):
-    last_pulls = pd.read_csv(filepath)
-    last_pulls["latest_pull_time"] = pd.to_datetime(last_pulls["latest_pull_time"], utc=True)
+def load_last_pulls(filepath=config["paths"]["latest_pulls_log"]):
+    try:
+        last_pulls = pd.read_csv(filepath)
+        last_pulls["latest_pull_time"] = pd.to_datetime(last_pulls["latest_pull_time"], utc=True)
+    except FileNotFoundError:
+        st.error("No downloaded data from any station.")
+        return
     return last_pulls
 
-def load_json(filepath="config.json"):
-    import json
-    with open(filepath, 'r') as f:
-        config = json.load(f)
-    return config
 
 import streamlit as st
 import obspy
 from obspy.core import UTCDateTime
 @st.cache_data
-def read_streams(stations, starttime, endtime, channels=None, data_path = "data/involcan/mseed/"):
+def read_streams(stations, starttime, endtime, channels=None, data_path = config["paths"]["data"]):
     # Manage string inputs
     if isinstance(stations, str):
         stations = [stations]
@@ -68,7 +72,7 @@ def read_streams(stations, starttime, endtime, channels=None, data_path = "data/
         ST.append(stream)
     return ST
 
-def read_noc(noc_name, nocs_path = "data/involcan/nocs/"):
+def read_noc(noc_name, nocs_path = config["paths"]["nocs"]):
     from monitoring.NOC import NOC
     import os
     

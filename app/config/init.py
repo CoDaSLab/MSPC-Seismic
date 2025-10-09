@@ -1,6 +1,5 @@
 import streamlit as st
 from config.interface import header, logo
-from utils.functions import load_json
 from datetime import datetime, time, timezone, timedelta
 
 def init_app():
@@ -49,7 +48,7 @@ def init_session_state():
 
     config_path = "config.json"
     if 'config_path' not in st.session_state: st.session_state.config_path = config_path
-    config = load_json(config_path)
+    config = load_config(config_path)
     if 'config' not in st.session_state: st.session_state.config = config
 
     if 'station' not in st.session_state: st.session_state.station = st.session_state.config["data"]["stations"][0]
@@ -61,3 +60,10 @@ def init_session_state():
     if 'end_time' not in st.session_state: st.session_state.end_time = time(0,0,0)
 
     if 'now' not in st.session_state: st.session_state.now = datetime.now(timezone.utc)
+
+
+def load_config(filepath="config.json"):
+    import json
+    with open(filepath, 'r') as f:
+        config = json.load(f)
+    return config

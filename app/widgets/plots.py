@@ -72,8 +72,8 @@ def plot_spectrogram(stations, starttime, endtime,
     stations.sort()
 
 
-    from utils.functions import load_json
-    config = load_json(config_path)
+    from config.init import load_config
+    config = load_config(config_path)
     window_length = config["features"]["window_size"]
     shift = config["features"]["window_shift"]
     window = config["features"]["windowing"]
