@@ -96,7 +96,7 @@ def real_time_visualization(config, nocs, key):
                             endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                         except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                         with st.spinner("Calculating oMEDA..."):
-                            omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(starttime, endtime, nocs_path)
+                            omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(starttime, endtime)
                             fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
 
                         st.plotly_chart(fig, use_container_width=True)

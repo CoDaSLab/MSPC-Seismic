@@ -156,6 +156,51 @@ class NOC:
 
         self.time_range = [starttime, endtime]
     
+    def preprocess(self):
+        """
+        Apply preprocessing to training data.
+        """
+        # Obtain training data
+        if isinstance(self.features, np.ndarray) and self.features.size > 0:
+            X = self.features
+        else:
+            X = self.load_features()
+        
+        # Calculate mean and standard deviation
+        if not hasattr(self, "mean"):
+            self.mean = np.mean(X, axis=0)
+        if not hasattr(self, "std"):
+            self.std = np.std(self.features, axis=0, ddof=1)
+
+        if self.preprocessing == 1:
+            # Mean-centering
+            X_norm = X - self.mean
+        elif self.preprocessing == 2:
+            # Autoscaling
+            X_norm = (X - self.mean) / self.std
+        elif self.preprocessing == 3:
+            # Block-scaling
+            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
+            n_stations = 1 if isinstance(self.station, str) else len(self.station)
+            self.n_blocks = n_channels * n_stations
+            X_norm, self.sqrt_sumsq = block_scaling(X, self.n_blocks)
+
+        return X_norm
+    
+    def preprocess_test(self, test):
+        """
+        Apply preprocessing to test data.
+        """
+        if self.preprocessing == 1:
+            X_test_norm = test - self.mean
+        elif self.preprocessing == 2:
+            X_test_norm = (test - self.mean) / self.std
+        elif self.preprocessing == 3:
+            vars_per_block = test.shape[1] // self.n_blocks
+            reshaped = test.reshape(test.shape[0], self.n_blocks, vars_per_block)
+            X_test_norm = (reshaped / self.sqrt_sumsq[None, :, None]).reshape(test.shape)
+
+        return X_test_norm
     
     def calculate_n_components(self, max_components=None, method='var', plot=False, ax=None):
         """
@@ -165,18 +210,7 @@ class NOC:
         from kneefinder import KneeFinder
         from mspc_pca.ckf import ckf
         
-        if self.preprocessing == 2:
-            scaler = StandardScaler(with_std=True)
-            X = scaler.fit_transform(self.features)
-        elif self.preprocessing == 1:
-            scaler = StandardScaler(with_std=False)
-            X = scaler.fit_transform(self.features)
-        elif self.preprocessing == 3:
-            # Block-scaling
-            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
-            n_stations = 1 if isinstance(self.station, str) else len(self.station)
-            n_blocks = self.features_shape[1] // (n_channels * n_stations)
-            X, _ = block_scaling(self.features, n_blocks)
+        X = self.preprocess()
 
         pca = PCA(n_components=max_components)
         X_fit = pca.fit_transform(X)
@@ -220,18 +254,7 @@ class NOC:
             return
         
         # Preprocessing
-        self.mean = np.mean(self.features, axis=0)
-        self.std = np.std(self.features, axis=0, ddof=1) # Bessel's correction, shouldn't affect results but is mathematically correct
-        if self.preprocessing == 1:
-            X_norm = self.features - self.mean
-        elif self.preprocessing == 2:
-            X_norm = (self.features - self.mean) / self.std
-        elif self.preprocessing == 3:
-            # Block-scaling
-            n_channels = 1 if isinstance(self.channels, str) else len(self.channels)
-            n_stations = 1 if isinstance(self.station, str) else len(self.station)
-            self.n_blocks = n_channels * n_stations
-            X_norm, self.sqrt_sumsq = block_scaling(self.features, self.n_blocks)
+        X_norm = self.preprocess()
 
         # PCA
         pca = PCA(n_components=self.n_components)
@@ -285,6 +308,7 @@ class NOC:
         T = mspc.tscore((self.D, self.Q), weight=weight, norm_quantile=norm_quantile)
         return T
 
+
     def calculate_DQ_test(self, test, test_labels, missing_rates=None, store_dq=False):
         """
         Computes the D and Q-statistic for test data using NOC features as training.
@@ -313,14 +337,7 @@ class NOC:
             missing_rates = [0.0] * len(test_labels)
 
         # Preprocessing
-        if self.preprocessing == 1:
-            X_test_norm = test - self.mean
-        elif self.preprocessing == 2:
-            X_test_norm = (test - self.mean) / self.std
-        elif self.preprocessing == 3:
-            vars_per_block = test.shape[1] // self.n_blocks
-            reshaped = test.reshape(test.shape[0], self.n_blocks, vars_per_block)
-            X_test_norm = (reshaped / self.sqrt_sumsq[None, :, None]).reshape(test.shape)
+        X_test_norm = self.preprocess_test(test)
         
         scores_test = self.pca.transform(X_test_norm)
         
@@ -1002,13 +1019,9 @@ class NOC:
                 writer.writeheader()
                 writer.writerows(rows_kept)
 
-    def omeda(self, starttime:datetime, endtime:datetime, nocs_path:str=config["paths"]["nocs"], 
-              features_path:str=config["paths"]["features"], preprocessing=3):
+    def omeda(self, starttime:datetime, endtime:datetime, features_path:str=config["paths"]["features"]):
 
         from preprocessing.fft_rt import find_features
-
-        if preprocessing is None:
-            preprocessing = self.preprocessing
 
         metadata = self.metadata
         del metadata["start_time"]
@@ -1018,36 +1031,24 @@ class NOC:
         del metadata["fft_points"]
         features_dic = find_features(features_path, self.station, starttime, endtime, ["spectrogram_unfold"], 
                                      max_missing_rate=config["monitoring"]["max_missing_rate"], additional_matches=metadata)
+        
+        features_noc = self.preprocess()
+        features_test = self.preprocess_test(features_dic["spectrogram_unfold"])
 
-        features_noc = self.load_features(nocs_path)
-        features_test = features_dic["spectrogram_unfold"]
-
-        test = np.vstack((features_noc, features_test))
-        dummy = np.ones(len(features_noc)+len(features_test))
+        features_all = np.vstack((features_noc, features_test))
+        dummy = np.ones(len(features_noc) + len(features_test))
         dummy[0:len(features_noc)-1] = -1
 
+        # Calculate oMEDA
         from mspc_pca.omeda import omeda
-        from sklearn.decomposition import PCA
-        from sklearn.preprocessing import StandardScaler
-
-        if preprocessing == 2: #autoscaling
-            scaler = StandardScaler(with_std = True)
-            test = scaler.fit_transform(test)
-        elif preprocessing == 1: # mean-centering
-            scaler = StandardScaler(with_std = False) 
-            test = scaler.fit_transform(test)
-        elif preprocessing == 3: # Block-scaling
-            test, _ = block_scaling(test, self.n_blocks)
         
-        model = PCA(n_components = 1)
-        pca = model.fit(test)
-        loadings = pca.components_.T
-
-        omeda_vec = omeda(test, dummy, loadings, plot=False)
+        loadings = self.pca.components_.T
+        omeda_vec = omeda(features_all, dummy, loadings, plot=False)
 
         freqs_label = features_dic["freqs_label"]
-        channel_class = features_dic["channel_class"] 
-        stations_class = features_dic["station_class"] 
+        channel_class = features_dic["channel_class"]
+        stations_class = features_dic["station_class"]
+
         return omeda_vec, freqs_label, channel_class, stations_class
 
 

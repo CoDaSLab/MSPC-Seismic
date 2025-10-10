@@ -127,7 +127,7 @@ with COL[1]:
                 # st.success(f"An existing trained model ({noc_name}) for this period will be used.")
             else:
                 # st.warning(f"No trained model for this period was found. A new one will be created.")
-                noc_name = "-".join(stations) + '_e_' + endtime_test.strftime("%Y-%m-%d")
+                noc_name = "-".join(stations) + '_e_' + endtime_train.strftime("%Y-%m-%d")
                 indiv_noc_names = []
                 for sta in stations:
                     indiv_noc_name = sta + '_e_' + endtime_test.strftime("%Y-%m-%d")
@@ -149,11 +149,12 @@ with COL[1]:
                     indiv_noc_names.append(indiv_noc_name)
                 
                 if len(stations) > 1:
-                    # Create combined NOC
-                    noc = fuse_nocs(indiv_noc_names, new_type='exploratory', n_components=config["features"]["noc_params"]["n_components"])
-                    noc.set_metadata(starttime_train, endtime_train, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
-                                        merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
-                    noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))
+                    with st.spinner("Training model for all stations..."):
+                        # Create combined NOC
+                        noc = fuse_nocs(indiv_noc_names, new_type='exploratory', n_components=config["features"]["noc_params"]["n_components"])
+                        noc.set_metadata(starttime_train, endtime_train, window, shift, detrend, windowing, fft_points, merge_method=config["features"]["merge_method"],
+                                            merge_fill_value=config["features"]["merge_fill_value"], pad_fill_value=config["features"]["pad_fill_value"])
+                        noc.save(os.path.join(config["paths"]["nocs"], noc_name).replace('\\', '/'))
 
             for sta in stations:
                 with st.spinner(f"Calculating test features for station {sta}..."):
@@ -215,7 +216,7 @@ with COL[1]:
                     endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                 except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                 with st.spinner("Calculating oMEDA..."):
-                    omeda_vec, freqs_label, channel_class, stations_class = noc.omeda(starttime, endtime, nocs_path)
+                    omeda_vec, freqs_label, channel_class, stations_class = noc.omeda(starttime, endtime)
                     fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
 
                 st.plotly_chart(fig, key=key + 'omeda', use_container_width=True)
