@@ -13,6 +13,11 @@ source ${REPO_DIR}/installation/miniconda3/bin/activate lafragua
 # -- PULL THE DATA FROM THE SERVER --
 LOG_FILE="${REPO_DIR}/monitoring/logs/pull.log"
 ERROR_FILE="${REPO_DIR}/monitoring/logs/pull_error.log"
+
+# Create directories and logs if they do not exist
+mkdir -p "$(dirname "$LOG_FILE")"
+touch "$LOG_FILE" "$ERROR_FILE"
+
 # Read configuration file
 auto_monitoring=$(jq -r '.monitoring.auto_monitoring' "$CONFIG_FILE")
 server_ip=$(jq -r '.connection.server_IP' "$CONFIG_FILE")
@@ -57,6 +62,10 @@ if [ "$auto_monitoring" = "true" ]; then
 
     LOG_FILE="${REPO_DIR}/monitoring/logs/monitoring.log"
     ERROR_FILE="${REPO_DIR}/monitoring/logs/monitoring_error.log"
+
+    # Create directories and logs if they do not exist
+    mkdir -p "$(dirname "$LOG_FILE")"
+    touch "$LOG_FILE" "$ERROR_FILE"
 
     # Check if script is already running
     if [ "$(jq -r '.metadata.running' "$CONFIG_FILE")" = "true" ]; then

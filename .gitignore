@@ -35,7 +35,7 @@ backups
 /monitoring/logs/
 
 # ignore user-specific configuration
-/monitoring/config.json
+config.json
 
 # ignore conda enviroment
 installation/**/
@@ -43,5 +43,3 @@ installation/**/
 !installation/guide_img/
 .vscode
 # !.gitignore
-
-config.json
