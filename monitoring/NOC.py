@@ -74,6 +74,7 @@ class NOC:
 
         # Initialization
         self.name = name
+        self.constituents = [self.name]
         self.network = network
         self.station = station
         self.channels = channels
@@ -1129,8 +1130,8 @@ def compare_nocs(noc1:NOC, noc2:NOC, nocs_path=config["paths"]["nocs"], preproce
     return omeda_vec, fig, ax
 
 
-def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs_path=config["paths"]["nocs"], 
-              log_path=config["paths"]["noc_log"], verbose=False):
+def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=config["features"]["noc_params"]["n_components"], 
+              nocs_path=config["paths"]["nocs"], log_path=config["paths"]["noc_log"], verbose=False):
     """
     Combine the features of different NOCs along the columns and creates a new NOC. 
 
@@ -1152,6 +1153,7 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     noc_names = sorted(noc_names)
     feat_all = []
     stations = []
+    final_names = []
     for i, name in enumerate(noc_names):
         # Load NOC and features
         filepath = os.path.join(nocs_path, name)
@@ -1188,6 +1190,7 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
         if match:
             feat_all.append(feat)
             stations.append(noc.station)
+            final_names.append(name)
     
     if len(feat_all) < 2:
         raise Exception("No NOCs to fuse")
@@ -1201,6 +1204,7 @@ def fuse_nocs(noc_names, new_name=None, new_type='dynamic', n_components=1, nocs
     new_path = os.path.join(nocs_path, new_name)
     new_noc.metadata = ref_param
     new_noc.time_range = time_range
+    new_noc.constituents = final_names
     new_noc.save(new_path)
 
     print(f"NOCs for stations {stations} fused.")

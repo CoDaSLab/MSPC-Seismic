@@ -69,8 +69,8 @@ def real_time_visualization(config, nocs, key):
                     while graph_attempt < 3:
                         try:
                             selected_points = plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
-                                n_consecutive=n_consecutive_rt, nocs_path=config["paths"]["nocs"])
-                            other.noc_summary(noc[0], config["paths"]["nocs"])
+                                n_consecutive=n_consecutive_rt)
+                            other.noc_summary(noc[0])
                             break
                         except pickle.UnpicklingError:
                             time.sleep(5)

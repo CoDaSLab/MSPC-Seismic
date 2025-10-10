@@ -1,7 +1,11 @@
 import streamlit as st
 from widgets import plots
+from config.init import init_session_state
+init_session_state()
 
-def noc_summary(noc_name, nocs_path="data/involcan/nocs"):
+config = st.session_state.config
+
+def noc_summary(noc_name, nocs_path=config["paths"]["nocs"]):
     """
     Displays a NOC's relevant attributes.
     """

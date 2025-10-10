@@ -3,7 +3,8 @@ from datetime import datetime, timedelta, timezone
 from config.init import init_session_state
 
 init_session_state()
-update_freq = st.session_state.config["monitoring"]["update_frequency"]
+config = st.session_state.config
+update_freq = config["monitoring"]["update_frequency"]
 rt_plots_cache_time = 0.8 * timedelta(minutes = update_freq)
 
 def set_yaxis(key):
@@ -221,9 +222,9 @@ def plot_tscore(
     T_threshold_quantile=None,
     logscale=False,
     plot_train=False,
-    criterion="consecutive",
-    n_consecutive=3,
-    nocs_path="data/involcan/nocs",
+    criterion=config["monitoring"]["criteria"]["type"],
+    n_consecutive=config["monitoring"]["criteria"]["amount"],
+    nocs_path=config["paths"]["nocs"],
     key=None,
 ):
     from monitoring.mspc_rt import plot_anomalies_T
@@ -281,9 +282,9 @@ def plot_tscore_rt(
     T_threshold_quantile=None,
     logscale=False,
     plot_train=False,
-    criterion="consecutive",
-    n_consecutive=3,
-    nocs_path="data/involcan/nocs",
+    criterion=config["monitoring"]["criteria"]["type"],
+    n_consecutive=config["monitoring"]["criteria"]["amount"],
+    nocs_path=config["paths"]["nocs"],
 ):
     from monitoring.mspc_rt import plot_anomalies_T
     from monitoring.NOC import NOC
