@@ -7,6 +7,7 @@ from monitoring import utils
 from datetime import datetime, timezone, timedelta
 import pickle
 import time
+import numpy as np
 
 from mspc_pca.omeda import omeda
 
@@ -81,23 +82,40 @@ def real_time_visualization(config, nocs, key):
             try:
                 with col2:
                     if selected_points["selection"]["points"]:
-                        exploration_on = True
                         st.subheader("oMEDA")
                         from monitoring.NOC import NOC
                         nocs_path = config["paths"]["nocs"]
                         omeda_noc = NOC.load(f"{nocs_path}/{noc[0]}")
-                        omeda_stations = omeda_noc.station
-                        starttime = selected_points["selection"]["points"][0]["x"]
-                        endtime = selected_points["selection"]["points"][-1]["x"]
-                        try:
-                            starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
-                        except: starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
-                        try:
-                            endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
-                        except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
-                        with st.spinner("Calculating oMEDA..."):
-                            omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(starttime, endtime)
-                            fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
+
+                        n_components = None
+
+                        omeda_options =  ["PCA model", "Residuals", "All"]
+                        omeda_opt = st.segmented_control("Compare data by:", omeda_options, selection_mode='single', 
+                                                            default = omeda_options[1], key = key + 'component_omeda')
+
+                        if omeda_opt == omeda_options[0]:
+                            n_components = omeda_noc.n_components
+                        elif omeda_opt == omeda_options[1]:
+                            n_components = np.arange(omeda_noc.n_components + 1, omeda_noc.features_shape[1] + 1)
+                        elif omeda_opt == omeda_options[2]:
+                            n_components = omeda_noc.features_shape[1]
+                        else:
+                            st.error("Please select an option.")
+                        
+                        if n_components is not None:
+                            exploration_on = True
+                            omeda_stations = omeda_noc.station
+                            starttime = selected_points["selection"]["points"][0]["x"]
+                            endtime = selected_points["selection"]["points"][-1]["x"]
+                            try:
+                                starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                            except: starttime = datetime.strptime(starttime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
+                            try:
+                                endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
+                            except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
+                            with st.spinner("Calculating oMEDA..."):
+                                omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(starttime, endtime, n_components)
+                                fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
 
                         st.plotly_chart(fig, use_container_width=True)
             except Exception as e: 

@@ -20,6 +20,7 @@ from scipy.io import savemat
 import csv
 from datetime import datetime, timezone
 import pickle
+from mspc_pca.omeda import omeda
 
 CONFIG_PATH = 'config.json'
 
@@ -1020,16 +1021,50 @@ class NOC:
                 writer.writeheader()
                 writer.writerows(rows_kept)
 
-    def omeda(self, starttime:datetime, endtime:datetime, features_path:str=config["paths"]["features"]):
+    def omeda(self, starttime:datetime, endtime:datetime, components:int=None, features_path:str=config["paths"]["features"]):
+        """
+        Computes the oMEDA (observation-based Multivariate Exploratory Data Analysis) vector 
+        to compare two sets of observations.
+
+        The method loads spectral features within a given time range, preprocesses 
+        them and applies oMEDA to identify which variables contribute most to deviations from 
+        training features.
+
+        Parameters
+        ----------
+        starttime : datetime
+            Start time of the analysis interval.
+        endtime : datetime
+            End time of the analysis interval.
+        components : int, list or None, optional
+            PCA components to use. If None, all trained components are used. If int, all components up until `components` are used. 
+            If list, only the ones on the list are used (e.g., [1, 3] for components 1 and 3)
+        features_path : str, optional
+            Path to the directory containing the spectral features files.
+
+        Returns
+        -------
+        omeda_vec : np.ndarray
+            oMEDA vector.
+        freqs_label : list
+            Frequency labels of the spectrogram features.
+        channel_class : list
+            Channel class labels.
+        stations_class : list
+            Station class labels.
+        """
 
         from preprocessing.fft_rt import find_features
 
+        # Obtain NOC metadata
         metadata = self.metadata
         del metadata["start_time"]
         del metadata["end_time"]
         metadata["stft_params"] = {}
         metadata["stft_params"]["fft_points"] = metadata["fft_points"]
         del metadata["fft_points"]
+
+        # Load and preprocess features
         features_dic = find_features(features_path, self.station, starttime, endtime, ["spectrogram_unfold"], 
                                      max_missing_rate=config["monitoring"]["max_missing_rate"], additional_matches=metadata)
         
@@ -1040,10 +1075,24 @@ class NOC:
         dummy = np.ones(len(features_noc) + len(features_test))
         dummy[0:len(features_noc)-1] = -1
 
+        # Get loadings      
+        if components is None:
+            loadings = self.pca.components_.T
+        else:
+            n_components = np.max(components) 
+            if n_components <= self.n_components:
+                if isinstance(components, int):
+                    loadings = self.pca.components_.T[:, :components]
+                else:
+                    loadings = self.pca.components_.T[:, components - 1]
+            else:
+                pca = PCA(n_components=n_components).fit(features_noc)
+                if isinstance(components, int):
+                    loadings = pca.components_.T
+                else:
+                    loadings = pca.components_.T[:, components - 1]
+
         # Calculate oMEDA
-        from mspc_pca.omeda import omeda
-        
-        loadings = self.pca.components_.T
         omeda_vec = omeda(features_all, dummy, loadings, plot=False)
 
         freqs_label = features_dic["freqs_label"]
@@ -1058,7 +1107,6 @@ class NOC:
 
 
 # Additional functions
-from mspc_pca.omeda import omeda
 
 def compare_nocs(noc1:NOC, noc2:NOC, nocs_path=config["paths"]["nocs"], preprocessing=1, n_components=None, var_labels=None, var_classes=None, ax=None):
     """
