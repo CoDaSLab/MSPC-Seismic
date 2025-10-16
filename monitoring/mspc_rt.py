@@ -290,7 +290,7 @@ def plot_anomalies_T_matplotlib(noc:NOC, starttime, endtime, T_weight=None, T_no
     return fig, axes
 
 def plot_anomalies_T(
-    noc,
+    noc:NOC,
     starttime,
     endtime,
     T_weight=None,
@@ -332,7 +332,7 @@ def plot_anomalies_T(
     """
     import numpy as np
     import pandas as pd
-    import plotly.express as px
+    import plotly.graph_objects as go
     from datetime import datetime, timezone
 
     # === Calcular T ===
@@ -350,47 +350,66 @@ def plot_anomalies_T(
     # Filtrar rango temporal
     T_plot = [value for value, date in zip(T_test, time_labels) if starttime < date <= endtime]
     timestamps = [date for date in time_labels if starttime < date <= endtime]
+    opacity = [1 - mr for mr, date in zip(noc.test_missing_rates, time_labels) if starttime < date <= endtime]
 
     # Detectar anomalías
     anomaly_ids = get_anomalies(T_plot, T_threshold, criterion=criterion, n_consecutive=n_consecutive)
     anomaly_ids = sorted(list(anomaly_ids))
 
     # Construir DataFrame
-    df = pd.DataFrame({"timestamp": timestamps, "tscore": T_plot})
-    df["anomaly"] = df.index.isin(anomaly_ids)
+    df = pd.DataFrame({
+        "timestamp": timestamps,
+        "tscore": T_plot,
+        "anomaly": [i in anomaly_ids for i in range(len(T_plot))],
+        "opacity": opacity,
+    })
 
-    # === Gráfico con Plotly ===
-    fig_plotly = px.bar(
-        df,
-        x="timestamp",
-        y="tscore",
-        color="anomaly",
-        color_discrete_map={True: "red", False: "steelblue"},
-        title=f"{noc.name} - T-score (α={T_weight})",
+    # === Crear colores RGBA según opacidad ===
+    def rgba(color_name, alpha):
+        if color_name == "red":
+            return f"rgba(255, 0, 0, {alpha})"
+        elif color_name == "steelblue":
+            return f"rgba(70, 130, 180, {alpha})"
+        else:
+            return f"rgba(128, 128, 128, {alpha})"
+
+    df["color_rgba"] = [
+        rgba("red" if anomaly else "steelblue", alpha)
+        for anomaly, alpha in zip(df["anomaly"], df["opacity"])
+    ]
+
+    # === Crear gráfico con colores individuales ===
+    fig_plotly = go.Figure(
+        data=[
+            go.Bar(
+                x=df["timestamp"],
+                y=df["tscore"],
+                marker=dict(color=df["color_rgba"]),
+            )
+        ]
     )
 
-    # Configuración de ejes y layout
+    # Añadir línea del umbral
+    fig_plotly.add_shape(
+        type="line",
+        xref="paper",
+        x0=0,
+        x1=1,
+        yref="y",
+        y0=T_threshold,
+        y1=T_threshold,
+        line=dict(color="red", width=2, dash="dash"),
+    )
+
+    # Configuración de layout
     fig_plotly.update_layout(
+        title=f"{noc.name} - T-score (α={T_weight})",
         xaxis_title="UTC Time",
         yaxis_title="T-score",
         dragmode="select",
-        selectdirection='h',  # solo horizontal (eje X)
+        selectdirection='h',
         showlegend=False,
-        shapes=[
-            dict(
-                type="line",
-                xref="paper",
-                x0=0,
-                x1=1,
-                yref="y",
-                y0=T_threshold,
-                y1=T_threshold,
-                line=dict(color="red", width=2, dash="dash"),
-            )
-        ],
-
     )
-
 
     # Escala logarítmica si se pide
     if logscale:
@@ -398,7 +417,6 @@ def plot_anomalies_T(
 
     # Notación científica en eje Y
     fig_plotly.update_yaxes(tickformat=".1e")
-
 
     return fig_plotly
 
