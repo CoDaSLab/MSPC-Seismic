@@ -28,9 +28,10 @@
     },
     "plots": {
       "save": true,
-      "num_hours": 1.0,
-      "anomaly_criterion": "consecutive"
-    }
+      "num_hours": 1.0
+    },
+    "starttime": "auto",
+    "endtime": "auto"
   },
   "features": {
     "window_size": 5,
@@ -52,45 +53,98 @@
       "quantile_threshold": 0.99
     }
   },
+  "groups": {
+    "la_palma": {
+      "name": "La Palma",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "PML2",
+        "PPAS",
+        "PTAB",
+        "PBB2",
+        "PLPI",
+        "PSAB",
+        "PGAR",
+        "TC13",
+        "PPMA",
+        "PCOR"
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
+    },
+    "tenerife": {
+      "name": "Tenerife",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "TAFO",
+        "TFOR",
+        "TNOR",
+        "TVIL",
+        "TCHA",
+        "TNTE",
+        "TIFO",
+        "TANA",
+        "TSJR",
+        "TARO",
+        "TCHI",
+        "TSAN",
+        "TESP",
+        "TGUI",
+        "TSIS",
+        "TTEL",
+        "TPIC",
+        "TFAS",
+        "TSTE"
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
+    }
+  },
   "data": {
-    "network": "C7",
     "stations": [
-      "PSAB",
-      "PLPI",
-      "PA00",
-      "PA01",
-      "PA02",
-      "PA03",
-      "PA04",
-      "PA05",
-      "PA06",
-      "PA07",
-      "PA08",
-      "PA09",
-      "PAB",
-      "PBB2",
-      "PBBA",
-      "PCOR",
-      "PFUE",
-      "PFVI",
-      "PGAR",
+      "TAFO",
+      "TFOR",
+      "TNOR",
+      "TVIL",
+      "TCHA",
+      "TNTE",
+      "TIFO",
+      "TANA",
+      "TSJR",
+      "TARO",
+      "TCHI",
+      "TSAN",
+      "TESP",
+      "TGUI",
+      "TSIS",
+      "TTEL",
+      "TPIC",
+      "TFAS",
+      "TSTE",
       "PML2",
-      "PMLU",
-      "PMOZ",
-      "PN01",
-      "PN02",
       "PPAS",
+      "PTAB",
+      "PBB2",
+      "PLPI",
+      "PSAB",
+      "PGAR",
+      "TC13",
       "PPMA",
-      "PN04",
-      "PN03"
+      "PCOR"
     ],
     "channels": [
       "HHE",
       "HHN",
       "HHZ"
-    ],
-    "starttime": "auto",
-    "endtime": "auto"
+    ]
   },
   "metadata": {
     "running": false

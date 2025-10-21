@@ -221,7 +221,6 @@ def plot_tscore(
     T_norm_quantile=0.5,
     T_threshold_quantile=None,
     logscale=False,
-    plot_train=False,
     criterion=config["monitoring"]["criteria"]["type"],
     n_consecutive=config["monitoring"]["criteria"]["amount"],
     nocs_path=config["paths"]["nocs"],
@@ -255,10 +254,8 @@ def plot_tscore(
             T_norm_quantile,
             T_threshold_quantile,
             logscale=logscale,
-            plot_train=plot_train,
             criterion=criterion,
-            n_consecutive=n_consecutive,
-            show=False,
+            n_consecutive=n_consecutive
         )
 
         selected_points = st.plotly_chart(fig_plotly, use_container_width=True, key=key, on_select="rerun")
@@ -281,7 +278,6 @@ def plot_tscore_rt(
     T_norm_quantile=0.5,
     T_threshold_quantile=None,
     logscale=False,
-    plot_train=False,
     criterion=config["monitoring"]["criteria"]["type"],
     n_consecutive=config["monitoring"]["criteria"]["amount"],
     nocs_path=config["paths"]["nocs"],
@@ -309,10 +305,17 @@ def plot_tscore_rt(
             T_norm_quantile,
             T_threshold_quantile,
             logscale=logscale,
-            plot_train=plot_train,
             criterion=criterion,
-            n_consecutive=n_consecutive,
-            show=False,
+            n_consecutive=n_consecutive
+        )
+        
+        # Change title
+        fig_plotly.update_layout(title={
+            "text": st.session_state.group["name"] + f" — T-score (α = {T_weight})",
+            "x": 0.5,  # centered title
+            "xanchor": "center",
+            "yanchor": "top"
+            }
         )
         
         selected_points = st.plotly_chart(fig_plotly, use_container_width=True, on_select = "rerun")

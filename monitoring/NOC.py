@@ -29,7 +29,7 @@ with open(CONFIG_PATH, 'r') as f:
 
 class NOC:
     def __init__(self, name:str, features:np.ndarray, obs_labels:list = None, 
-                 network:str = config["data"]["network"], station = "", channels = "", type:str = "", preprocessing:int = 1, 
+                 network:str = "", station = "", channels = "", type:str = "", preprocessing:int = 1, 
                  n_components:int = 1, quantile_threshold:float = 0.99, 
                  csv_path:str = config["paths"]["noc_log"]):
         """

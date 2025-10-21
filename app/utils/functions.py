@@ -26,8 +26,28 @@ def load_events():
     
     return events
 
-def load_stations(filepath = "data/involcan/metadata/stations_lp.dat", column_names=["station", "lat", "lon", "height"] ):
+def load_stations(filepath = "data/involcan/metadata/stations_all.dat", column_names=["station", "lat", "lon", "height"] ):
     stations = pd.read_csv(filepath, sep=r"\s+",names=column_names)
+    return stations
+
+def get_stations(group=None):
+    """
+    Reads the configuration file and returns the list of stations for a group. If no group is given, returns all stations.
+    """
+    groups_dict = config["groups"]  # Groups of stations. Each group has a separate monitoring system
+    group_keys = list(groups_dict.keys())
+    group_names = [groups_dict[g]["name"] for g in group_keys]
+
+    if group is None:
+        stations = []
+        for g in groups_dict:
+            stations.extend(groups_dict[g]["stations"])
+    elif group in group_names:
+        idx = group_names.index(group)
+        stations = groups_dict[group_keys[idx]]["stations"]
+    else:
+        raise KeyError(f"Group {group} does not exist.")
+    
     return stations
 
 def load_files(filepath="data/involcan/metadata/available_files.csv"):

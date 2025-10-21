@@ -1,5 +1,5 @@
 from config import *
-from widgets import maps
+from widgets import maps, forms
 from utils.functions import load_last_pulls, load_stations
 
 from datetime import datetime, timezone, timedelta
@@ -9,6 +9,9 @@ import os
 # --- Application start ---
 init_page("Digivolcan Home")
 init_session_state()
+
+key = "home"
+forms.select_group(key)
 
 st.markdown("---")
 # st.markdown("<h1 style='text-align: center;'>Digivolcan Home</h1>", unsafe_allow_html=True)
@@ -62,18 +65,30 @@ def station_health_check():
 
     return
 
-def anomaly_log(head = None):
+def anomaly_log(head=None, group=st.session_state.group["name"]):
     anomaly_log_path = st.session_state.config["paths"]["anomaly_log"]
+    
     if os.path.exists(anomaly_log_path):
         anomalies = pd.read_csv(anomaly_log_path)
+        
+        # Filter by the specified group
+        if "group" in anomalies.columns:
+            anomalies = anomalies[anomalies["group"] == group]
+        else:
+            st.warning("The 'group' column was not found in the anomaly log.")
+        
+        # Reverse order of rows (most recent anomalies first)
+        anomalies = anomalies.iloc[::-1].reset_index(drop=True)
+        
+        # Show table
         if head is None:
             st.dataframe(anomalies)
         else:
             st.dataframe(anomalies.head(head))
     else:
         st.error("Anomaly log not found.")
+    
     return
-
 
 
 COL = st.columns(2)

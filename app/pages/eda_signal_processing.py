@@ -21,6 +21,7 @@ tab_names = ["SISMO Trend", "SISMO FFT"]
 tabs = st.tabs(tab_names)
 
 config = st.session_state.config
+group = st.session_state.group
 
 # ------------ SISMO Trace ------------
 with tabs[0]:
@@ -33,8 +34,8 @@ with tabs[0]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
 
-        station_list = config["data"]["stations"]
-        network = config["data"]["network"]
+        station_list = group["stations"]
+        network = group["network"]
 
         st.subheader('Data selection')
         station, channels = select_station_multi_channel(key, station_list, ['HHE', 'HHN', 'HHZ'])
@@ -87,8 +88,8 @@ with tabs[1]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
 
-        station_list = config["data"]["stations"]
-        network = config["data"]['network']
+        station_list = group["stations"]
+        network = group['network']
 
         st.subheader('Data selection')
         station, channel = select_station(key, station_list)

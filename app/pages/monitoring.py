@@ -3,6 +3,7 @@ from config.init import init_page, init_session_state
 from config.interface import header_monitoring
 
 from widgets import *
+from utils.functions import get_stations
 
 from preprocessing.fft_rt import calculate_fft_rt, find_features
 from monitoring import mspc_rt, utils
@@ -25,6 +26,12 @@ header_monitoring()
 st.subheader("On-demand visualization")
 
 config = st.session_state.config
+group = st.session_state.group
+
+key = "on_demand"
+
+if 'rt_stations' not in st.session_state:
+    st.session_state.rt_stations = group["stations"]
 
 if "default_starttime_test" not in st.session_state:
     _, st.session_state.default_endtime_test = utils.start_and_end_times(datetime.now(timezone.utc), 
@@ -37,7 +44,6 @@ if "default_starttime_test" not in st.session_state:
     st.session_state.end_time = st.session_state.default_endtime_test
 
 exploration_on = False
-key = "on_demand"
 COL = st.columns(2)
 
 with COL[0]:
@@ -46,8 +52,9 @@ with COL[0]:
 
     with st.form(key + "selector"):
         st.write("##### Select stations and channels:")
-        network = config["data"]["network"]
-        stations, channels = forms.multi_select_station(key, station_list=config["data"]["stations"])
+        network = group["network"]
+        stations, channels = forms.multi_select_station(key, station_list=get_stations(), 
+                                                        default_stations=st.session_state.rt_stations, default_channels=group["channels"])
         stations = sorted(stations)
         channels = sorted(channels)
         st.write("##### Select training time range:")
@@ -242,4 +249,4 @@ with COL[1]:
     
 # Extra visualizations
 if exploration_on:
-    other.exploration(starttime, endtime, station_list)
+    other.exploration(starttime, endtime, station_list, key=key + '_exploration')

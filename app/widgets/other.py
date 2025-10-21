@@ -65,15 +65,16 @@ def monitoring_status():
     )
 
 @st.fragment()
-def exploration(starttime, endtime, station_list):
+def exploration(starttime, endtime, station_list, key=None):
     _,_, center, _ = st.columns(4)
-    explore = center.checkbox("Explore")
+    explore = center.checkbox("Explore", key=key + '_explore')
     
     if explore:
         col1, col2 = st.columns(2)
-        stations = col1.multiselect("Choose stations", station_list)
+        stations = col1.multiselect("Choose stations", station_list, key=key + "_stations")
         visualization_options = ["Raw signal", "Spectrogram", "MSPC"]
-        visualizations = col2.multiselect("Choose visualizations", visualization_options, default = visualization_options[:-1])
+        visualizations = col2.multiselect("Choose visualizations", visualization_options, default = visualization_options[:-1],
+                                          key = key + '_viz')
 
         if len(visualizations)>0 and len(stations)>0:
             col = st.columns(len(visualizations))

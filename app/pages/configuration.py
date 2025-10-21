@@ -2,9 +2,10 @@ import streamlit as st
 from config.init import init_page, init_session_state
 
 from widgets import *
-from utils.functions import load_stations
 
 import os
+import re
+import numpy as np
 from datetime import datetime, timezone
 import json
 
@@ -19,7 +20,8 @@ config_path = st.session_state.config_path
 
 key = "config_form"
 new_config = config
-station_list = load_stations()
+station_list = config["data"]["stations"]
+channels = config["data"]["channels"]
 
 with st.form(key):
     st.subheader("Directories and log files")
@@ -34,26 +36,12 @@ with st.form(key):
         new_config["paths"]["noc_log"] = st.text_input("NOC log file", value=config["paths"]["noc_log"])
         new_config["paths"]["anomaly_log"] = st.text_input("Anomaly log file", value=config["paths"]["anomaly_log"])
     
-    st.subheader("Stations and channels")
-    new_config["data"]["network"] = st.text_input("Network", value=config["data"]["network"], disabled=False)
-    new_config["data"]["stations"], new_config["data"]["channels"] = forms.multi_select_station(key, station_list, default_stations=config["data"]["stations"], 
-                                                                              default_channels=config["data"]["channels"])
-    
-    st.subheader("Connection")
-    new_config["connection"]["ssh_key_path"] = st.text_input("Path to the SSH key", value=config["connection"]["ssh_key_path"])
-    col1, col2 = st.columns(2)
-    with col1:
-        new_config["connection"]["server_IP"] = st.text_input("Remote server IP address", value=config["connection"]["server_IP"], 
-                                                              help="IP address of the server where seismic data are located.")
-    with col2:
-        new_config["connection"]["server_user"] = st.text_input("Remote server username", value=config["connection"]["server_user"])
-    
     st.subheader("Real-time monitoring")
     col1, col2 = st.columns(2)
     with col1:
         col = st.columns(2)
         with col[0]:
-            new_config["monitoring"]["auto_monitoring"] = st.checkbox("Enable real-time monitoring", value=config["monitoring"]["auto_monitoring"])
+            new_config["monitoring"]["auto_monitoring"] = st.toggle("Enable real-time monitoring", value=config["monitoring"]["auto_monitoring"])
         with col[1]:
             other.monitoring_status()        
         new_config["monitoring"]["update_frequency"] = st.number_input("Update frequency (in minutes)", value=config["monitoring"]["update_frequency"], min_value=0)
@@ -70,6 +58,50 @@ with st.form(key):
         new_config["monitoring"]["plots"]["num_hours"] = st.number_input("Time range of the saved plots (in hours)", value=float(config["monitoring"]["plots"]["num_hours"]), min_value=0.0, step=1.0)
         new_config["monitoring"]["num_days_noc_update_frequency"] = st.number_input("NOC update frequency (in days)", value=float(config["monitoring"]["num_days_noc_update_frequency"]), min_value=0.0, step=1.0)
         new_config["monitoring"]["num_days_noc_length"] = st.number_input("Time range of NOC data (in days)", value=float(config["monitoring"]["num_days_noc_length"]), min_value=0.0, step=1.0)
+
+
+    st.subheader("Stations and channels")
+    n_stations = []
+    n_channels = []
+    group_keys = list(config["groups"].keys())
+    for group in group_keys:
+        gkey = key + '_' + group
+        gname = config["groups"][group]["name"]
+        col1, col2 = st.columns(2)
+        with col1:
+            st.write(f"##### {gname}:")
+            new_config["groups"][group]["name"] = st.text_input("Group name", value=config["groups"][group]["name"], key=gkey + '_name')
+        with col2:
+            new_config["groups"][group]["active"] = st.toggle("Real-time monitoring", value=config["groups"][group]["active"], key = gkey + '_active',
+                                                           help=f"Choose whether or not group {gname} is monitored in real time.")
+            new_config["groups"][group]["network"] = st.text_input("Network", value=config["groups"][group]["network"], disabled=False, key=gkey + '_network')
+        new_config["groups"][group]["stations"], new_config["groups"][group]["channels"] = forms.multi_select_station(gkey, station_list, 
+                                                                                                default_stations=config["groups"][group]["stations"], 
+                                                                                                default_channels=config["groups"][group]["channels"])
+
+        delete_group = st.checkbox("Delete this group? (This action cannot be undone.)", value=False, key=gkey + '_delete')
+
+        if delete_group:
+            del new_config["groups"][group]
+        else:
+            n_stations.append(len(new_config["groups"][group]["stations"]))
+            n_channels.append(len(new_config["groups"][group]["channels"]))
+
+            # Change group key according to new name
+            new_key = new_config["groups"][group]["name"].lower()
+            new_key = re.sub(r'[^a-z0-9 ]', '', new_key)
+            new_key = re.sub(r'\s+', '_', new_key.strip())
+            new_config["groups"][new_key] = new_config["groups"].pop(group)
+
+
+    st.subheader("Connection")
+    new_config["connection"]["ssh_key_path"] = st.text_input("Path to the SSH key", value=config["connection"]["ssh_key_path"])
+    col1, col2 = st.columns(2)
+    with col1:
+        new_config["connection"]["server_IP"] = st.text_input("Remote server IP address", value=config["connection"]["server_IP"], 
+                                                              help="IP address of the server where seismic data are located.")
+    with col2:
+        new_config["connection"]["server_user"] = st.text_input("Remote server username", value=config["connection"]["server_user"])
 
     
     st.subheader("Feature extraction parameters")
@@ -105,10 +137,16 @@ with st.form(key):
     
     submitted = st.form_submit_button("Save configuration", type="primary", use_container_width=True)
     if submitted:
-        if len(new_config["data"]["stations"]) < 1:
-            st.error("Select at least one station.")
-        elif len(new_config["data"]["channels"]) < 1:
-            st.error("Select at least one channel.")
+        if any(np.array(n_stations) == 0):
+            idx0 = n_stations.index(0)
+            g = list(new_config["groups"].keys())[idx0]
+            gname = config["groups"][g]["name"]
+            st.error(f"Select at least one station for group {gname}.")
+        elif any(np.array(n_channels) == 0):
+            idx0 = n_channels.index(0)
+            g = list(new_config["groups"].keys())[idx0]
+            gname = config["groups"][g]["name"]
+            st.error(f"Select at least one channel for group {gname}.")
         else:
             with st.spinner("Saving configuration..."):
                 # Save backup
@@ -127,5 +165,57 @@ with st.form(key):
                 st.warning("Real-time monitoring is disabled.", icon="⚠️")
             st.success("Configuration saved successfully.", icon = "✔️")
 
-st.header("Current configuration")
-st.json(config)
+
+# Add new group
+with st.expander("Create a new group"):
+    with st.form("Select the new group's parameters"):
+        new_g = {}
+        col1, col2 = st.columns(2)
+        with col1:
+            new_g["name"] = st.text_input("Group name", value="New group")
+
+            # Generate group key
+            new_key = new_g["name"].lower()
+            new_key = re.sub(r'[^a-z0-9 ]', '', new_key)
+            group = re.sub(r'\s+', '_', new_key.strip())
+            gkey = group
+
+            new_g["active"] = st.toggle("Real-time monitoring", value=True, key = gkey + '_active',
+                                        help=f"Choose whether or not group {new_g["name"]} is monitored in real time.")
+        with col2:
+            new_g["network"] = st.text_input("Network", value=st.session_state.group["network"], 
+                                            disabled=False, key=gkey + '_network')
+        new_g["stations"], new_g["channels"] = forms.multi_select_station(gkey, station_list, 
+                                                                        default_stations=st.session_state.group["stations"], 
+                                                                        default_channels=st.session_state.group["channels"])
+
+        n_stations.append(len(new_g["stations"]))
+        n_channels.append(len(new_g["channels"]))
+
+        created_group = st.form_submit_button("Create group", type="primary", use_container_width=True)
+
+        if created_group:
+            if len(new_g["stations"]) == 0:
+                st.error(f"Select at least one station for the new group.")
+            elif len(new_g["channels"]) == 0:
+                st.error(f"Select at least one channel for the new group.")
+            else:
+                new_config_g = config
+                new_config_g["groups"][group] = new_g
+                with st.spinner("Saving configuration..."):
+                    # Save backup
+                    backup_folder = os.path.join(os.path.dirname(config_path), "backups/config/")
+                    new_config_g["metadata"]["running"] = False
+                    new_config_g["metadata"]["creation_date"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    os.makedirs(backup_folder, exist_ok=True)
+                    with open(backup_folder + "config_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".json", "w") as f:
+                        json.dump(config, f, indent=4)
+
+                    # Save new configuration file
+                    with open(config_path, "w") as f:
+                        json.dump(new_config_g, f, indent=4)
+                st.session_state.config = new_config_g
+                st.success("New group created successfully. Configuration updated.", icon = "✔️")
+
+# st.header("Current configuration")
+# st.json(config)

@@ -5,6 +5,7 @@ import ast
 import csv
 import numpy as np
 from datetime import datetime, timedelta, timezone
+from collections import defaultdict
 
 from preprocessing.fft_rt import calculate_fft_rt, find_features
 from monitoring.NOC import NOC
@@ -64,13 +65,14 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
         
     Returns
     -------
-        list: List of available station names.
+        list: List of available stations, in the form of (network, station, channels) tuples.
     """
     if not isinstance(tolerance, timedelta):
         tolerance = timedelta(minutes=tolerance)
 
     stations = set()
     not_avail_stations = set()
+    channels_dict = defaultdict(set)
     now = datetime.now(timezone.utc)
 
     with open(csv_path, 'r') as csvfile:
@@ -82,16 +84,21 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
             except ValueError:
                 continue
             
-            stations.add(row['station'])
+            stations.add((row["network"], row['station']))
 
             # Check availability
             if now - latest_pull_time > tolerance:
-                not_avail_stations.add(row['station'])
+                not_avail_stations.add((row["network"], row['station']))
+            else:
+                channels_dict[row["station"]].add(row["channel"])
 
     avail_stations = stations - not_avail_stations
 
     if not avail_stations:
         print(f"No data for any station (tolerance: {tolerance}).")
+
+    avail_stations = sorted(avail_stations)
+    avail_stations = [t + (tuple(sorted(channels_dict[t[1]])),) for t in avail_stations]
 
     return avail_stations
 
@@ -334,7 +341,7 @@ def delete_mseeds(directory_path:str, networks:list, stations:list, channels:lis
             os.remove(filename)
 
 
-def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_params:dict=None, 
+def create_noc(network, station, channels, starttime:datetime, endtime:datetime, config:dict, noc_params:dict=None, 
                attempt_find:bool=False):
     """
     Calculates features and creates a NOC using parameters from the JSON configuration file.
@@ -344,8 +351,6 @@ def create_noc(station, starttime:datetime, endtime:datetime, config:dict, noc_p
     features_path = config["paths"]["features"]  # Path to the directory where feature files are saved.
     nocs_path = config["paths"]["nocs"]  # Path to the directory where NOC files are saved.
     noc_log_path = config["paths"]["noc_log"]  # Path to a CSV for saving NOC information
-    network = config["data"]["network"]  # Network code
-    channels = config["data"]["channels"]  # Channel codes
     window_size = config["features"]["window_size"]  # Size in seconds of the windows
     window_shift = window_size if config["features"]["window_shift"] is None else config["features"]["window_shift"]  # Time in seconds between the start times of 2 consecutive windows.
     detrend = config["features"]["detrend"]  # Detrending method. False for no detrending.

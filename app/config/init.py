@@ -35,6 +35,7 @@ def init_page(title = None, icon="🌋", layout="wide", sidebar="collapsed"):
     )
     logo()
     header()
+    # st.session_state.group_selector = st.session_state.group_selector
     return
 
 
@@ -46,14 +47,21 @@ def init_session_state():
     if 'starttime' not in st.session_state: st.session_state.starttime = None
     if 'endtime' not in st.session_state: st.session_state.endtime = None
 
+    # Load config into session state
     config_path = "config.json"
     if 'config_path' not in st.session_state: st.session_state.config_path = config_path
     config = load_config(config_path)
     if 'config' not in st.session_state: st.session_state.config = config
 
-    if 'station' not in st.session_state: st.session_state.station = st.session_state.config["data"]["stations"][0]
-    if 'channel' not in st.session_state: st.session_state.channel = st.session_state.config["data"]["channels"][0]
+    # Load a group with an active monitoring system into session state
+    group_keys = list(config["groups"].keys())
+    active_group_keys = [group_keys[i] for i, g in enumerate(group_keys) if config["groups"][g]["active"]]
+    if 'group' not in st.session_state: st.session_state.group = config["groups"][active_group_keys[0]]
 
+    if 'station' not in st.session_state: st.session_state.station = st.session_state.group["stations"][0]
+    if 'channel' not in st.session_state: st.session_state.channel = st.session_state.group["channels"][0]
+
+    # Default start and end times
     if 'start_date' not in st.session_state: st.session_state.start_date = datetime.now(timezone.utc)-timedelta(days=1)
     if 'start_time' not in st.session_state: st.session_state.start_time = time(0,0,0)
     if 'end_date' not in st.session_state: st.session_state.end_date = datetime.now(timezone.utc)

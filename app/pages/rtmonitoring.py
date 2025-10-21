@@ -1,5 +1,6 @@
 import streamlit as st
 from config.init import init_page, init_session_state
+from utils.functions import get_stations
 
 from widgets import *
 
@@ -9,18 +10,19 @@ import pickle
 import time
 import numpy as np
 
-from mspc_pca.omeda import omeda
-
 # --- Application start ---
 init_page("Real-time monitoring")
 init_session_state()
 st.title("Real-time monitoring")
 # ------------------------
+key="monitoring_rt"
+forms.select_group(key)
 
 st.subheader("Visualization")
 
 # Configuration file
 config = st.session_state.config
+group = st.session_state.group
 
 update_freq = timedelta(minutes=config["monitoring"]["update_frequency"])
 
@@ -72,6 +74,7 @@ def real_time_visualization(config, nocs, key):
                             selected_points = plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
                                 n_consecutive=n_consecutive_rt)
                             other.noc_summary(noc[0])
+                            st.session_state.rt_stations = noc[1]
                             break
                         except pickle.UnpicklingError:
                             time.sleep(5)
@@ -121,8 +124,8 @@ def real_time_visualization(config, nocs, key):
             except Exception as e: 
                 col2.error(f"Error computing oMEDA. {e}")
         
-        if exploration_on:
-            other.exploration(starttime, endtime, omeda_stations)
+            if exploration_on:
+                other.exploration(starttime, endtime, omeda_stations, key=key+f"_exploration_{group["name"]}")
 
         # if i%2==0:
         #     with col1:
@@ -163,12 +166,13 @@ def real_time_visualization(config, nocs, key):
 
 if config["monitoring"]["auto_monitoring"]:
     try:
-        avail_stations = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["monitoring"]["update_frequency"])
+        avail_data = utils.get_available_stations(config["paths"]["latest_pulls_log"], tolerance=2 * config["monitoring"]["update_frequency"])
+        avail_stations = [x[1] for x in avail_data if x[1] in get_stations(group["name"])]
     except FileNotFoundError as e:
         st.error(f"Latest data downloads log not available. More details:\n{e}")
     try:
-        nocs = utils.check_nocs(config["paths"]["noc_log"], avail_stations)
-        starttime, endtime = real_time_visualization(config, nocs=nocs, key="monitoring_rt")
+        nocs = utils.check_nocs(config["paths"]["noc_log"], group["stations"])
+        starttime, endtime = real_time_visualization(config, nocs=nocs, key=key)
 
     except FileNotFoundError as e:
         st.error(f"NOC list not available. More details:\n{e}")

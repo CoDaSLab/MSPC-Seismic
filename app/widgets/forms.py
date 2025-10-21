@@ -3,7 +3,22 @@ from config.init import *
 init_session_state()
 config = st.session_state.config
 
-def select_station(key, station_list=config["data"]["stations"], channel_list=config["data"]["channels"]):
+def select_group(key, active_only=True):
+    if active_only:
+        group_list = [list(config["groups"].keys())[i] for i, g in enumerate(config["groups"].keys()) if config["groups"][g]["active"]]
+    else:
+        group_list = list(config["groups"].keys())
+
+    group_names = [config["groups"][g]["name"] for g in group_list]
+    default_idx = group_names.index(st.session_state.group["name"])
+    group = st.selectbox("Select system:", group_names, index=default_idx, key='group_selector')
+
+    idx = group_names.index(group)
+    st.session_state.group = config["groups"][group_list[idx]]
+    
+    return group
+
+def select_station(key, station_list=st.session_state.group["stations"], channel_list=st.session_state.group["channels"]):
     col = st.columns(2)
     default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
     station = col[0].selectbox('Station', station_list, key=f"station_{key}",
@@ -18,7 +33,7 @@ def select_station(key, station_list=config["data"]["stations"], channel_list=co
 
     return station, channel
 
-def select_station_multi_channel(key, station_list=config["data"]["stations"], channel_list=config["data"]["channels"]):
+def select_station_multi_channel(key, station_list=st.session_state.group["stations"], channel_list=st.session_state.group["channels"]):
     col = st.columns(2)
     default_station = station_list.index(st.session_state.station) if st.session_state.station in station_list else 0
     station = col[0].selectbox('Station', station_list, key=f"station_{key}",
@@ -29,8 +44,8 @@ def select_station_multi_channel(key, station_list=config["data"]["stations"], c
 
     return station, channels
 
-def multi_select_station(key, station_list=config["data"]["stations"], channel_list=config["data"]["channels"],
-                         default_stations=None, default_channels=config["data"]["channels"]):
+def multi_select_station(key, station_list=st.session_state.group["stations"], channel_list=st.session_state.group["channels"],
+                         default_stations=None, default_channels=st.session_state.group["channels"]):
     col = st.columns(2)
 
     stations = col[0].multiselect('Stations', station_list, key=f"station_{key}",

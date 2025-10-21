@@ -5,7 +5,7 @@ def logo():
 
 @st.cache_data
 def header():
-    # Crear una fila de botones en el encabezado
+    # All buttons in one row
     col = st.columns(6)
 
     with col[0]:

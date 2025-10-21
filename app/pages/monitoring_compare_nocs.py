@@ -14,16 +14,17 @@ header_monitoring()
 st.subheader("NOC comparison")
 
 config = st.session_state.config
+group = st.session_state.group
 
 col1 = st.columns(2)
 
 with col1[0]:
     # Select NOCs to compare
     st.write("##### Select first NOC:")
-    _, noc1 = forms.select_noc("noc_selector_comparison1", config["data"]["stations"])
+    _, noc1 = forms.select_noc("noc_selector_comparison1", group["stations"])
     other.noc_summary(noc1)
     st.write("##### Select second NOC:")
-    _, noc2 = forms.select_noc("noc_selector_comparison2", config["data"]["stations"])
+    _, noc2 = forms.select_noc("noc_selector_comparison2", group["stations"])
     other.noc_summary(noc2)
     
     with st.form(key="pca_selector_comparison"):

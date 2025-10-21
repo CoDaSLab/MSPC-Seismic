@@ -22,6 +22,7 @@ header_monitoring()
 st.subheader("NOC creator")
 
 config = st.session_state.config
+group = st.session_state.group
 
 key = 'noc_maker'
 COL = st.columns(2)
@@ -32,9 +33,9 @@ with COL[0]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
         
-        network = config["data"]["network"]
-        station, channels = forms.select_station_multi_channel(key, station_list=config["data"]["stations"], 
-                                                                channel_list=config["data"]["channels"])
+        network = group["network"]
+        station, channels = forms.select_station_multi_channel(key, station_list=group["stations"], 
+                                                                channel_list=group["channels"])
 
         st.subheader("Extraction parameters:")
         window, shift = forms.select_window(key)

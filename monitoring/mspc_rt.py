@@ -8,7 +8,7 @@ from monitoring.NOC import NOC
 
 def mspc(nocs, test, starttime, endtime, window_size, window_shift=None, 
          missing_rates=None, plot=False, update_log=True,
-         anomaly_log_path="data/involcan/metadata/anomaly_log.csv",
+         anomaly_log_path="data/involcan/metadata/anomaly_log.csv", group=None,
          nocs_path = "data/involcan/nocs/", verbose=False):
     """
     Multivariate Statistical Process Control with PCA. Uses NOC instances to calculate
@@ -40,6 +40,9 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
         anomaly_log_path (str)
             Path to the CSV file that stores information about anomalies 
             (default: "data/involcan/metadata/anomaly_log.csv").
+        group (str)
+            Label of the monitoring system the station is associated with. Used only 
+            if update_log is True.
         nocs_path (str)
             Directory where nocs are saved (default: "data/involcan/nocs").
         verbose (bool)
@@ -92,7 +95,7 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
         anomaly_end_times = [end_times[i] for i in anomaly_ids]
 
         for i in range(len(anomaly_ids)):
-            rows.append({'network':noc.network, 'station':noc.station, 
+            rows.append({'group': group, 'network':noc.network, 'station':noc.station, 
                         'anomaly_start_time':anomaly_start_times[i], 'anomaly_end_time':anomaly_end_times[i],
                         'control_start_time':starttime.strftime('%Y-%m-%dT%H:%M:%SZ'), 'control_end_time':endtime.strftime('%Y-%m-%dT%H:%M:%SZ'),
                         'D_anomaly':D_test[i], 'Q_anomaly':Q_test[i], 
@@ -110,7 +113,7 @@ def mspc(nocs, test, starttime, endtime, window_size, window_shift=None,
 
         no_file = not os.path.isfile(anomaly_log_path) or os.path.getsize(anomaly_log_path) == 0
         with open(anomaly_log_path, mode="a", newline='', encoding="utf-8") as file:
-            fields = ["network", "station", "anomaly_start_time", "anomaly_end_time", "control_start_time", 
+            fields = ["group", "network", "station", "anomaly_start_time", "anomaly_end_time", "control_start_time", 
                     "control_end_time", "D_anomaly", "Q_anomaly", "D_threshold", "Q_threshold", "NOC"]
             writer = csv.DictWriter(file, fieldnames=fields)
             
@@ -298,65 +301,59 @@ def plot_anomalies_T(
     T_threshold_quantile=None,
     criterion="consecutive",
     n_consecutive=3,
-    plot_train=True,
-    logscale=False,
-    show=False,
+    logscale=False
 ):
     """
-    Calcula T-scores y muestra un gráfico interactivo Plotly con anomalías y umbral.
+    Calculates T-scores and displays an interactive Plotly chart with anomalies and threshold.
 
-    Parámetros
+    Parameters
     ----------
     noc : NOC
-        Instancia de NOC.
+        NOC instance.
     starttime : datetime
-        Inicio del rango temporal (UTC).
+        Start of the time range (UTC).
     endtime : datetime
-        Fin del rango temporal (UTC).
+        End of the time range (UTC).
     T_weight : float
-        Peso para el cálculo de T-score.
+        Weight for T-score calculation.
     T_norm_quantile : float
-        Cuantil usado para normalización (default: 0.5).
+        Quantile used for normalization (default: 0.5).
     T_threshold_quantile : float
-        Cuantil de T-scores usado como threshold. Si None, usa `noc.quantile_threshold`.
+        Quantile of T-scores used as threshold. If None, uses `noc.quantile_threshold`.
     criterion : str
-        Criterio para detectar anomalías ("consecutive").
+        Criterion for anomaly detection ("consecutive").
     n_consecutive : int
-        Nº de observaciones consecutivas por encima del threshold para anomalía.
-    plot_train : bool
-        Si True, incluye datos de entrenamiento (default: True).
+        Number of consecutive observations above the threshold to flag an anomaly.
     logscale : bool
-        Si True, eje Y en escala logarítmica.
-    show : bool
-        Si True, muestra gráfico directamente (usado fuera de Streamlit).
+        If True, Y-axis in logarithmic scale.
     """
     import numpy as np
     import pandas as pd
     import plotly.graph_objects as go
     from datetime import datetime, timezone
 
-    # === Calcular T ===
+    # === Calculate T ===
     T_train, T_test = noc.calculate_T_test(weight=T_weight, norm_quantile=T_norm_quantile)
     if T_threshold_quantile is None:
         T_threshold_quantile = noc.quantile_threshold
     T_threshold = np.quantile(T_train, T_threshold_quantile)
 
-    # Fechas asociadas a los valores de test
+    # Dates associated with test values
     time_labels = [
         datetime.strptime(label, "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
         for label in noc.test_labels
     ]
 
-    # Filtrar rango temporal
+    # Filter time range
     T_plot = [value for value, date in zip(T_test, time_labels) if starttime < date <= endtime]
     timestamps = [date for date in time_labels if starttime < date <= endtime]
     opacity = [1 - mr for mr, date in zip(noc.test_missing_rates, time_labels) if starttime < date <= endtime]
 
-    # Detectar anomalías
+    # Detect anomalies
     anomaly_ids = get_anomalies(T_plot, T_threshold, criterion=criterion, n_consecutive=n_consecutive)
     anomaly_ids = sorted(list(anomaly_ids))
 
-    # Construir DataFrame
+    # Build DataFrame
     df = pd.DataFrame({
         "timestamp": timestamps,
         "tscore": T_plot,
@@ -364,7 +361,7 @@ def plot_anomalies_T(
         "opacity": opacity,
     })
 
-    # === Crear colores RGBA según opacidad ===
+    # === Create RGBA colors according to opacity ===
     def rgba(color_name, alpha):
         if color_name == "red":
             return f"rgba(255, 0, 0, {alpha})"
@@ -378,18 +375,25 @@ def plot_anomalies_T(
         for anomaly, alpha in zip(df["anomaly"], df["opacity"])
     ]
 
-    # === Crear gráfico con colores individuales ===
+    # === Create plot with individual colors ===
     fig_plotly = go.Figure(
         data=[
             go.Bar(
                 x=df["timestamp"],
                 y=df["tscore"],
                 marker=dict(color=df["color_rgba"]),
+                customdata=1 - df[["opacity"]],
+                hovertemplate=(
+                    "Timestamp: %{x|%b %d, %Y, %H:%M:%S}<br>"
+                    "T-score: %{y:.2f}<br>"
+                    "Missing value rate: %{customdata[0]:.2f}"
+                    "<extra></extra>"
+                ),
             )
         ]
     )
 
-    # Añadir línea del umbral
+    # Add threshold line
     fig_plotly.add_shape(
         type="line",
         xref="paper",
@@ -401,7 +405,7 @@ def plot_anomalies_T(
         line=dict(color="red", width=2, dash="dash"),
     )
 
-    # Configuración de layout
+    # Layout configuration
     fig_plotly.update_layout(
         title=f"{noc.name} - T-score (α={T_weight})",
         xaxis_title="UTC Time",
@@ -411,15 +415,14 @@ def plot_anomalies_T(
         showlegend=False,
     )
 
-    # Escala logarítmica si se pide
+    # Logarithmic scale if requested
     if logscale:
         fig_plotly.update_yaxes(type="log")
 
-    # Notación científica en eje Y
+    # Scientific notation on Y-axis
     fig_plotly.update_yaxes(tickformat=".1e")
 
     return fig_plotly
-
 
 
 def plot_anomalies_DQ(noc:NOC, starttime, endtime, criterion='consecutive', n_consecutive=3, 

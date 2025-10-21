@@ -25,36 +25,71 @@ server_user=$(jq -r '.connection.server_user' "$CONFIG_FILE")
 ssh_key=$(jq -r '.connection.ssh_key_path' "$CONFIG_FILE")
 pull_times_log=$(jq -r '.paths.latest_pulls_log' "$CONFIG_FILE")
 data_path=$(jq -r '.paths.data' "$CONFIG_FILE")
-network=$(jq -r '.data.network' "$CONFIG_FILE")
-mapfile -t stations < <(jq -r '.data.stations[]' "$CONFIG_FILE")
-mapfile -t channels < <(jq -r '.data.channels[]' "$CONFIG_FILE")
 
-echo "stations: ${stations[@]}" >> "$LOG_FILE"
-echo "channels: ${channels[@]}" >> "$LOG_FILE"
+# Extract group names
+mapfile -t groups < <(jq -r '.groups | keys[]' "$CONFIG")
+
+all_stations=()
+all_channels=()
+all_networks=()
+
+# Iterate over all groups and collect stations, channels, and networks
+for group in "${groups[@]}"; do
+    network=$(jq -r ".groups[\"$group\"].network" "$CONFIG")
+    mapfile -t stations < <(jq -r ".groups[\"$group\"].stations[]" "$CONFIG")
+    mapfile -t channels < <(jq -r ".groups[\"$group\"].channels[]" "$CONFIG")
+
+    all_stations+=("${stations[@]}")
+    all_channels+=("${channels[@]}")
+    all_networks+=("$network")
+done
+
+# Remove duplicates
+all_stations=($(printf "%s\n" "${all_stations[@]}" | sort -u))
+all_channels=($(printf "%s\n" "${all_channels[@]}" | sort -u))
+all_networks=($(printf "%s\n" "${all_networks[@]}" | sort -u))
+
+# Log configuration info
+echo "Networks: ${all_networks[*]}" >> "$LOG_FILE"
+echo "Stations: ${all_stations[*]}" >> "$LOG_FILE"
+echo "Channels: ${all_channels[*]}" >> "$LOG_FILE"
+
+# Change to project directory
+cd /home/TIC270/gsus/DigiVolcan
 
 sleep 2
+echo "[$(date)] Downloading data..." >> "$LOG_FILE"
 
-echo "[$(date)] Dowloading files..." >> "$LOG_FILE"
+# Define time range (UTC)
 today=$(date -u -d "now - 6 minute" +'%Y-%m-%d 00:00:00')
 now=$(date -u +'%Y-%m-%d %H:%M:%S')
 
-# Download files from server. Stores output and errors in different logs.
-python -m data.involcan.pull_rt "$today" "$now" "${server_ip}" "${server_user}" "$network" -kp "${ssh_key}" -s "${stations[@]}" -c "${channels[@]}" -u $true --log_path "$pull_times_log" --data_path "$data_path" >> "$LOG_FILE" 2>> "$ERROR_FILE"
+# Run download for each network
+for network in "${all_networks[@]}"; do
 
-# In case of error, write messages in ERROR_FILE
-if [ $? -ne 0 ]; then
-    echo >> "$ERROR_FILE"
-    echo "[$(date)] ERROR when downloading files." >> "$ERROR_FILE"
-    echo >> "$ERROR_FILE"
-    echo "==============================================================" >> "$ERROR_FILE"
-    echo >> "$ERROR_FILE"
-    echo >> "$LOG_FILE"
-    echo "ERROR: Download failed. See $ERROR_FILE." >> "$LOG_FILE"
-fi
+    python -m data.involcan.pull_rt "$today" "$now" "${server_ip}" "${server_user}" "$network" \
+        -s "${all_stations[@]}" \
+        -c "${all_channels[@]}" \
+        --log_path "$pull_times_log" \
+        --data_path "$data_path" \
+        --key_path "${ssh_key}"
+        -u >> "$LOG_FILE" 2>> "$ERROR_FILE"
+
+    # If there was an error, log it
+    if [ $? -ne 0 ]; then
+        echo >> "$ERROR_FILE"
+        echo "[$(date)] ERROR while downloading data for network $network." >> "$ERROR_FILE"
+        echo >> "$ERROR_FILE"
+        echo "==============================================================" >> "$ERROR_FILE"
+        echo >> "$ERROR_FILE"
+        echo "ERROR: Download failed for network $network. See $ERROR_FILE." >> "$LOG_FILE"
+    fi
+done
 
 echo >> "$LOG_FILE"
 echo "==============================================================" >> "$LOG_FILE"
 echo >> "$LOG_FILE"
+
 
 
 # -- EXECUTE ANOMALY MONITORING CALCULATIONS --

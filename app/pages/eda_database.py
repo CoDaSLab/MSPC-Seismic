@@ -29,7 +29,7 @@ paths = list(csv_files.values())
 tabs = st.tabs(names)
 
 # Show tables in each of the tabs
-for id, tab in enumerate(tabs[:-1]):
+for id, tab in enumerate(tabs):
     with tab:
         data = load_data(paths[id])
         data = filter_dataframe(data)

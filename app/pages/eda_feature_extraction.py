@@ -18,6 +18,7 @@ st.subheader("Feature extraction")
 tabs = st.tabs(['Feature Log', 'Extract new features'])
 
 config = st.session_state.config
+group = st.session_state.group
 
 with tabs[0]:
     log = pd.read_csv("data/involcan/metadata/feature_log.csv",)
@@ -32,11 +33,11 @@ with tabs[1]:
         starttime = pd.Timestamp(starttime, tz='UTC')
         endtime = pd.Timestamp(endtime, tz='UTC')
 
-        station_list = config["data"]["stations"]
-        network = config["data"]["network"]
+        station_list = group["stations"]
+        network = group["network"]
 
         stations, channels = multi_select_station(key, station_list, channel_list=['HHE', 'HHN', 'HHZ'], 
-                                                  default_stations=station_list, default_channels=config["data"]["channels"])
+                                                  default_stations=station_list, default_channels=group["channels"])
 
         st.subheader("Extraction parameters")
         window, shift = select_window(key)
