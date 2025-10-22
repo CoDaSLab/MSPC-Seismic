@@ -103,10 +103,10 @@ def monitoring(config_path = 'config.json'):
 
     # --------------- Create NOC for individual stations that do not have one --------------------
 
-    noc_stations = set([sta for _, sta in noc_names if isinstance(sta, str)])
-    no_noc_stations = [st for st in avail_stations if st not in noc_stations]
+    noc_stations = set([sta for _, sta in noc_names if isinstance(sta, str)])  # Stations with NOC
+    no_noc_stations = [st for st in avail_stations if st not in noc_stations]  # Stations without NOC
     no_noc_stations = sorted(no_noc_stations)
-    combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]
+    combined_stations = [list(t) for t in {tuple(st) for _, st in noc_names if isinstance(st, list)}]  # Station combinations with a NOC
     
     if verbose:
         print("Station status:")
@@ -143,9 +143,18 @@ def monitoring(config_path = 'config.json'):
                                             noc_start, noc_end, config, noc_params)
                     noc_stations.add(station)
 
+                    no_noc_groups = [g for g in groups if station in groups_dict[g]["stations"]]  # Groups without NOC
+                    
+                    # Remove stations combination associated with the new NOC's group so a new combined NOC can be created
+                    for st in combined_stations:
+                        st_groups = [g for g in groups if all([s in groups_dict[g]["stations"] for s in st])]
+                        if st_groups and any([g in no_noc_groups for g in st_groups]):
+                            combined_stations.remove(st)
+                
                 noc_names.append((noc.name, noc.station))
             except Exception as e:
                 print(f"NOC for station {station} could not be created: {e}")
+    
 
     # ---------------------------- Create a combined NOC for each group ------------------------------
     
@@ -197,8 +206,6 @@ def monitoring(config_path = 'config.json'):
     update_start = update_start.replace(tzinfo=timezone.utc)
     delete_date = endtime - timedelta(days = num_days_before_delete)  # files from before this date will be deleted
 
-    starttime_original = starttime
-    endtime_original = endtime
     lowest_starttime = starttime
 
     # --------------------------- MSPC for individual stations ---------------------------
@@ -217,57 +224,59 @@ def monitoring(config_path = 'config.json'):
 
             # If previous runs failed, attempt to recalculate features. Only attempts to recalculate up to 10 failed runs
             max_failed_runs = 10
-            previous_files = list_fft_files(features_path, station, starttime - timedelta(minutes=max_failed_runs * update_frequency), 
-                                            starttime, intersect=True, verbose=verbose)
-            i = 1
             previous_success = False
-            if len(previous_files) == 0:
-                starttime = starttime - timedelta(minutes=max_failed_runs * update_frequency)
-            while i <= len(previous_files) and not previous_success:
-                previous_filename = previous_files[-i]
+            i = 1
+            previous_start = starttime
+            fft_starttimes = [starttime]  # start times for stft calculation
+            while i <= max_failed_runs and not previous_success:
+                previous_end = previous_start 
+                previous_start = previous_start - timedelta(minutes=update_frequency)
+                previous_filename = station + '_' + previous_start.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + previous_end.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
                 previous_filepath = os.path.join(features_path, previous_filename).replace('\\', '/')
+                # If a features file from a previous execution does not exist or contains missing values, it is recalculated
                 if os.path.isfile(previous_filepath):
-                    previous_features = loadmat(previous_filepath, squeeze_me=True)
-                    previous_missing_rates = previous_features['missing_rates']
-                    previous_end = datetime.strptime(previous_features["times_label"][-1], "%Y-%m-%dT%H:%M:%SZ").replace(tzinfo=timezone.utc)
-                    if previous_end < starttime:
-                        print(f"Features for station {station} from a previous execution (ended on {previous_features["times_label"][-1]}) are missing. Recalculating features...")
-                        starttime = starttime - timedelta(minutes=update_frequency)
-                        os.remove(previous_filepath)
-                    elif np.mean(previous_missing_rates) > max_missing_rate:
-                        if verbose:
-                            print(f"High missing rates in previous features for station {station} (ended on {previous_features["times_label"][-1]}). Recalculating features...")
-                        # If previous features have high missing rates, recalculate them and delete previous file
-                        starttime = starttime - timedelta(minutes=update_frequency)
-                        os.remove(previous_filepath)
-                    else:
+                    previous_feat = loadmat(previous_filepath, squeeze_me=True)
+                    if np.mean(previous_feat["missing_rates"]) == 0:
                         previous_success = True
+                    else:
+                        print(f"High missing values for {station} from {previous_start} to {previous_end}. Features will be recalculated.")
+                        fft_starttimes.insert(0, previous_start)
                 else:
-                    starttime = starttime - timedelta(minutes=update_frequency)
+                    print(f"No feature file found for {station} from {previous_start} to {previous_end}. Features will be recalculated.")
+                    fft_starttimes.insert(0, previous_start)
                 i += 1
-            if starttime < lowest_starttime:
-                lowest_starttime = starttime
             
             # Calculate features
-            features = calculate_fft_rt(starttime, endtime, network, station, channels, 
-                                        window_size, window_shift, detrend=detrend, windowing=windowing, n_bins=fft_points, 
-                                        merge_method=merge_method, merge_fill_value=merge_fill_value,
-                                        pad_fill_value = pad_fill_value, data_path=data_path, verbose=verbose)
+            all_feat = []
+            test_missing = []
+            for stime in fft_starttimes:
+                etime = stime + timedelta(minutes=update_frequency)
+                features = calculate_fft_rt(stime, etime, network, station, channels, 
+                                            window_size, window_shift, detrend=detrend, windowing=windowing, n_bins=fft_points, 
+                                            merge_method=merge_method, merge_fill_value=merge_fill_value,
+                                            pad_fill_value = pad_fill_value, data_path=data_path, verbose=verbose)
 
-            # Save features files
-            features['config'] = config_str
-            if isinstance(station, list):
-                file_station = "-".join(station)
-            else:
-                file_station = station
-            file_name = file_station + '_' + starttime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + endtime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
-            mat_path = os.path.join(features_path, file_name).replace('\\', '/')
-            savemat(mat_path, features)
+                # Save features files
+                features['config'] = config_str
+                if isinstance(station, list):
+                    file_station = "-".join(station)
+                else:
+                    file_station = station
+                file_name = file_station + '_' + stime.strftime('%Y-%m-%dT%H-%M-%SZ') + '_' + etime.strftime('%Y-%m-%dT%H-%M-%SZ') + '.mat'
+                mat_path = os.path.join(features_path, file_name).replace('\\', '/')
+                savemat(mat_path, features)
 
+                all_feat.append(np.hstack([features[key] for key in feature_types]))
+                test_missing.extend(features["missing_rates"])
+            
+            if fft_starttimes[0] < lowest_starttime:
+                lowest_starttime = fft_starttimes[0]
+            
             # Perform MSPC for all NOCs associated with the station
-            test_data = np.hstack([features[key] for key in feature_types])  # one or more of [ffts, deltas_ffts, deltas_deltas_ffts]
-            mspc(nocs[station], test_data, starttime, endtime, window_size, window_shift, 
-                missing_rates=features['missing_rates'], plot=False, update_log=True, 
+            test_data = np.vstack(all_feat)
+            
+            mspc(nocs[station], test_data, fft_starttimes[0], endtime, window_size, window_shift, 
+                missing_rates=test_missing, plot=False, update_log=True, 
                 anomaly_log_path=anomaly_log_path, group=group_name, nocs_path=nocs_path, verbose=verbose)
 
             # Delete old features files
@@ -325,8 +334,6 @@ def monitoring(config_path = 'config.json'):
                     _ = utils.create_noc(noc_info["network"], station, noc_info["channels"], noc_start, noc_end, config, 
                                          updated_noc_params, attempt_find=True)
                 
-            starttime = starttime_original
-            endtime = endtime_original
 
     # -------------------------- MSPC for combined stations -----------------------------
 

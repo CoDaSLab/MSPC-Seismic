@@ -26,6 +26,7 @@ def load_config(file_path):
         config = json.load(f)
     return config
 
+config = load_config('config.json')
 
 def start_and_end_times(now: datetime, update_frequency: int, delay: int):
     """
@@ -52,7 +53,7 @@ def start_and_end_times(now: datetime, update_frequency: int, delay: int):
     return starttime, endtime
     
 
-def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv", tolerance = 5):
+def get_available_stations(csv_path = config["paths"]["latest_pulls_log"], tolerance = 5):
     """
     Returns a sorted list of unique station names whose latest download time
     is within the last `minutes` minutes from now (UTC).
@@ -103,9 +104,9 @@ def get_available_stations(csv_path = "data/involcan/metadata/latest_pulls.csv",
     return avail_stations
 
 
-def check_nocs(csv_path = "data/involcan/metadata/noc_list.csv", stations = None, 
+def check_nocs(csv_path = config["paths"]["noc_log"], stations = None, 
                   noc_types=('static', 'dynamic'), noc_length=None, additional_matches=None, 
-                  nocs_path='data/involcan/nocs', edit_csv = False, verbose=False):
+                  nocs_path=config["paths"]["nocs"], edit_csv = False, verbose=False):
     """
     Finds the names of the NOCs in the list that meet certain conditions.
 
@@ -369,6 +370,16 @@ def create_noc(network, station, channels, starttime:datetime, endtime:datetime,
         new_name = station + '_' + 'd' + '_' + endtime.strftime('%Y-%m-%d')
 
     time0 = datetime.now()
+
+    # Check if necessary mseed files exist and are not empty
+    from preprocessing.sismo import get_filenames
+    filenames = get_filenames(network, station, channels, starttime, endtime)
+    for file in filenames:
+        filepath = os.path.join(config["paths"]["data"], file).replace('\\', '/')
+        if not os.path.isfile(filepath):
+            raise FileNotFoundError(f"File {filepath} not found.")
+        elif os.path.getsize(filepath) == 0:
+            raise ValueError(f"File {filepath} is empty.")
     
     calculate = not attempt_find
     if attempt_find:  # Try to find existing features
