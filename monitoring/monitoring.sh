@@ -27,7 +27,7 @@ pull_times_log=$(jq -r '.paths.latest_pulls_log' "$CONFIG_FILE")
 data_path=$(jq -r '.paths.data' "$CONFIG_FILE")
 
 # Extract group names
-mapfile -t groups < <(jq -r '.groups | keys[]' "$CONFIG")
+mapfile -t groups < <(jq -r '.groups | keys[]' "$CONFIG_FILE")
 
 all_stations=()
 all_channels=()
@@ -35,9 +35,9 @@ all_networks=()
 
 # Iterate over all groups and collect stations, channels, and networks
 for group in "${groups[@]}"; do
-    network=$(jq -r ".groups[\"$group\"].network" "$CONFIG")
-    mapfile -t stations < <(jq -r ".groups[\"$group\"].stations[]" "$CONFIG")
-    mapfile -t channels < <(jq -r ".groups[\"$group\"].channels[]" "$CONFIG")
+    network=$(jq -r ".groups[\"$group\"].network" "$CONFIG_FILE")
+    mapfile -t stations < <(jq -r ".groups[\"$group\"].stations[]" "$CONFIG_FILE")
+    mapfile -t channels < <(jq -r ".groups[\"$group\"].channels[]" "$CONFIG_FILE")
 
     all_stations+=("${stations[@]}")
     all_channels+=("${channels[@]}")
