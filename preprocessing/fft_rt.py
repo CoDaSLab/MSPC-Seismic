@@ -238,7 +238,7 @@ def list_fft_files(path, station, starttime, endtime, intersect=False, verbose=F
 
 
 def find_features(path, stations, starttime, endtime, feature_types:list, additional_matches:dict=None, 
-                  max_missing_rate:float=0.1, verbose:bool=False):
+                  max_missing_rate:float=0.1, force_all_stations=False, verbose:bool=False):
     """
     Reads feature files from a given list of stations and time range in the specified path and returns 
     the corresponding features dictionary.
@@ -259,6 +259,9 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         Other parameters that the file needs to match. Default is None.
     max_missing_rate (float)
         Maximum rate of missing values allowed for any station. Default is 0.1.
+    force_all_stations (bool)
+        If True, forces the features matrix to include all stations, padding with 
+        zeros where necessary.
     verbose (bool)
         Whether to print information about matched files. Default is False.
 
@@ -285,7 +288,12 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
     # Initialize features dictionary
     features_all = {}
     features = {}
+    missing_stations = []
     avail_stations = []
+
+    if force_all_stations:
+        # Ignore maximum rate of missing values if all stations need to be included
+        max_missing_rate = 1
 
     for station in stations:
         features[station] = defaultdict(list)
@@ -294,6 +302,11 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         # Find feature files
         files = list_fft_files(path, station, starttime, endtime, intersect=True, verbose=verbose)
         first_match = True
+        if len(files) == 0 and force_all_stations:
+            if verbose:
+                print(f"    No features found for station {station}.")
+            missing_stations.append(station)
+
         for file in files:
             # Load file         
             feat = loadmat(os.path.join(path, file), squeeze_me=True)
@@ -333,8 +346,13 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
                 features[station][key] = np.vstack(features[station][key])
                 features[station][key] = features[station][key][obs_idx, :]
                 features[station][key] = features[station][key][unique_idx, :]
+                cols_per_station = features[station][key].shape[1]
             
-            if np.mean(features[station]["missing_rates"]) < max_missing_rate:
+            if np.mean(features[station]["missing_rates"]) == 1:
+                missing_stations.append(station)
+                if verbose:
+                    print(f"    Features found for station {station}, but all values are missing.")
+            elif np.mean(features[station]["missing_rates"]) <= max_missing_rate:
                 avail_stations.append(station)
                 if verbose:
                     print(f"    Features found for station {station}.")
@@ -348,6 +366,19 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
     all_obs = sorted(set().union(*[features[st]["times_label"] for st in avail_stations]))
     all_obs = np.array(all_obs)
     features_all["times_label"] = all_obs
+    n_obs = len(all_obs)
+
+    if force_all_stations:
+        # Fill missing station data
+        for station in missing_stations:
+            for key in feature_types:
+                features[station][key] = np.zeros((len(all_obs), cols_per_station))
+            features[station]["missing_rates"] = np.ones(n_obs)
+            features[station]["times_label"] = all_obs
+            features[station]["station_class"] = [station] * cols_per_station
+            features[station]["channel_class"] = features[avail_stations[0]]["channel_class"]
+            features[station]["freqs_label"] = features[avail_stations[0]]["freqs_label"]
+            avail_stations.insert(stations.index(station), station)
 
     # Combine missing rates
     mr_blocks = []
@@ -359,10 +390,11 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
         for i, obs in enumerate(all_obs):
             if obs in idx_map:
                 aligned_missing[i] = features[st]["missing_rates"][idx_map[obs]]
-        if np.mean(aligned_missing) < max_missing_rate:
+        if np.mean(aligned_missing) <= max_missing_rate:
             mr_blocks.append(aligned_missing.reshape(-1, 1))
         else:
             avail_stations.remove(st)
+    features_all["missing_stations"] = [st for i, st in enumerate(avail_stations) if np.mean(mr_blocks[i]) == 1]
     features_all["missing_rates"] = np.mean(np.hstack(mr_blocks), axis=1)
 
     # Combine features
@@ -396,6 +428,6 @@ def find_features(path, stations, starttime, endtime, feature_types:list, additi
 
     if verbose:
         print(f"Search complete. Features found for the following stations: {avail_stations}. " \
-              f"Time taken: {datetime.now()- time0}")
+              f"Time taken: {datetime.now() - time0}")
     
     return features_all

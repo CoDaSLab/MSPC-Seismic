@@ -101,7 +101,7 @@ def plot_spectrogram(stations, starttime, endtime,
     start = 0
     locs = times[0][0][start::skip]
     timeUTC_label = timeUTC[start::skip]
-    date_formatter = mdates.DateFormatter('%d-%b %H:%M')
+    date_formatter = mdates.DateFormatter('%d-%b %H:%M:%S')
     formatted_labels = [date_formatter(mdates.date2num(t)) for t in timeUTC_label]
 
     vmin = np.min(Sxxs)
@@ -114,11 +114,11 @@ def plot_spectrogram(stations, starttime, endtime,
                 ax[i, j].set_xlabel(f"{channel}", fontsize = 10)
                 ax[i, j].xaxis.set_label_position('top')     
             _,_, mesh = plot.spectrogram(times[i,j], freqs[i,j], Sxxs[i,j], cmap="nipy_spectral",
-                                    logscale=True, ax = ax[i,j], vmin=vmin, vmax = vmax, ylim=(0,50));
+                                    logscale=True, ax = ax[i,j], vmin=vmin, vmax = vmax, ylim=(0,50))
 
 
-            ax[i][j].set_xticks(locs[:], labels=formatted_labels[:], rotation=-90,fontsize=10);
-            ax[i][j].set_yticks([0,25, 50], ['0Hz','25Hz', '50Hz'],fontsize=10);
+            ax[i][j].set_xticks(locs[:], labels=formatted_labels[:], rotation=-90,fontsize=10)
+            ax[i][j].set_yticks([0,25, 50], ['0Hz','25Hz', '50Hz'],fontsize=10)
 
     tbox = ax[ 0,0].get_position()
     bbox = ax[-1,0].get_position()
@@ -291,10 +291,13 @@ def plot_tscore_rt(
     noc = NOC.load(os.path.join(nocs_path, noc_name).replace("\\", "/"))
     delay = st.session_state.config["monitoring"]["delay"]
 
-    endtime = datetime.now(timezone.utc)
-    minutes = (endtime.minute // update_freq) * update_freq
-    endtime = endtime.replace(minute=minutes, second=0, microsecond=0) - timedelta(minutes=delay)
-    starttime = endtime - time_range 
+    if isinstance(time_range, (tuple, list)):
+        starttime, endtime = time_range
+    else:
+        endtime = datetime.now(timezone.utc)
+        minutes = (endtime.minute // update_freq) * update_freq
+        endtime = endtime.replace(minute=minutes, second=0, microsecond=0) - timedelta(minutes=delay)
+        starttime = endtime - time_range
 
     try:
         fig_plotly = plot_anomalies_T(
@@ -409,7 +412,8 @@ def plot_var_pca(data, max_components=20, preprocessing=1, interactive=False):
     else:
         st.pyplot(fig)
 
-def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF", "#32A006", "#FF7B00"], nticks=5, logscale=False):
+def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF", "#32A006", "#FF7B00"], 
+               nticks=5, logscale=False, missing_stations=None):
     import numpy as np
     import plotly.graph_objects as go
     from plotly.subplots import make_subplots
@@ -447,7 +451,7 @@ def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF"
 
             # Si se pasan labels
             if vars_label is not None:
-                hovertext = [f"{vars_label[k]}: {vec[k]:.3e}" for k in range(len(vec))]
+                hovertext = [f"{st}.{ch} {vars_label[k]}: {vec[k]:.3e}" for k in range(len(vec))]
                 tickvals = np.linspace(0, len(vec)-1, nticks, dtype=int)
                 ticktext = [vars_label[k] for k in tickvals]
                 fig.update_xaxes(tickvals=tickvals, ticktext=ticktext, row=i+1, col=j+1)
@@ -464,6 +468,16 @@ def plot_omeda(omeda_vec, stations, channels, vars_label=None, colors=["#3B96FF"
                 ),
                 row=i + 1,
                 col=j + 1,
+                )
+            
+            # Add semitransparent background if station is missing
+            if missing_stations is not None and st in missing_stations:
+                fig.add_vrect(
+                    x0=-0.5, x1=len(vec)-0.5,
+                    fillcolor="rgba(255,0,0,0.1)",
+                    layer="below",
+                    line_width=0,
+                    row=i+1, col=j+1
                 )
     
     # if logscale:

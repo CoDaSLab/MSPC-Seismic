@@ -239,7 +239,8 @@ def monitoring(config_path = 'config.json'):
                     if np.mean(previous_feat["missing_rates"]) == 0:
                         previous_success = True
                     else:
-                        print(f"High missing values for {station} from {previous_start} to {previous_end}. Features will be recalculated.")
+                        if verbose:
+                            print(f"High missing values for {station} from {previous_start} to {previous_end}. Features will be recalculated.")
                         fft_starttimes.insert(0, previous_start)
                 else:
                     print(f"No feature file found for {station} from {previous_start} to {previous_end}. Features will be recalculated.")
@@ -324,7 +325,7 @@ def monitoring(config_path = 'config.json'):
                 except UnpicklingError:
                     # Recreate a NOC if it fails to load
                     name = os.path.basename(noc_path)
-                    print(f"NOC {name} failed to load. Recreating NOC...")
+                    print(f"    NOC {name} failed to load. Recreating NOC...")
 
                     noc_info = utils.noc_info(name, noc_log_path)
                     updated_noc_params = {'type': noc_info["type"], 'n_components': noc_info["n_components"], 
@@ -344,21 +345,23 @@ def monitoring(config_path = 'config.json'):
                 cst = st
                 break
         if verbose:
-            print(f"Started process for combined stations {cst}.")
+            print(f"Started process for group {group_name}.")
         
         combined_endtime = endtime - timedelta(minutes=update_frequency) if delay < update_frequency else endtime
         features = find_features(features_path, cst, lowest_starttime, combined_endtime, 
                                  feature_types=feature_types, additional_matches=config["features"], 
-                                 max_missing_rate=1, verbose=verbose)
-        
+                                 max_missing_rate=1, force_all_stations=True, verbose=verbose)
         if features:
+            if features["missing_stations"]:
+                print(f"    No test features found for stations {features["missing_stations"]}.")
+
             # Perform MSPC for all NOCs associated with the station
             test_data = np.hstack([features[key] for key in feature_types])
             mspc(combined_nocs[tuple(cst)], test_data, lowest_starttime, combined_endtime, window_size, window_shift, 
                 missing_rates=features['missing_rates'], plot=False, update_log=True, 
                 anomaly_log_path=anomaly_log_path, group=group_name, nocs_path=nocs_path, verbose=verbose)
         else:
-            print(f"No combined data available for stations {cst}. One or more stations might be unavailable.")        
+            print(f"    No combined data available for group {group_name}. One or more stations might be unavailable.")        
             
         for noc_path in combined_nocs[tuple(cst)]:
             try:
@@ -405,7 +408,7 @@ def monitoring(config_path = 'config.json'):
                             try:
                                 _ = NOC.fuse_nocs(nocs_to_fuse, n_components=noc_params["n_components"], verbose=verbose)
                             except Exception as e:
-                                print(f"Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
+                                print(f"    Could not fuse NOCs: {e}. Creating combined NOC from scratch...")
                                 _ = utils.create_noc(avail_data_dict[cst[0]]["network"], cst, avail_data_dict[cst[0]]["channels"],
                                                      noc_start, noc_end, config, noc_params=noc_params)
                         else:
@@ -418,7 +421,7 @@ def monitoring(config_path = 'config.json'):
             except UnpicklingError:
                 # Recreate a NOC if it fails to load
                 name = os.path.basename(noc_path)
-                print(f"NOC {name} failed to load. Recreating NOC...")
+                print(f"    NOC {name} failed to load. Recreating NOC...")
 
                 noc_info = utils.noc_info(name, noc_log_path)
                 noc_params = {'type': noc_info["type"], 'n_components': noc_info["n_components"], 

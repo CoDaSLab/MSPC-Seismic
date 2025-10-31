@@ -27,7 +27,7 @@
       "amount": 3
     },
     "plots": {
-      "save": true,
+      "save": false,
       "num_hours": 1.0
     },
     "starttime": "auto",

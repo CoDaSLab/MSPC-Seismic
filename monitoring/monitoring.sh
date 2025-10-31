@@ -54,9 +54,6 @@ echo "Networks: ${all_networks[*]}" >> "$LOG_FILE"
 echo "Stations: ${all_stations[*]}" >> "$LOG_FILE"
 echo "Channels: ${all_channels[*]}" >> "$LOG_FILE"
 
-# Change to project directory
-cd /home/TIC270/gsus/DigiVolcan
-
 sleep 2
 echo "[$(date)] Downloading data..." >> "$LOG_FILE"
 

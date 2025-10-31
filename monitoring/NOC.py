@@ -1052,6 +1052,8 @@ class NOC:
             Channel class labels.
         stations_class : list
             Station class labels.
+        missing_stations : list
+            Test stations with no available test features in the time range
         """
 
         from preprocessing.fft_rt import find_features
@@ -1066,7 +1068,9 @@ class NOC:
 
         # Load and preprocess features
         features_dic = find_features(features_path, self.station, starttime, endtime, ["spectrogram_unfold"], 
-                                     max_missing_rate=config["monitoring"]["max_missing_rate"], additional_matches=metadata)
+                                     max_missing_rate=config["monitoring"]["max_missing_rate"], 
+                                     force_all_stations=True, additional_matches=metadata)
+        missing_stations = features_dic["missing_stations"]
         
         features_noc = self.preprocess()
         features_test = self.preprocess_test(features_dic["spectrogram_unfold"])
@@ -1099,7 +1103,7 @@ class NOC:
         channel_class = features_dic["channel_class"]
         stations_class = features_dic["station_class"]
 
-        return omeda_vec, freqs_label, channel_class, stations_class
+        return omeda_vec, freqs_label, channel_class, stations_class, missing_stations
 
 
     def __str__(self):

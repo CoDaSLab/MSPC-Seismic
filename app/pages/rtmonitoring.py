@@ -18,28 +18,24 @@ st.title("Real-time monitoring")
 key="monitoring_rt"
 forms.select_group(key)
 
-st.subheader("Visualization")
-
 # Configuration file
 config = st.session_state.config
 group = st.session_state.group
 
 update_freq = timedelta(minutes=config["monitoring"]["update_frequency"])
 
-starttime, endtime = utils.start_and_end_times(datetime.now(timezone.utc), 
-                                        update_frequency=config["monitoring"]["update_frequency"],
-                                        delay = config["monitoring"]["delay"])
+cols = st.columns(6)
+with cols[0]:
+    st.subheader("Visualization")
+with cols[5]:
+    auto_refresh = st.toggle("Refresh graph automatically", value=True)
 
-if "start_date" not in st.session_state:
-    st.session_state.start_date = datetime.date(starttime)
-    st.session_state.start_time = datetime.time(starttime)
-    st.session_state.end_date = datetime.date(endtime)
-    st.session_state.end_time = datetime.time(endtime)
+if not auto_refresh:
+    update_freq = None
 
 # Define fragments
 @st.fragment(run_every=update_freq)
-def real_time_visualization(config, nocs, key):
-    exploration_on = False
+def real_time_visualization(config, auto_refresh, nocs, key):
     with st.form(key):
         col = st.columns(3)
         with col[0]:
@@ -61,6 +57,12 @@ def real_time_visualization(config, nocs, key):
     if refresh:
         st.cache_resource.clear()
 
+    if auto_refresh or refresh:
+        _, st.session_state.rt_tscore_end = utils.start_and_end_times(datetime.now(timezone.utc), 
+                                                                      update_frequency=config["monitoring"]["update_frequency"],
+                                                                      delay = config["monitoring"]["delay"])
+        st.session_state.rt_tscore_start = st.session_state.rt_tscore_end - plot_time
+
     # Arrange graphs (2 per row)
     col1, col2 = st.columns(2) 
     exploration_on, starttime, endtime = False, None, None
@@ -71,8 +73,8 @@ def real_time_visualization(config, nocs, key):
                     graph_attempt = 0
                     while graph_attempt < 3:
                         try:
-                            selected_points = plots.plot_tscore_rt(noc[0], time_range=plot_time, T_weight=weight_rt, logscale=logscale_rt, 
-                                n_consecutive=n_consecutive_rt)
+                            selected_points = plots.plot_tscore_rt(noc[0], (st.session_state.rt_tscore_start, st.session_state.rt_tscore_end),
+                                                                    T_weight=weight_rt, logscale=logscale_rt, n_consecutive=n_consecutive_rt)
                             other.noc_summary(noc[0])
                             st.session_state.rt_stations = noc[1]
                             break
@@ -117,15 +119,18 @@ def real_time_visualization(config, nocs, key):
                                 endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                             except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                             with st.spinner("Calculating oMEDA..."):
-                                omeda_vec, freqs_label, channel_class, stations_class = omeda_noc.omeda(starttime, endtime, n_components)
-                                fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
+                                omeda_vec, freqs_label, channel_class, stations_class, missing_stations = omeda_noc.omeda(starttime, endtime, n_components)
+                                fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False, 
+                                                       missing_stations=missing_stations)
+                                if len(missing_stations) > 0:
+                                    st.warning(f"Missing data for station{'s' if len(missing_stations)>1 else ''} {', '.join(missing_stations)} in the selected period.")
 
                         st.plotly_chart(fig, use_container_width=True)
             except Exception as e: 
                 col2.error(f"Error computing oMEDA. {e}")
         
             if exploration_on:
-                other.exploration(starttime, endtime, omeda_stations, key=key+f"_exploration_{group["name"]}")
+                other.exploration(starttime, endtime, omeda_stations, key=key+f"_exploration_{group["name"].replace(' ', '_')}")
 
         # if i%2==0:
         #     with col1:
@@ -172,7 +177,7 @@ if config["monitoring"]["auto_monitoring"]:
         st.error(f"Latest data downloads log not available. More details:\n{e}")
     try:
         nocs = utils.check_nocs(config["paths"]["noc_log"], group["stations"])
-        starttime, endtime = real_time_visualization(config, nocs=nocs, key=key)
+        starttime, endtime = real_time_visualization(config, auto_refresh,nocs=nocs, key=key)
 
     except FileNotFoundError as e:
         st.error(f"NOC list not available. More details:\n{e}")

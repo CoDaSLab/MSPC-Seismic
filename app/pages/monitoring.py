@@ -185,7 +185,8 @@ with COL[1]:
                 del add_match["start_time"], add_match["end_time"], add_match["fft_points"]
                 features = find_features(config["paths"]["features"], stations, 
                                          starttime_test.replace(tzinfo=timezone.utc), endtime_test.replace(tzinfo=timezone.utc), 
-                                         feature_types=["spectrogram_unfold"], additional_matches=add_match, max_missing_rate=1, verbose=True)
+                                         feature_types=["spectrogram_unfold"], additional_matches=add_match, max_missing_rate=1, 
+                                         force_all_stations=True, verbose=True)
         
                 if features:
                     # Perform MSPC for all NOCs associated with the station
@@ -240,7 +241,7 @@ with COL[1]:
                         endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                     except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                     with st.spinner("Calculating oMEDA..."):
-                        omeda_vec, freqs_label, channel_class, stations_class = noc.omeda(starttime, endtime, n_components)
+                        omeda_vec, freqs_label, channel_class, stations_class, _ = noc.omeda(starttime, endtime, n_components)
                         fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
 
                     st.plotly_chart(fig, key=key + 'omeda', use_container_width=True)

@@ -21,7 +21,7 @@ with COL[0]:
     starttime, endtime = select_time(key)
     stations, channels = multi_select_station(key, all_stations, default_stations=group_stations, default_channels=group["channels"])
 
-    download_button = st.button("Download files", use_container_width=True)
+    download_button = st.button("Download files", type="primary", use_container_width=True)
 
 
     with st.spinner("Downloading files. Please wait, this might take a while...", show_time=True):
