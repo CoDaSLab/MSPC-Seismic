@@ -19,7 +19,7 @@ COL = st.columns(1)
 with COL[0]:
     key = "download_data"
     starttime, endtime = select_time(key)
-    stations, channels = multi_select_station(key, all_stations, default_stations=group_stations, default_channels=group["channels"])
+    stations, channels = multi_select_station(key, all_stations, default_stations=all_stations, default_channels=group["channels"])
 
     download_button = st.button("Download files", type="primary", use_container_width=True)
 
