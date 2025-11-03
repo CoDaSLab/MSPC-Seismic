@@ -3,7 +3,7 @@ from config.init import *
 init_session_state()
 config = st.session_state.config
 
-def select_group(key, active_only=True):
+def select_group(active_only=True):
     if active_only:
         group_list = [list(config["groups"].keys())[i] for i, g in enumerate(config["groups"].keys()) if config["groups"][g]["active"]]
     else:

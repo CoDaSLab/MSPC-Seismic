@@ -16,7 +16,7 @@ init_session_state()
 st.title("Real-time monitoring")
 # ------------------------
 key="monitoring_rt"
-forms.select_group(key)
+forms.select_group()
 
 # Configuration file
 config = st.session_state.config

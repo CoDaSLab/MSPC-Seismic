@@ -30,25 +30,3 @@ def header_monitoring():
         st.page_link("pages/monitoring_compare_nocs.py", label="Compare NOCs")
     with col[2]:
         st.page_link("pages/monitoring_create_nocs.py", label = "Create NOCs")
-
-# @st.cache_data
-# def header_rtmonitoring():
-#     col = st.columns(2)
-
-#     with col[0]:
-#         st.page_link("pages/rtmonitoring.py", label="Visualization")
-#     with col[1]:
-#         st.page_link("pages/rtmonitoring_config.py", label="Configuration")
-
-@st.cache_data
-def header_eda():
-    col = st.columns(4)
-
-    with col[0]:
-        st.page_link("pages/eda_mapping.py", label="Map")
-    with col[1]:
-        st.page_link("pages/eda_database.py", label="Database")
-    with col[2]:
-        st.page_link("pages/eda_signal_processing.py", label="Signal visualization")
-    with col[3]:
-        st.page_link("pages/eda_feature_extraction.py", label="Feature extraction")

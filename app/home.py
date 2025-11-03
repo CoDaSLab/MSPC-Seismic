@@ -12,7 +12,7 @@ init_session_state()
 
 st.markdown("---")
 key = "home"
-forms.select_group(key)
+forms.select_group()
 
 # st.markdown("<h1 style='text-align: center;'>Digivolcan Home</h1>", unsafe_allow_html=True)
 
