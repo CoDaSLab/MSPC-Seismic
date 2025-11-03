@@ -106,6 +106,85 @@
         "HHN",
         "HHZ"
       ]
+    },
+    "gran_canaria": {
+      "name": "Gram Canaria",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "GART",
+        "GGAL",
+        "GSNT",
+        "GTEL"
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
+    },
+    "el_hierro": {
+      "name": "El Hierro",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "HERE",
+        "HCAS",
+        "HISO",
+        "HJUL",
+        "HDES",
+        "HRES",
+        "HLLA"
+
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
+    },
+    "la_gomera": {
+      "name": "El Hierro",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "OCER"
+
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
+    },
+    "lanzarote": {
+      "name": "Lanzarote",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "LTAO",
+        "LDEG",
+        "LDAL"
+
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
+    },
+    "fuerteventura": {
+      "name": "Fuerteventura",
+      "active": true,
+      "network": "C7",
+      "stations": [
+        "FMOR"
+      ],
+      "channels": [
+        "HHE",
+        "HHN",
+        "HHZ"
+      ]
     }
   },
   "data": {
