@@ -76,6 +76,9 @@ class NOC:
         # Initialization
         self.name = name
         self.constituents = [self.name]
+        if isinstance(station, list) and len(station) > 1:
+            self.constituents = station
+
         self.network = network
         self.station = station
         self.channels = channels
@@ -262,6 +265,8 @@ class NOC:
         pca = PCA(n_components=self.n_components)
         scores = pca.fit_transform(X_norm)
         self.pca = pca
+        if len(self.constituents) > 1:
+            self.pca_full = PCA().fit(X_norm)
 
         self.score_mean = np.mean(scores, axis=0)
         self.score_std = np.std(scores, axis=0, ddof=1)
@@ -867,8 +872,8 @@ class NOC:
         if self.features is None:
             self.features = np.array([])
 
-        # Save features
-        if isinstance(self.features, np.ndarray) and self.features.size > 0:
+        # Save features for individual NOCs
+        if isinstance(self.features, np.ndarray) and self.features.size > 0 and len(self.constituents) == 1:
             features = {'name': self.name, 'features': self.features, 'obs_labels': self.obs_labels}
             feat_filepath = os.path.join(os.path.dirname(filepath), f'features_{self.name}')
             if filetype == 'mat':
@@ -878,8 +883,17 @@ class NOC:
                 with open(feat_filepath, 'wb') as f:
                     pickle.dump(features, f)
 
-            # Remove features from NOC instance
-            self.features = np.array([])
+        # Save full PCA for combined NOCs
+        if hasattr(self, "pca_full"):
+            pca = {'name': self.name, 'pca': self.pca_full}
+            feat_filepath = os.path.join(os.path.dirname(filepath), f'pca_{self.name}')
+            pca["config"] = self.metadata
+            with open(feat_filepath, 'wb') as f:
+                pickle.dump(pca, f)
+            del self.pca_full
+
+        # Remove features from NOC instance
+        self.features = np.array([])
 
         # Save dictionary with all NOC attributes (no features)
         if filetype == 'mat':
@@ -928,6 +942,13 @@ class NOC:
         with open(path, 'rb') as f:
             feat = pickle.load(f)
         return feat["features"]
+    
+    
+    def load_pca(self, nocs_path=config["paths"]["nocs"]):
+        path = os.path.join(nocs_path, f"pca_{self.name}").replace('\\', '/')
+        with open(path, 'rb') as f:
+            feat = pickle.load(f)
+        return feat["pca"]
         
 
     def write_csv(self, path=None):
@@ -1072,12 +1093,9 @@ class NOC:
                                      force_all_stations=True, additional_matches=metadata)
         missing_stations = features_dic["missing_stations"]
         
-        features_noc = self.preprocess()
         features_test = self.preprocess_test(features_dic["spectrogram_unfold"])
 
-        features_all = np.vstack((features_noc, features_test))
-        dummy = np.ones(len(features_noc) + len(features_test))
-        dummy[0:len(features_noc)-1] = -1
+        dummy = np.ones(len(features_test))
 
         # Get loadings      
         if components is None:
@@ -1090,14 +1108,14 @@ class NOC:
                 else:
                     loadings = self.pca.components_.T[:, components - 1]
             else:
-                pca = PCA(n_components=n_components).fit(features_noc)
+                pca_full = self.load_pca().components_.T
                 if isinstance(components, int):
-                    loadings = pca.components_.T
+                    loadings = pca_full
                 else:
-                    loadings = pca.components_.T[:, components - 1]
+                    loadings = pca_full[:, components - 1]
 
         # Calculate oMEDA
-        omeda_vec = omeda(features_all, dummy, loadings, plot=False)
+        omeda_vec = omeda(features_test, dummy, loadings, plot=False)
 
         freqs_label = features_dic["freqs_label"]
         channel_class = features_dic["channel_class"]

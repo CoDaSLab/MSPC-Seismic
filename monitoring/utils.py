@@ -420,6 +420,8 @@ def create_noc(network, station, channels, starttime:datetime, endtime:datetime,
                         preprocessing = 1, n_components = 1, quantile_threshold = 0.99, csv_path=noc_log_path)
     new_noc.set_metadata(starttime, endtime, window_size, window_shift, detrend, windowing, fft_points, 
                             merge_method, merge_fill_value, pad_fill_value)
+    if isinstance(station, list):
+        new_noc.constituents = station
     new_noc.save(os.path.join(nocs_path, new_noc.name).replace('\\', '/'))
 
     if verbose:
