@@ -54,7 +54,7 @@ echo "Networks: ${all_networks[*]}" >> "$LOG_FILE"
 echo "Stations: ${all_stations[*]}" >> "$LOG_FILE"
 echo "Channels: ${all_channels[*]}" >> "$LOG_FILE"
 
-sleep 2
+
 echo "[$(date)] Downloading data..." >> "$LOG_FILE"
 
 # Define time range (UTC)
@@ -69,7 +69,7 @@ for network in "${all_networks[@]}"; do
         -c "${all_channels[@]}" \
         --log_path "$pull_times_log" \
         --data_path "$data_path" \
-        --key_path "${ssh_key}"
+        --key_path "${ssh_key}" \
         -u >> "$LOG_FILE" 2>> "$ERROR_FILE"
 
     # If there was an error, log it

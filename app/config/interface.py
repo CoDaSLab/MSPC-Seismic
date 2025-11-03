@@ -6,7 +6,7 @@ def logo():
 @st.cache_data
 def header():
     # All buttons in one row
-    col = st.columns(6)
+    col = st.columns(5)
 
     with col[0]:
         st.page_link("home.py", label="Home", icon="🏠")
@@ -15,10 +15,8 @@ def header():
     with col[2]:
         st.page_link("./pages/rtmonitoring.py", label="Real-Time Monitoring", icon="📡")
     with col[3]:
-        st.page_link("./pages/eda_mapping.py", label="Exploratory Data Analysis", icon='📉')
-    with col[4]:
         st.page_link("./pages/download_data.py", label="Download data", icon='⬇️')
-    with col[5]:
+    with col[4]:
         st.page_link("./pages/configuration.py", label="Configuration", icon="⚙️")
 
 
