@@ -7,7 +7,6 @@ from collections import defaultdict
 import json
 
 from preprocessing.sismo import *
-from data.scripts.get_filenames import get_filenames
 
 def calculate_fft_rt(starttime, endtime, network, stations, channels=['HHE', 'HHN', 'HHZ'], 
                     window_length=10, window_shift=None, detrend=False, windowing=False, n_bins='auto', 

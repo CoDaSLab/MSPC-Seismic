@@ -45,7 +45,7 @@ import pandas as pd
 from datetime import datetime, timedelta, timezone
 import os
 import getpass
-from data.scripts.get_filenames import get_filenames
+from preprocessing.sismo import get_filenames
 
 def download_files_rt(starttime, endtime, server, user, network, stations, channels, 
                       data_path='data/involcan/mseed/', log_path = 'data/involcan/metadata/latest_pulls.csv',

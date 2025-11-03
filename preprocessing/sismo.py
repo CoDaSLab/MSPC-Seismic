@@ -4,8 +4,6 @@ from obspy.core import UTCDateTime
 from msa.feature_extraction import features
 from msa.visualization import plot
 
-# from data.scripts.get_filenames import get_filenames
-
 import concurrent.futures
 from itertools import product
 import warnings

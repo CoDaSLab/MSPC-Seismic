@@ -50,9 +50,6 @@ def get_stations(group=None):
     
     return stations
 
-def load_files(filepath="data/involcan/metadata/available_files.csv"):
-    files = pd.read_csv(filepath)
-    return files
 
 def load_last_pulls(filepath=config["paths"]["latest_pulls_log"]):
     try:
