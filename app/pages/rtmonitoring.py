@@ -24,10 +24,10 @@ group = st.session_state.group
 
 update_freq = timedelta(minutes=config["monitoring"]["update_frequency"])
 
-cols = st.columns(6)
+cols = st.columns([5, 2])
 with cols[0]:
     st.subheader("Visualization")
-with cols[5]:
+with cols[1]:
     auto_refresh = st.toggle("Refresh graph automatically", value=True)
 
 if not auto_refresh:

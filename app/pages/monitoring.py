@@ -241,8 +241,11 @@ with COL[1]:
                         endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M:%S").strftime("%Y-%m-%d %H:%M:%S")
                     except: endtime = datetime.strptime(endtime, "%Y-%m-%d %H:%M").strftime("%Y-%m-%d %H:%M:%S")
                     with st.spinner("Calculating oMEDA..."):
-                        omeda_vec, freqs_label, channel_class, stations_class, _ = noc.omeda(starttime, endtime, n_components)
-                        fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False)
+                        omeda_vec, freqs_label, channel_class, stations_class, missing_stations = noc.omeda(starttime, endtime, n_components)
+                        fig = plots.plot_omeda(omeda_vec, stations_class, channel_class, freqs_label, logscale=False,
+                                                missing_stations=missing_stations)
+                        if len(missing_stations) > 0:
+                            st.warning(f"Missing data for station{'s' if len(missing_stations)>1 else ''} {', '.join(missing_stations)} in the selected period.")
 
                     st.plotly_chart(fig, key=key + 'omeda', use_container_width=True)
         except Exception as e: 
