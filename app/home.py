@@ -29,6 +29,9 @@ def station_health_check():
 
         last_pulls = last_pulls[last_pulls["time_since_last_pull"] <= pd.Timedelta(days=30)]
         active_stations = last_pulls['station'].unique()
+        # Select only those in the current selected group
+        active_stations = set(st.session_state.group["stations"]) & set(active_stations)
+
 
         active_stations_dic = {
             'station':[],
@@ -57,10 +60,16 @@ def station_health_check():
 
 
         # Display the Map
-        map = maps.create_map()
-        map = maps.add_stations(map, stations[stations['station'].isin(active_stations)],
+        active_stations_df = stations[stations['station'].isin(active_stations)]
+        mean_lat = active_stations_df["lat"].mean()
+        mean_lon = active_stations_df["lon"].mean()
+        sw = active_stations_df[['lat', 'lon']].min().values.tolist()
+        ne = active_stations_df[['lat', 'lon']].max().values.tolist()
+        map = maps.create_map([mean_lat, mean_lon], zoom_start=10)
+        map = maps.add_stations(map, active_stations_df,
                                 color=active_stations_dic['color'],
                                 popup=active_stations_dic['popup'])
+        map.fit_bounds([sw, ne])
         maps.show_map(map)
 
     return
