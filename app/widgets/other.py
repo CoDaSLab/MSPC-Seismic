@@ -72,8 +72,9 @@ def exploration(starttime, endtime, station_list, key=None):
     if explore:
         col1, col2 = st.columns(2)
         stations = col1.multiselect("Choose stations", station_list, key=key + "_stations")
-        visualization_options = ["Raw signal", "Spectrogram", "MSPC"]
-        visualizations = col2.multiselect("Choose visualizations", visualization_options, default = visualization_options[:-1],
+        # visualization_options = ["Raw signal", "Spectrogram", "MSPC"]
+        visualization_options = ["Raw signal", "Spectrogram",]
+        visualizations = col2.multiselect("Choose visualizations", visualization_options, default = visualization_options[:],
                                           key = key + '_viz')
 
         if len(visualizations)>0 and len(stations)>0:
@@ -88,4 +89,4 @@ def exploration(starttime, endtime, station_list, key=None):
                     if visualizations[i] == visualization_options[1]:
                         fig = plots.plot_spectrogram(stations, starttime, endtime)
                         st.pyplot(fig)
-                    if visualizations[i] == visualization_options[2]: pass # plot_mspc(stations, starttime, endtime)
+                    # if visualizations[i] == visualization_options[2]: pass # plot_mspc(stations, starttime, endtime)
