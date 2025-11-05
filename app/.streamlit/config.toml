@@ -2,4 +2,10 @@
 showSidebarNavigation = false
 
 [theme]
-base="light"
+base = "light"
+
+[server]
+address = "127.0.0.1"     # Escucha solo en localhost
+port = 8501             # Puerto deseado
+enableCORS = false      # (opcional, útil si accedes desde otro equipo)
+enableXsrfProtection = false  # (opcional)
