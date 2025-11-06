@@ -14,6 +14,7 @@ if [ -z "$USER_SSH" ] || [ -z "$IP_HOST" ]; then
 fi
 
 KEY_PATH="$HOME/.ssh/$KEY_NAME"
+echo $KEY_PATH >&5
 
 echo "Remote User: $USER_SSH"
 echo "Host IP: $IP_HOST"
