@@ -6,6 +6,7 @@
 /data/involcan/metadata/anomaly_log_unsupervised.csv
 /data/involcan/metadata/latest_pulls.csv
 /data/involcan/metadata/noc_list.csv
+/data/involcan/metadata/stations_all.dat
 
 /data/*/features/**
 /data/*/nocs/**

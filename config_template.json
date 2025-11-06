@@ -11,7 +11,14 @@
   "connection": {
     "ssh_key_path": "~/.ssh/id_ed25519",
     "server_IP": "server_IP",
-    "server_user": "user"
+    "server_user": "user",
+    "mysql_connection": {
+      "mysql_update": false,
+      "user": "mysql_user",
+      "password": "mysql_password",
+      "database_name": "mysql_schema",
+      "query": "update_query"
+    }
   },
   "monitoring": {
     "auto_monitoring": true,

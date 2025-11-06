@@ -14,7 +14,6 @@ repo_path = os.path.abspath(os.path.join(script_path, "..", ".."))
 
 # Path to the JSON configuration file and path to the monitoring script
 CONFIG_JSON = repo_path+"/config.json"
-COMMANDS = [repo_path+"/monitoring/monitoring.sh"]
 
 # Read configuration from the JSON file
 def read_config(json_path):
@@ -40,29 +39,28 @@ def write_new_crontab(content):
         print("Failed to update crontab.")
 
 # Generate crontab line based on frequency
-def generate_cron_line(command, frequency):
-    if frequency == 1:
-        minute_field = "*"
+def generate_cron_line(command, frequency="daily"):
+    if frequency == "daily":
+        freq_field = "@daily"
+    elif frequency == 1:
+        freq_field = "* * * * *"
     elif 60 % frequency == 0:
-        minute_field = f"*/{frequency}"
+        freq_field = f"*/{frequency} * * * *"
     else:
-        print("Invalid frequency: it must evenly divide 60.")
+        print("Invalid frequency.")
         return None
-    return f"{minute_field} * * * * bash {command}"
+    return f"{freq_field} bash {command}"
 
 # Main function
-def main():
-    frequency = read_config(CONFIG_JSON)
+def main(commands, frequency=None):
+    if frequency is None:
+        frequency = read_config(CONFIG_JSON)
 
-    if not COMMANDS:
+    if not commands:
         print(f"No commands entered.")
         return
 
-    if not isinstance(frequency, int) or frequency < 1 or frequency > 60:
-        print("Invalid frequency. It must be an integer between 1 and 60.")
-        return
-
-    for command in COMMANDS:
+    for command in commands:
         cron_line = generate_cron_line(command, frequency)
         if not cron_line:
             return
@@ -76,4 +74,8 @@ def main():
             write_new_crontab(new_crontab)
 
 if __name__ == "__main__":
-    main()
+    command_monitoring = [repo_path+"/monitoring/monitoring.sh"]
+    main(command_monitoring)
+
+    command_update_stations = [repo_path+"/monitoring/update_stations.sh"]
+    main(command_update_stations, "daily")
