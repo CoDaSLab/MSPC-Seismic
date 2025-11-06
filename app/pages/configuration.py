@@ -200,7 +200,7 @@ if submitted:
             if new_config["connection"]["mysql_connection"]["mysql_update"] != st.session_state.previous_mysql_update \
                 or new_config["monitoring"]["auto_monitoring"] != st.session_state.previous_auto_monitoring:
                 import subprocess
-                result = subprocess.run(["python", "installation/cron_setup.py"], capture_output=True, text=True)
+                result = subprocess.run(["python", "installation/scripts/cron_setup.py"], capture_output=True, text=True)
                 
                 print(result.stdout)
                 

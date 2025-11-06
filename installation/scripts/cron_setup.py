@@ -2,6 +2,7 @@
 cron_setup.py
 
 This Python script updates the user's crontab to periodically run the monitoring script.
+It also updates the station catalog if a MySQL database is provided.
 It reads the execution frequency (in minutes) from a JSON configuration file.
 If the script is already scheduled in the crontab with a different frequency, the old entry is replaced with the new one.
 """
