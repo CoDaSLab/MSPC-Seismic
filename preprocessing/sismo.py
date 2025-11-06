@@ -206,7 +206,7 @@ def read_files(
             tr.data = np.ma.masked_array(tr.data, mask=mask, fill_value = pad_fill_value)
 
     if len(ST) == 0:
-        raise ValueError("No traces found in the files.")
+        raise ValueError(f"No traces found after reading the following files: {filenames}.")
 
     stations = sorted(set(tr.stats.station for tr in ST))
     channels = sorted(set(tr.stats.channel for tr in ST))

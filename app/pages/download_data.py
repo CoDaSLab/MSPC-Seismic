@@ -7,19 +7,19 @@ from data.involcan.pull_rt import download_files_rt
 # --- Application start ---
 init_page("Location Map")
 init_session_state()
-# st.title('Data mapping')
+st.title('Data download')
 # ------------------------
 
 group = st.session_state.group
 group_stations = get_stations(group["name"])
 all_stations = load_stations(column="code")
 
-current_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-noc_start_day = current_day - timedelta(days=st.session_state.config["monitoring"]["num_days_noc_length"])
+if all_stations is None:
+    st.error("Data download is not available because the station catalog file does not exist.")
+else:
+    current_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+    noc_start_day = current_day - timedelta(days=st.session_state.config["monitoring"]["num_days_noc_length"])
 
-COL = st.columns(1)
-
-with COL[0]:
     key = "download_data"
     starttime, endtime = select_time(key, default_start=noc_start_day, default_end=current_day)
     stations, channels = multi_select_station(key, all_stations, default_stations=all_stations, default_channels=group["channels"])
@@ -29,7 +29,6 @@ with COL[0]:
 
     with st.spinner("Downloading files. Please wait, this might take a while...", show_time=True):
         if download_button:
-
             data_path = st.session_state.config["paths"]["data"],
             ip = st.session_state.config["connection"]["server_IP"],
             user = st.session_state.config["connection"]["server_user"],

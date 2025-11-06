@@ -8,30 +8,15 @@ config = st.session_state.config
 def load_data(filepath, sep=',', header='infer'):
     return pd.read_csv(filepath,sep=sep, header=header)
 
-def load_events():
-    # Load registered events data
-    events = pd.read_csv("data/involcan/metadata/ivc.dat", header=None)
-    # Name the columns
-    events.columns =  ['year', 'month', 'day', 'hour', 'minute', 'second', 'magnitude', 'longitude', 'latitude','depth (km)','*1','*2']
-    events = events.drop(["*1","*2"], axis = 1)
-
-    time_col = ['year', 'month', 'day', 'hour', 'minute', 'second']
-    events['datetime'] = pd.to_datetime(events[time_col])
-    # Discard columns used for datetime
-    events = events.drop(time_col, axis=1)
-    # Sort by datetime
-    events = events.sort_values(by='datetime').reset_index(drop=True)
-    # Reorder columns
-    events = events[[events.columns[-1]] + list(events.columns[:-1])]
-    
-    return events
-
 def load_stations(filepath = config["paths"]["station_catalog"], column=None):
-    stations = pd.read_csv(filepath, sep=r"\t")
-
-    if column is not None:
-        # Return the specified column as a list
-        return stations[column].tolist()
+    try:
+        stations = pd.read_csv(filepath, sep="\t")
+        if column is not None:
+            # Return the specified column as a list
+            return stations[column].tolist()
+    except FileNotFoundError:
+        stations = None
+    
     return stations
 
 def get_stations(group=None):
@@ -78,40 +63,13 @@ def get_channels(group=None):
 def load_last_pulls(filepath=config["paths"]["latest_pulls_log"]):
     try:
         last_pulls = pd.read_csv(filepath)
-        last_pulls["latest_pull_time"] = pd.to_datetime(last_pulls["latest_pull_time"], utc=True)
+        last_pulls["latest_pull_time"] = pd.to_datetime(last_pulls["latest_pull_time"], utc=True, 
+                                                        format="%Y-%m-%dT%H:%M:%SZ")
     except FileNotFoundError:
         st.error("No downloaded data from any station.")
         return
     return last_pulls
 
-
-import streamlit as st
-import obspy
-from obspy.core import UTCDateTime
-@st.cache_data
-def read_streams(stations, starttime, endtime, channels=None, data_path = config["paths"]["data"]):
-    # Manage string inputs
-    if isinstance(stations, str):
-        stations = [stations]
-    if isinstance(channels, str):
-        stations = [channels]
-
-    ST = []
-    for station in stations:
-        st.write(f"Reading 2021 data for station {station}...")
-        st = obspy.Stream()
-        if channels is None:
-            # Read all channels
-            stream = obspy.read(f"{data_path}/C7.{station}.*.*.*.2021.*",
-                                    starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime))
-        else:
-            for channel in channels:
-                stream = obspy.read(f"{data_path}/C7.{station}.*.{channel}.*.2021.*",
-                                    starttime=UTCDateTime(starttime), endtime=UTCDateTime(endtime)[0])
-                stream = stream.merge()[0]
-        
-        ST.append(stream)
-    return ST
 
 def read_noc(noc_name, nocs_path = config["paths"]["nocs"]):
     from monitoring.NOC import NOC

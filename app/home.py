@@ -23,6 +23,10 @@ def station_health_check():
     last_pulls = load_last_pulls()
     stations = load_stations()
 
+    if stations is None:
+        st.error("Station catalog not available.")
+        return
+
     if last_pulls is not None:
         now = st.session_state.now
         last_pulls["time_since_last_pull"] = now-last_pulls["latest_pull_time"]

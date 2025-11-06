@@ -16,10 +16,13 @@ repo_path = os.path.abspath(os.path.join(script_path, "..", ".."))
 CONFIG_JSON = repo_path+"/config.json"
 
 # Read configuration from the JSON file
-def read_config(json_path):
+def read_config(json_path, return_all=False):
     with open(json_path, 'r') as file:
         data = json.load(file)
-        return data.get("monitoring", {}).get("update_frequency")
+        if return_all:
+            return data
+        else:
+            return data.get("monitoring", {}).get("update_frequency")
 
 # Get the current crontab content
 def get_current_crontab():
@@ -77,5 +80,7 @@ if __name__ == "__main__":
     command_monitoring = [repo_path+"/monitoring/monitoring.sh"]
     main(command_monitoring)
 
-    command_update_stations = [repo_path+"/monitoring/update_stations.sh"]
-    main(command_update_stations, "daily")
+    config = read_config(CONFIG_JSON, return_all=True)
+    if config["connection"]["mysql_connection"]["mysql_update"]:
+        command_update_stations = [repo_path+"/monitoring/update_stations.sh"]
+        main(command_update_stations, "daily")

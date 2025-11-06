@@ -196,60 +196,6 @@
       ]
     }
   },
-  "data": {
-    "stations": [
-      "PML2",
-      "PPAS",
-      "PTAB",
-      "PBB2",
-      "PLPI",
-      "PSAB",
-      "PGAR",
-      "TC13",
-      "PPMA",
-      "PCOR",
-      "TAFO",
-      "TFOR",
-      "TNOR",
-      "TVIL",
-      "TCHA",
-      "TNTE",
-      "TIFO",
-      "TANA",
-      "TSJR",
-      "TARO",
-      "TCHI",
-      "TSAN",
-      "TESP",
-      "TGUI",
-      "TSIS",
-      "TTEL",
-      "TPIC",
-      "TFAS",
-      "TSTE",
-      "GART",
-      "GGAL",
-      "GSNT",
-      "GTEL",
-      "HERE",
-      "HCAS",
-      "HISO",
-      "HJUL",
-      "HDES",
-      "HRES",
-      "HLLA",
-      "OCER",
-      "LTAO",
-      "LDEG",
-      "LDAL",
-      "FMOR"
-    ],
-    "channels": [
-      "HHE",
-      "HHN",
-      "HHZ"
-    ]
-  },
   "metadata": {
     "running": false
   }
