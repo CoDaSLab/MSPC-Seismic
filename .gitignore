@@ -21,6 +21,7 @@
 !**/README.md
 !/**/*_here
 
+
 # ignore pycache
 **/__pycache__
 # ignore matlab autosave files
@@ -34,12 +35,14 @@ backups
 
 # ignore logs 
 /monitoring/logs/
+/app/log.out
 
 # ignore user-specific configuration
 config.json
 
 # ignore conda enviroment
 installation/**/
+!installation/scripts/
 !installation/docker_legacy/
 !installation/guide_img/
 .vscode
