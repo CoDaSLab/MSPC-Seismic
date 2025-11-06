@@ -56,8 +56,5 @@ echo ""
 echo "--- INSTALLATION COMPLETE ---"
 echo ""
 
-echo "Launching application..."
-nohup streamlit run app/home.py > app/log.out &
-
 
 
