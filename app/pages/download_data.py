@@ -1,6 +1,6 @@
 from config import *
 from widgets.forms import *
-from utils.functions import get_stations
+from utils.functions import get_stations, load_stations
 
 from data.involcan.pull_rt import download_files_rt
 
@@ -12,7 +12,7 @@ init_session_state()
 
 group = st.session_state.group
 group_stations = get_stations(group["name"])
-all_stations = config["data"]["stations"]
+all_stations = load_stations(column="code")
 
 current_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
 noc_start_day = current_day - timedelta(days=st.session_state.config["monitoring"]["num_days_noc_length"])

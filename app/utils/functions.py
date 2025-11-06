@@ -26,8 +26,12 @@ def load_events():
     
     return events
 
-def load_stations(filepath = config["paths"]["station_catalog"]):
+def load_stations(filepath = config["paths"]["station_catalog"], column=None):
     stations = pd.read_csv(filepath, sep=r"\t")
+
+    if column is not None:
+        # Return the specified column as a list
+        return stations[column].tolist()
     return stations
 
 def get_stations(group=None):
@@ -49,6 +53,26 @@ def get_stations(group=None):
         raise KeyError(f"Group {group} does not exist.")
     
     return stations
+
+def get_channels(group=None):
+    """
+    Reads the configuration file and returns the list of stations for a group. If no group is given, returns all stations.
+    """
+    groups_dict = config["groups"]  # Groups of stations. Each group has a separate monitoring system
+    group_keys = list(groups_dict.keys())
+    group_names = [groups_dict[g]["name"] for g in group_keys]
+
+    if group is None:
+        channels = []
+        for g in groups_dict:
+            channels.extend(groups_dict[g]["channels"])
+    elif group in group_names:
+        idx = group_names.index(group)
+        channels = groups_dict[group_keys[idx]]["channels"]
+    else:
+        raise KeyError(f"Group {group} does not exist.")
+    
+    return channels
 
 
 def load_last_pulls(filepath=config["paths"]["latest_pulls_log"]):

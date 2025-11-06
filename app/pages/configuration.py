@@ -2,6 +2,7 @@ import streamlit as st
 from config.init import init_page, init_session_state
 
 from widgets import *
+from utils.functions import get_channels, load_stations
 
 import os
 import re
@@ -20,8 +21,8 @@ config_path = st.session_state.config_path
 
 key = "config_form"
 new_config = config
-station_list = config["data"]["stations"]
-channels = config["data"]["channels"]
+station_list = load_stations(column="code")
+channels = get_channels()
 
 with st.form(key):
     st.subheader("Directories and log files")

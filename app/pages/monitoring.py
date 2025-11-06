@@ -53,7 +53,7 @@ with COL[0]:
     with st.form(key + "selector"):
         st.write("##### Select stations and channels:")
         network = group["network"]
-        stations, channels = forms.multi_select_station(key, station_list=get_stations(), 
+        stations, channels = forms.multi_select_station(key, station_list=get_stations(group["name"]), 
                                                         default_stations=st.session_state.rt_stations, default_channels=group["channels"])
         stations = sorted(stations)
         channels = sorted(channels)

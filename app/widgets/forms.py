@@ -51,7 +51,7 @@ def multi_select_station(key, station_list=st.session_state.group["stations"], c
     stations = col[0].multiselect('Stations', station_list, key=f"station_{key}",
                                 default=default_stations)
     channels = col[1].multiselect('Channels', channel_list, key=f"channel_{key}",
-                                default=default_channels)
+                                default=default_channels, accept_new_options=True)
 
     return stations, channels
 
