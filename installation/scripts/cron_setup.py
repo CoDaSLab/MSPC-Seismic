@@ -11,7 +11,7 @@ import json
 import subprocess
 import sys, os
 script_path=sys.argv[0]
-repo_path = os.path.abspath(os.path.join(script_path, "..", ".."))
+repo_path = os.path.abspath(os.path.join(script_path, "..", "..", ".."))
 
 # Path to the JSON configuration file and path to the monitoring script
 CONFIG_JSON = repo_path+"/config.json"
