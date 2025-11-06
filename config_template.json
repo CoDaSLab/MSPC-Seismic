@@ -6,7 +6,8 @@
     "plots": "data/involcan/nocs/plots",
     "latest_pulls_log": "data/involcan/metadata/latest_pulls.csv",
     "noc_log": "data/involcan/metadata/noc_list.csv",
-    "anomaly_log": "data/involcan/metadata/anomaly_log.csv"
+    "anomaly_log": "data/involcan/metadata/anomaly_log.csv",
+    "station_catalog": "data/involcan/metadata/stations_all.dat"
   },
   "connection": {
     "ssh_key_path": "~/.ssh/id_ed25519",

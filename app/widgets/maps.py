@@ -44,11 +44,11 @@ def get_popup(row):
             datetime: {row['datetime']}"""
         iframe = folium.IFrame(html, width=150, height=150)
         
-    elif 'station' in row:
+    elif 'code' in row:
         html = f"""
         <center>
         <p style="font-family: sans-serif">
-            station: {row['station']}<br>
+            station: {row['code']}<br>
             lat: {row['latitude']}º<br>
             lon: {row['longitude']}º"""
         iframe = folium.IFrame(html, width=150, height=70)
@@ -159,7 +159,7 @@ def draw_map(map= None):
 
 
 from shapely.geometry import Point, Polygon
-def is_inside(row, polygon, lon_label = 'lon', lat_label='lat'):
+def is_inside(row, polygon, lon_label = 'longitude', lat_label='latitude'):
     point = Point(row[lon_label], row[lat_label]) 
     return polygon.contains(point)
 
@@ -202,9 +202,9 @@ def add_stations(m, stations:pd.DataFrame, color=None, popup:list= None):
     if popup is None: popup = [""]*len(stations)
     for i in range(len(stations)):
         folium.Marker(
-        location=[stations.iloc[i]['lat'], stations.iloc[i]['lon']],
-        popup=folium.Popup("<u>"+stations.iloc[i]['station']+"</u>"+popup[i], max_width=500),
-        tooltip="<u>"+stations.iloc[i]['station']+"</u>"+popup[i],
+        location=[stations.iloc[i]['latitude'], stations.iloc[i]['longitude']],
+        popup=folium.Popup("<u>"+stations.iloc[i]['code']+"</u>"+popup[i], max_width=500),
+        tooltip="<u>"+stations.iloc[i]['code']+"</u>"+popup[i],
         icon=folium.Icon(color=color[i], icon="cloud")
         ).add_to(marked_map)
     return marked_map

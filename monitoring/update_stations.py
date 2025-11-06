@@ -48,7 +48,8 @@ def download_mysql_table(config_path='config.json'):
     key_path = os.path.expanduser(ssh_key_path).replace('\\', '/')
 
     print(f"Connecting to {server_IP} as {ssh_user}...")
-    client.connect(server_IP, username=ssh_user, key_filename=key_path)
+    client.connect(server_IP, username=ssh_user, key_filename=key_path,
+                   disabled_algorithms={'pubkeys': ['rsa-sha2-256', 'rsa-sha2-512']})
 
     # ---------------------------- Execute query -----------------------------
 

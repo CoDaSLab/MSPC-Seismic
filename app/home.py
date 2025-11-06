@@ -60,11 +60,11 @@ def station_health_check():
 
 
         # Display the Map
-        active_stations_df = stations[stations['station'].isin(active_stations)]
-        mean_lat = active_stations_df["lat"].mean()
-        mean_lon = active_stations_df["lon"].mean()
-        sw = active_stations_df[['lat', 'lon']].min().values.tolist()
-        ne = active_stations_df[['lat', 'lon']].max().values.tolist()
+        active_stations_df = stations[stations['code'].isin(active_stations)]
+        mean_lat = active_stations_df['latitude'].mean()
+        mean_lon = active_stations_df['longitude'].mean()
+        sw = active_stations_df[['latitude', 'longitude']].min().values.tolist()
+        ne = active_stations_df[['latitude', 'longitude']].max().values.tolist()
         map = maps.create_map([mean_lat, mean_lon], zoom_start=10)
         map = maps.add_stations(map, active_stations_df,
                                 color=active_stations_dic['color'],

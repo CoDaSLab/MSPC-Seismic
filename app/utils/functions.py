@@ -26,8 +26,8 @@ def load_events():
     
     return events
 
-def load_stations(filepath = config["paths"]["station_catalog"], column_names=["station", "lat", "lon", "height"] ):
-    stations = pd.read_csv(filepath, sep=r"\s+",names=column_names)
+def load_stations(filepath = config["paths"]["station_catalog"]):
+    stations = pd.read_csv(filepath, sep=r"\t")
     return stations
 
 def get_stations(group=None):
