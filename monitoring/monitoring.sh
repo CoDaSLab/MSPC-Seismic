@@ -23,6 +23,7 @@ auto_monitoring=$(jq -r '.monitoring.auto_monitoring' "$CONFIG_FILE")
 server_ip=$(jq -r '.connection.server_IP' "$CONFIG_FILE")
 server_user=$(jq -r '.connection.server_user' "$CONFIG_FILE")
 ssh_key=$(jq -r '.connection.ssh_key_path' "$CONFIG_FILE")
+ssh_key_passphrase=$(jq -r '.connection.ssh_key_passphrase' "$CONFIG_FILE")
 pull_times_log=$(jq -r '.paths.latest_pulls_log' "$CONFIG_FILE")
 data_path=$(jq -r '.paths.data' "$CONFIG_FILE")
 
@@ -70,6 +71,7 @@ for network in "${all_networks[@]}"; do
         --log_path "$pull_times_log" \
         --data_path "$data_path" \
         --key_path "${ssh_key}" \
+        --passphrase "${ssh_key_passphrase}" \
         -u >> "$LOG_FILE" 2>> "$ERROR_FILE"
 
     # If there was an error, log it

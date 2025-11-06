@@ -10,6 +10,7 @@
   },
   "connection": {
     "ssh_key_path": "~/.ssh/id_ed25519",
+    "ssh_key_passphrase": null,
     "server_IP": "server_IP",
     "server_user": "user"
   },
