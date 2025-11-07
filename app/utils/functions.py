@@ -24,18 +24,21 @@ def get_stations(group=None):
     Reads the configuration file and returns the list of stations for a group. If no group is given, returns all stations.
     """
     groups_dict = config["groups"]  # Groups of stations. Each group has a separate monitoring system
-    group_keys = list(groups_dict.keys())
-    group_names = [groups_dict[g]["name"] for g in group_keys]
+    if groups_dict:
+        group_keys = list(groups_dict.keys())
+        group_names = [groups_dict[g]["name"] for g in group_keys]
 
-    if group is None:
-        stations = []
-        for g in groups_dict:
-            stations.extend(groups_dict[g]["stations"])
-    elif group in group_names:
-        idx = group_names.index(group)
-        stations = groups_dict[group_keys[idx]]["stations"]
+        if group is None:
+            stations = []
+            for g in groups_dict:
+                stations.extend(groups_dict[g]["stations"])
+        elif group in group_names:
+            idx = group_names.index(group)
+            stations = groups_dict[group_keys[idx]]["stations"]
+        else:
+            raise KeyError(f"Group {group} does not exist.")
     else:
-        raise KeyError(f"Group {group} does not exist.")
+        stations = []
     
     return stations
 

@@ -53,13 +53,19 @@ def init_session_state():
     config = load_config(config_path)
     if 'config' not in st.session_state: st.session_state.config = config
 
-    # Load a group with an active monitoring system into session state
-    group_keys = list(config["groups"].keys())
-    active_group_keys = [group_keys[i] for i, g in enumerate(group_keys) if config["groups"][g]["active"]]
-    if 'group' not in st.session_state: st.session_state.group = config["groups"][active_group_keys[0]]
+    if config["groups"]:
+        # Load a group with an active monitoring system into session state
+        group_keys = list(config["groups"].keys())
+        active_group_keys = [group_keys[i] for i, g in enumerate(group_keys) if config["groups"][g]["active"]]
+        if 'group' not in st.session_state: st.session_state.group = config["groups"][active_group_keys[0]]
 
-    if 'station' not in st.session_state: st.session_state.station = st.session_state.group["stations"][0]
-    if 'channel' not in st.session_state: st.session_state.channel = st.session_state.group["channels"][0]
+        if 'station' not in st.session_state: st.session_state.station = st.session_state.group["stations"][0]
+        if 'channel' not in st.session_state: st.session_state.channel = st.session_state.group["channels"][0]
+        if 'group_exists' not in st.session_state: st.session_state.group_exists = True
+    else:
+        if 'group_exists' not in st.session_state: st.session_state.group_exists = False
+        if 'group' not in st.session_state: st.session_state.group = {"name": "", "active": False, "network": "",
+                                                                      "stations": [], "channels": []}
 
     # Default start and end times
     if 'start_date' not in st.session_state: st.session_state.start_date = datetime.now(timezone.utc)-timedelta(days=1)

@@ -6,7 +6,7 @@ from scipy.io import savemat, loadmat
 from collections import defaultdict
 from pickle import UnpicklingError
 
-from preprocessing.fft_rt import calculate_fft_rt, delete_fft, list_fft_files, find_features
+from preprocessing.fft_rt import calculate_fft_rt, delete_fft, find_features
 from monitoring.mspc_rt import mspc, plot_anomalies_DQ
 from monitoring import NOC
 from monitoring import utils
@@ -64,7 +64,6 @@ def monitoring(config_path = 'config.json'):
     num_hours_plot = config["monitoring"]["plots"]["num_hours"]  # Length in hours of the time range shown in MSPC plots
     num_days_noc_update_frequency = config["monitoring"]["num_days_noc_update_frequency"]  # Number of days between dynamic NOC updates
     num_days_noc_length = config["monitoring"]["num_days_noc_length"]  # Number of days used as training data
-    max_missing_rate = config["monitoring"]["max_missing_rate"]  # Maximum rate of missing values allowed
     
     config_str = json.dumps(config)  # config in string form
 
