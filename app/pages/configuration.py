@@ -121,10 +121,10 @@ with st.form(key):
             new_config["connection"]["mysql_connection"]["user"] = st.text_input("MySQL username", 
                                                                                 value=config["connection"]["mysql_connection"]["user"])
         with cols[1]:
-            # new_config["connection"]["mysql_connection"]["password"] = st.text_input("MySQL password", type="password",
-            #                                                                     value=config["connection"]["mysql_connection"]["password"])
-            new_config["connection"]["mysql_connection"]["database_name"] = st.text_input("MySQL database name", 
-                                                                                        value=config["connection"]["mysql_connection"]["database_name"])
+            new_config["connection"]["mysql_connection"]["password"] = st.text_input("MySQL password", type="password",
+                                                                                    value=config["connection"]["mysql_connection"]["password"])
+        new_config["connection"]["mysql_connection"]["database_name"] = st.text_input("MySQL database name", 
+                                                                                    value=config["connection"]["mysql_connection"]["database_name"])
         new_config["connection"]["mysql_connection"]["query"] = st.text_input("MySQL query", 
                                                                                 value=config["connection"]["mysql_connection"]["query"])
 
