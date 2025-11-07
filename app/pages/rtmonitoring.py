@@ -128,6 +128,8 @@ if st.session_state.group_exists:
                                         st.warning(f"Missing data for station{'s' if len(missing_stations)>1 else ''} {', '.join(missing_stations)} in the selected period.")
 
                             st.plotly_chart(fig, use_container_width=True)
+                except TypeError:
+                    col2.error("No data to compute oMEDA.")
                 except Exception as e: 
                     col2.error(f"Error computing oMEDA. {e}")
             

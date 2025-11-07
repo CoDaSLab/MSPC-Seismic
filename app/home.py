@@ -36,9 +36,10 @@ if st.session_state.group_exists:
 
             last_pulls = last_pulls[last_pulls["time_since_last_pull"] <= pd.Timedelta(days=30)]
             active_stations = last_pulls['station'].unique()
+
             # Select only those in the current selected group
             active_stations = set(st.session_state.group["stations"]) & set(active_stations)
-
+            active_stations = sorted(active_stations)
 
             active_stations_dic = {
                 'station':[],
@@ -48,7 +49,7 @@ if st.session_state.group_exists:
             }
 
             for active_station in active_stations:
-                station_rows = last_pulls[ last_pulls["station"] == active_station]    
+                station_rows = last_pulls[ last_pulls["station"] == active_station]
                 time = station_rows["time_since_last_pull"].max()
 
                 if   time < pd.Timedelta(minutes=5): color = "green" 

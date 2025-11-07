@@ -2,6 +2,8 @@ import pandas as pd
 from config.init import init_session_state
 import streamlit as st
 
+import numpy as np
+
 init_session_state()
 config = st.session_state.config
 
@@ -34,7 +36,7 @@ def get_stations(group=None):
                 stations.extend(groups_dict[g]["stations"])
         elif group in group_names:
             idx = group_names.index(group)
-            stations = groups_dict[group_keys[idx]]["stations"]
+            stations = np.unique(groups_dict[group_keys[idx]]["stations"])
         else:
             raise KeyError(f"Group {group} does not exist.")
     else:
@@ -60,7 +62,7 @@ def get_channels(group=None):
     else:
         raise KeyError(f"Group {group} does not exist.")
     
-    return channels
+    return np.unique(channels)
 
 
 def load_last_pulls(filepath=config["paths"]["latest_pulls_log"]):

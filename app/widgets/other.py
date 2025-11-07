@@ -28,7 +28,8 @@ def noc_summary(noc_name, nocs_path=config["paths"]["nocs"]):
         st.markdown("##### :orange[**Information**]")
         st.markdown(f"**Name:** {noc.name}")
         st.markdown(f"**Network:** {noc.network}")
-        st.markdown(f"**Station:** {noc.station}")
+        st.markdown(f"**Stations:** {", ".join(noc.station)}. ({len(noc.station)} stations)")
+        st.markdown(f"**Channels:** {", ".join(noc.channels)}. ({len(noc.channels)} channels)")
         st.markdown(f"**NOC type:** {noc.type}")
         st.markdown(f"**Start time:** {starttime}")
         st.markdown(f"**End time:** {endtime}")
@@ -36,7 +37,8 @@ def noc_summary(noc_name, nocs_path=config["paths"]["nocs"]):
         
         st.markdown("##### :orange[**Parameters**]")
         st.markdown(f"**Features shape:** {noc.features_shape}")
-        st.markdown(f"**Preprocessing:** {'mean-centering' if noc.preprocessing == 1 else 'autoscaling'}")
+        prep = {1: 'mean-centering', 2: 'autoscaling', 3: "block-scaling"}
+        st.markdown(f"**Preprocessing method:** {prep[noc.preprocessing]}")
         st.markdown(f"**Number of principal components:** {noc.n_components}")
         st.markdown(f"**Percentile:** {noc.quantile_threshold * 100}")
 

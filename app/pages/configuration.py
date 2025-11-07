@@ -82,7 +82,7 @@ with st.form(key):
                     new_config["groups"][group]["active"] = st.toggle("Real-time monitoring", value=config["groups"][group]["active"], key = gkey + '_active',
                                                                 help=f"Choose whether or not group {gname} is monitored in real time.")
                     new_config["groups"][group]["network"] = st.text_input("Network", value=config["groups"][group]["network"], disabled=False, key=gkey + '_network')
-                new_config["groups"][group]["stations"], new_config["groups"][group]["channels"] = forms.multi_select_station(gkey, station_list, 
+                new_config["groups"][group]["stations"], new_config["groups"][group]["channels"] = forms.multi_select_station(gkey, station_list, channels,
                                                                                                         default_stations=config["groups"][group]["stations"], 
                                                                                                         default_channels=config["groups"][group]["channels"])
 
@@ -201,16 +201,19 @@ if submitted:
                 or new_config["monitoring"]["auto_monitoring"] != st.session_state.previous_auto_monitoring:
                 import subprocess
                 result = subprocess.run(["python", "installation/scripts/cron_setup.py"], capture_output=True, text=True)
-                
-                print(result.stdout)
-                
+
         st.session_state.config = new_config
         if not new_config["monitoring"]["auto_monitoring"]:
             st.warning("Real-time monitoring is disabled.", icon="⚠️")
         st.success("Configuration saved successfully.", icon = "✔️")
 
+        rerun_button = st.button("Reload app", width='stretch')
+        if rerun_button:
+            st.rerun()
 
-# Add new group
+
+# ==========================  Add new group  ==========================
+
 if station_list is not None:
     with st.expander("Create a new group"):
         with st.form("Select the new group's parameters"):
@@ -230,9 +233,9 @@ if station_list is not None:
             with col2:
                 new_g["network"] = st.text_input("Network", value=st.session_state.group["network"], 
                                                 disabled=False, key=gkey + '_network')
-            new_g["stations"], new_g["channels"] = forms.multi_select_station(gkey, station_list, 
-                                                                            default_stations=st.session_state.group["stations"], 
-                                                                            default_channels=st.session_state.group["channels"])
+            new_g["stations"], new_g["channels"] = forms.multi_select_station(gkey, station_list, channels,
+                                                                              default_stations=None, 
+                                                                              default_channels=None)
 
             n_stations.append(len(new_g["stations"]))
             n_channels.append(len(new_g["channels"]))
@@ -260,7 +263,12 @@ if station_list is not None:
                     with open(config_path, "w") as f:
                         json.dump(new_config_g, f, indent=4)
                 st.session_state.config = new_config_g
+                st.session_state.group = new_g
                 st.success("New group created successfully. Configuration updated.", icon = "✔️")
+                
+                rerun_button = st.button("Reload app", width='stretch')
+                if rerun_button:
+                    st.rerun()
 
 # st.header("Current configuration")
 # st.json(config)
