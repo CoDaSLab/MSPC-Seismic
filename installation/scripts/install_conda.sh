@@ -10,6 +10,7 @@ echo Deleting residual files...
 rm Miniconda3-latest-Linux-x86_64.sh
 
 echo Starting and updating conda...
+[ -f ~/.bashrc ] || cp /etc/skel/.bashrc ~
 bash -i -c "source ~/.bashrc && ./miniconda3/bin/conda init && conda update conda --yes && conda --version"
 
 echo Installation finished!
