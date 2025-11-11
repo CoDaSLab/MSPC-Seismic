@@ -55,6 +55,8 @@ python3 "$directory"/scripts/cron_setup.py
 echo ""
 echo "--- INSTALLATION COMPLETE ---"
 echo ""
+echo You can now launch the application using: bash launch_app.sh
+
 
 
 

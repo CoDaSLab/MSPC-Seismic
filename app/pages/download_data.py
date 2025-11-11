@@ -23,7 +23,7 @@ else:
     key = "download_data"
     starttime, endtime = select_time(key, default_start=noc_start_day, default_end=current_day)
     network = st.text_input("Network", value=group["network"])
-    stations, channels = multi_select_station(key, all_stations, default_stations=all_stations, default_channels=group["channels"])
+    stations, channels = multi_select_station(key, all_stations, default_stations=all_stations, channel_list=group["channels"],default_channels=group["channels"])
 
     download_button = st.button("Download files", type="primary", use_container_width=True)
 
