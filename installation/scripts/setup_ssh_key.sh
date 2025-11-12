@@ -36,6 +36,9 @@ echo "Keys $KEY_NAME and $KEY_NAME.pub created successfully."
 echo "---"
 
 # --- 3. Key Copy to Server ---
+echo Adding "$IP_HOST" to ~/.ssh/known_hosts ...
+ssh-keyscan -H "$IP_HOST" >> ~/.ssh/known_hosts
+echo ""
 echo "Copying public key $KEY_NAME.pub to $USER_SSH@$IP_HOST..."
 ssh-copy-id -i "$KEY_PATH.pub" "$USER_SSH"@"$IP_HOST"
 
