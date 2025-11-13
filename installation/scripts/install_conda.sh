@@ -21,8 +21,11 @@ PROJECT_ROOT=$(dirname "$SCRIPT_DIR")
 full_path="$PROJECT_ROOT"/miniconda3/etc/profile.d/conda.sh
 source "$full_path"
 
+
 conda init
 conda activate base
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
 conda update conda --yes
 
 conda --version
