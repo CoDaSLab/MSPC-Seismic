@@ -43,8 +43,8 @@
     "endtime": "auto"
   },
   "features": {
-    "window_size": 2,
-    "window_shift": 2,
+    "window_size": 5,
+    "window_shift": 5,
     "windowing": false,
     "detrend": "constant",
     "types": [
