@@ -22,7 +22,7 @@ if ! conda activate lafragua; then
     exit 1
 fi
 
-nohup streamlit run "$SCRIPT_DIR/app/home.py" --server.port $PORT > "$SCRIPT_DIR/app/log.out" 2>&1 &
+nohup streamlit run "$SCRIPT_DIR/app/home.py" --server.port $PORT --server.showEmailPrompt=False > "$SCRIPT_DIR/app/log.out" 2>&1 &
 STREAMLIT_PID=$!
 
 sleep 2
