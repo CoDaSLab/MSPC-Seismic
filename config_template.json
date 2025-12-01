@@ -57,7 +57,7 @@
       "fft_points": "auto"
     },
     "noc_params": {
-      "preprocessing": 1,
+      "preprocessing": 3,
       "n_components": 1,
       "quantile_threshold": 0.99
     }
