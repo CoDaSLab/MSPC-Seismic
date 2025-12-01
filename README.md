@@ -6,7 +6,8 @@ The primary goal of this platform is to aggregate and process data from the vari
 
 The system is managed through an interactive streamlit based web application that allows for the joint visualization and analysis of signals from multiple seismic stations. For more information on the installation and usage of the tool, refer to the pdf manual in the repository.
 
-![DigiVolCan Logo](DIGIVOLCAN.jpg)
+![DigiVolCan Logo](https://github.com/user-attachments/assets/a0c83808-8126-4d4d-8e56-8f6ced681b95)
+
 
 ### Authors and Contact
 
