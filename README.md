@@ -1,25 +1,16 @@
-# DigiVolCan: Monitoring and data exploration
-This repository was developed as part of  Work Package _WP 1.3: Exploratory data analysis of volcano seismic data_ of the project _DigiVolCan: A digital infrastructure for eruption forecast in the Canary Islands" (Ref. PLEC2022-009271)_.
-![logo](https://github.com/user-attachments/assets/abcf9c3e-67c2-493b-86cc-597f5e179d9f)
+# MSPC-Seismic: Multivariate Statistical Process Monitoring System for Seismic Processes
 
-## Contents
-Within this repository you will find the code used for the exploration and monitoring of seismic data. The structure and contents of the folders are described below. Each of the repository's folders contains more detailed information about the contents.
+MSPC-Seismic is a software system developed for the Multivariate Statistical Process Monitoring (MSPC) of seismic data. It was created as part of the DigiVolCan: A digital infrastructure for eruption forecast in the Canary Islands project (Ref. PLEC2022-009271).
 
-### /data
-This folder contains the data to analyze and feed the models. The data should fit the directory structure showed within.
+The primary goal of this platform is to aggregate and process data from the various seismic sensors in the Canary Islands belonging to the Involcan network. The system provides a unified platform for observing real-time updates and performing interpretable diagnostics of seismic measurements using multivariate statistical techniques.
 
-### /preprocessing
-Code used for the preprocessing of the data and preparation for the _Multivariate Exploratory Data Analysis (MEDA)_. All code in this folder is in **Python**.
+The system is managed through an interactive streamlit based web application that allows for the joint visualization and analysis of signals from multiple seismic stations. For more information on the installation and usage of the tool, refer to the pdf manual in the repository.
 
-### /exploration
-The code in this folder is used to perform exploratory data analysis on the data using the _MEDA-Toolbox_. All code in this folder is in **MatLab**.
 
-### /monitoring (WIP)
-Code used by the real-time monitoring system. All code in this folder is in **Python**.
+### Authors and Contact
 
-### /app
-This folder contains the code used by the streamlit-based web application of the system. All code in this folder is in **Python**.
+    Written by: Jesús García Sánchez and Daniel Vallejo España 
 
-### /installation (WIP)
-This folder contains the installation instructions of the software, as well as the necessary files. The installation is made with **Docker**.
+    Supervised by: José Camacho Páez
 
+    Contact Email: gsus@ugr.es
