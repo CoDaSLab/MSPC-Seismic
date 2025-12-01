@@ -68,6 +68,7 @@ for network in "${all_networks[@]}"; do
     python -m data.involcan.pull_rt "$today" "$now" "${server_ip}" "${server_user}" "$network" \
         -s "${all_stations[@]}" \
         -c "${all_channels[@]}" \
+        -v \
         --log_path "$pull_times_log" \
         --data_path "$data_path" \
         --key_path "${ssh_key}" \
